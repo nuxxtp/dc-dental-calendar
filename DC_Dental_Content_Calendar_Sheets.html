@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DC Dental — Content Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:#1A6FB5;--blue-dark:#0D3F6E;--blue-light:#E8F4FD;--blue-mid:#2980C4;
+  --accent:#F0A500;--green:#27AE60;--red:#E74C3C;--orange:#E67E22;--purple:#8E44AD;
+  --gray:#ECF0F1;--gray-dark:#7F8C8D;--text:#1A1A2E;--white:#FFFFFF;--bg:#F4F7FB;
+  --shadow:0 2px 12px rgba(26,111,181,0.10);--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);color:white;
+  padding:16px 28px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 20px rgba(13,63,110,0.25);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:40px;height:40px;background:white;border-radius:10px;display:flex;
+  align-items:center;justify-content:center;font-size:20px;}
+.logo h1{font-family:'Prompt',sans-serif;font-size:17px;font-weight:700;}
+.logo p{font-size:11px;opacity:0.7;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.month-nav{display:flex;align-items:center;gap:6px;}
+.month-nav button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
+  color:white;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:17px;transition:background 0.2s;}
+.month-nav button:hover{background:rgba(255,255,255,0.28);}
+.month-label{font-family:'Prompt',sans-serif;font-size:15px;font-weight:600;min-width:155px;text-align:center;}
+.btn-add{background:var(--accent);color:white;border:none;border-radius:10px;
+  padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
+.btn-add:hover{background:#d4920a;transform:translateY(-1px);}
+.stats-bar{background:white;padding:12px 28px;display:flex;gap:20px;align-items:center;
+  border-bottom:1px solid #E0EAF4;flex-wrap:wrap;}
+.stat-item{display:flex;align-items:center;gap:7px;}
+.stat-dot{width:9px;height:9px;border-radius:50%;}
+.stat-label{font-size:12px;color:var(--gray-dark);}
+.stat-count{font-size:13px;font-weight:700;}
+.filter-row{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{border:1.5px solid #D0DCE8;background:white;border-radius:20px;
+  padding:3px 12px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;
+  transition:all 0.2s;color:var(--gray-dark);}
+.filter-btn.active,.filter-btn:hover{border-color:var(--blue);background:var(--blue-light);color:var(--blue);font-weight:600;}
+.calendar-wrap{padding:18px 28px 40px;}
+.day-headers{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:5px;}
+.day-header{text-align:center;font-size:11px;font-weight:700;color:var(--gray-dark);
+  padding:7px 0;letter-spacing:0.5px;}
+.day-header.weekend{color:var(--red);}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.day-cell{background:white;border-radius:10px;min-height:120px;border:1.5px solid #E4EDF5;
+  padding:7px;transition:border-color 0.2s,box-shadow 0.2s;position:relative;
+  overflow:hidden;display:flex;flex-direction:column;}
+.day-cell:hover{border-color:var(--blue-mid);box-shadow:var(--shadow);}
+.day-cell.other-month{background:#F9FAFC;border-color:#EDF0F3;}
+.day-cell.other-month .day-num-text{color:#C5CDD6;}
+.day-cell.today{border-color:var(--accent);}
+.day-cell.today::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);}
+.day-cell.dragover{border-color:var(--blue);background:var(--blue-light);}
+.day-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.day-num-text{font-size:12px;font-weight:700;}
+.festival-badge{font-size:8px;color:var(--orange);font-weight:700;background:#FEF3E2;
+  padding:1px 5px;border-radius:4px;white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis;}
+.day-add-btn{opacity:0;font-size:15px;color:var(--blue);cursor:pointer;
+  transition:opacity 0.2s;background:none;border:none;line-height:1;flex-shrink:0;}
+.day-cell:hover .day-add-btn{opacity:1;}
+.post-card{border-radius:7px;overflow:hidden;margin-bottom:3px;border:1px solid #E4EDF5;
+  cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;}
+.post-card:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(26,111,181,0.15);}
+.pc-inner{display:flex;align-items:center;gap:5px;padding:4px 5px;}
+.pc-thumb{width:34px;height:34px;border-radius:5px;background:var(--blue-light);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;
+  overflow:hidden;}
+.pc-thumb img{width:100%;height:100%;object-fit:cover;}
+.pc-info{flex:1;min-width:0;}
+.pc-title{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
+.pc-meta{display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:wrap;}
+.pbadge{font-size:8px;padding:1px 4px;border-radius:3px;font-weight:700;white-space:nowrap;}
+.p-fb{background:#E7F0FF;color:#1877F2;}
+.p-ig{background:#FDE7F3;color:#C13584;}
+.p-both{background:#E8F4FD;color:var(--blue);}
+.t-video{background:#FEF0D9;color:var(--orange);}
+.t-photo{background:#E8F8F0;color:var(--green);}
+.t-reel{background:#F3E5F5;color:var(--purple);}
+.t-story{background:#FDE7F3;color:#C13584;}
+.t-carousel{background:#E8F4FD;color:var(--blue);}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.s-draft{background:var(--gray-dark);}
+.s-ready{background:var(--accent);}
+.s-posted{background:var(--green);}
+.more-tag{font-size:9px;color:var(--blue);font-weight:700;padding:2px 4px;cursor:pointer;text-align:center;}
+.empty-hint{font-size:10px;color:#D5DCE4;text-align:center;margin-top:auto;padding:4px 0;}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,63,110,0.45);
+  backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:18px;width:100%;max-width:540px;max-height:92vh;
+  overflow-y:auto;box-shadow:0 20px 60px rgba(13,63,110,0.25);animation:slideUp 0.22s ease;}
+@keyframes slideUp{from{transform:translateY(18px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-header{padding:22px 26px 14px;border-bottom:1px solid #E4EDF5;
+  display:flex;align-items:center;justify-content:space-between;}
+.modal-header h2{font-family:'Prompt',sans-serif;font-size:17px;color:var(--blue-dark);}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-dark);line-height:1;}
+.modal-close:hover{color:var(--red);}
+.modal-body{padding:18px 26px 26px;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:11px;font-weight:700;color:var(--gray-dark);
+  margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
+.form-row input,.form-row select,.form-row textarea{width:100%;border:1.5px solid #D0DCE8;
+  border-radius:9px;padding:9px 12px;font-family:'Sarabun',sans-serif;font-size:13px;
+  color:var(--text);transition:border-color 0.2s;outline:none;background:white;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,111,181,0.1);}
+.form-row textarea{resize:vertical;min-height:75px;line-height:1.6;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.thumb-upload{border:2px dashed #D0DCE8;border-radius:10px;padding:16px;
+  text-align:center;cursor:pointer;transition:all 0.2s;position:relative;}
+.thumb-upload:hover{border-color:var(--blue);background:var(--blue-light);}
+.thumb-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.thumb-upload p{font-size:12px;color:var(--gray-dark);margin-top:5px;}
+#thumbPreview{width:100%;max-height:130px;object-fit:cover;border-radius:7px;margin-top:8px;display:none;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.btn-cancel{background:var(--gray);border:none;border-radius:9px;padding:9px 18px;
+  font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;color:var(--gray-dark);}
+.btn-cancel:hover{background:#dde1e4;}
+.btn-save{background:var(--blue);color:white;border:none;border-radius:9px;padding:9px 22px;
+  font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-save:hover{background:var(--blue-dark);}
+.btn-delete{background:var(--red);color:white;border:none;border-radius:9px;padding:9px 14px;
+  font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;margin-right:auto;}
+.btn-delete:hover{background:#c0392b;}
+
+.ch-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.12);}
+.ch-dc-dental{background:#FFFFFF;color:#1A6FB5;border-color:#1A6FB5;}
+.ch-dc-aligner{background:#1A6FB5;color:#FFFFFF;}
+.ch-junfun{background:#C4A882;color:#FFFFFF;}
+.ch-implant{background:#3D3D3D;color:#FFFFFF;}
+.ch-dr-north{background:#E67E22;color:#FFFFFF;}
+.ch-dr-daran{background:#27AE60;color:#FFFFFF;}
+.ch-unknown{background:#ECF0F1;color:#7F8C8D;}
+/* VIEW */
+.view-field{margin-bottom:12px;}
+.vfl{font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.vfv{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
+#viewThumb{width:100%;height:auto;object-fit:contain;border-radius:9px;margin-bottom:14px;display:none;}
+.badge-row{display:flex;gap:6px;flex-wrap:wrap;}
+.vbadge{padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;}
+@media(max-width:640px){
+  header{padding:10px 14px;}
+  .calendar-wrap{padding:10px 8px 30px;}
+  .stats-bar{padding:10px 14px;}
+  .day-cell{min-height:80px;}
+  .form-grid{grid-template-columns:1fr;}
+}
+
+@media print {
+  header, .stats-bar, .modal-overlay { display: none !important; }
+  body { background: white !important; }
+  .calendar-wrap { padding: 10px !important; }
+  .day-cell { break-inside: avoid; border: 1px solid #ccc !important; min-height: 90px !important; }
+  .day-add-btn { display: none !important; }
+  .pc-thumb { width: 28px !important; height: 28px !important; }
+  .print-header { display: block !important; }
+}
+.print-header { display: none; text-align: center; padding: 12px 0 6px; font-family: 'Prompt', sans-serif; }
+.btn-export { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  color: white; border-radius: 10px; padding: 8px 14px; font-family: 'Sarabun', sans-serif;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 5px; }
+.btn-export:hover { background: rgba(255,255,255,0.28); }
+</style>
+</head>
+<body>
+
+<div class="print-header" id="printHeader"><h2 style="font-size:20px;color:#0D3F6E">🦷 DC Dental Clinic — Content Calendar</h2><p id="printMonthLabel" style="font-size:14px;color:#7F8C8D;margin-top:4px"></p></div>
+<header>
+  <div class="logo">
+    <div class="logo-icon">🦷</div>
+    <div>
+      <h1>DC Dental Clinic</h1>
+      <p>Content Calendar — จันทบุรี</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <span class="month-label" id="monthLabel"></span>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+    <button class="btn-export" onclick="printCalendar()">🖨️ พิมพ์/Share</button>
+    <button class="btn-add" onclick="openAdd()">＋ เพิ่มโพสต์</button>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-dot" style="background:var(--gray-dark)"></div><span class="stat-label">Draft</span><span class="stat-count" id="cDraft">0</span></div>
+  <div class="stat-item"><div class="stat-dot" style="background:var(--accent)"></div><span class="stat-label">Ready</span><span class="stat-count" id="cReady">0</span></div>
+  <div class="stat-item"><div class="stat-dot" style="background:var(--green)"></div><span class="stat-label">Posted</span><span class="stat-count" id="cPosted">0</span></div>
+  <div class="stat-item" style="padding-left:14px;border-left:1px solid #E0EAF4"><span class="stat-label">รวมเดือนนี้</span> <span class="stat-count" id="cTotal">0</span></div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setFilter('all',this)">ทั้งหมด</button>
+    <button class="filter-btn" onclick="setFilter('draft',this)">Draft</button>
+    <button class="filter-btn" onclick="setFilter('ready',this)">Ready</button>
+    <button class="filter-btn" onclick="setFilter('posted',this)">Posted</button>
+    <button class="filter-btn" onclick="setFilter('video',this)">วิดีโอ</button>
+    <button class="filter-btn" onclick="setFilter('photo',this)">รูป</button>
+  </div>
+</div>
+
+<div class="calendar-wrap">
+  <div class="day-headers">
+    <div class="day-header">จันทร์</div>
+    <div class="day-header">อังคาร</div>
+    <div class="day-header">พุธ</div>
+    <div class="day-header">พฤหัส</div>
+    <div class="day-header">ศุกร์</div>
+    <div class="day-header weekend">เสาร์</div>
+    <div class="day-header weekend">อาทิตย์</div>
+  </div>
+  <div class="calendar-grid" id="calGrid"></div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">➕ เพิ่มโพสต์ใหม่</h2>
+      <button class="modal-close" onclick="closeModal('addModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row"><label>ชื่อโพสต์ / Topic *</label>
+        <input type="text" id="fTitle" placeholder="เช่น เคสจัดฟัน DAMON คุณแพรวา"></div>
+      <div class="form-grid">
+        <div class="form-row"><label>วันที่ลง *</label><input type="date" id="fDate"></div>
+        <div class="form-row"><label>เวลา</label><input type="time" id="fTime" value="19:00"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>แพลตฟอร์ม</label>
+          <select id="fPlatform">
+            <option value="both">FB + IG (Cross-post)</option>
+            <option value="fb">Facebook เท่านั้น</option>
+            <option value="ig">Instagram เท่านั้น</option>
+          </select></div>
+        <div class="form-row"><label>ประเภทคอนเทนต์</label>
+          <select id="fType">
+            <option value="video">🎬 วิดีโอ / Reels</option>
+            <option value="photo">📷 รูปภาพ</option>
+            <option value="reel">⚡ Reels</option>
+            <option value="story">📱 Story</option>
+            <option value="carousel">🎠 Carousel</option>
+          </select></div>
+      </div>
+      <div class="form-row"><label>ช่องที่จะลง</label>
+        <select id="fDoctor" onchange="updateChannelPreview('fDoctor','fDoctorPreview')">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="dc-dental">DC Dental Clinic</option>
+          <option value="dc-aligner">DC Aligner</option>
+          <option value="junfun">junfunreview</option>
+          <option value="implant">implant review</option>
+          <option value="dr-north">dr.north.judfun</option>
+          <option value="dr-daran">dr.daran.dc</option>
+        </select>
+        <div id="fDoctorPreview" style="margin-top:6px;min-height:20px"></div>
+      </div>
+      <div class="form-row"><label>คอลแลปไปที่</label>
+        <select id="fCollab" onchange="updateChannelPreview('fCollab','fCollabPreview')">
+          <option value="">— ไม่มีคอลแลป —</option>
+          <option value="dc-dental">DC Dental Clinic</option>
+          <option value="dc-aligner">DC Aligner</option>
+          <option value="junfun">junfunreview</option>
+          <option value="implant">implant review</option>
+          <option value="dr-north">dr.north.judfun</option>
+          <option value="dr-daran">dr.daran.dc</option>
+        </select>
+        <div id="fCollabPreview" style="margin-top:6px;min-height:20px"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row" style="display:none"><label>-</label><input type="text" style="visibility:hidden"></div>
+        <div class="form-row"><label>Status</label>
+          <select id="fStatus">
+            <option value="draft">📝 Draft</option>
+            <option value="ready">✅ Ready to Post</option>
+            <option value="posted">🟢 Posted แล้ว</option>
+          </select></div>
+      </div>
+      <div class="form-row"><label>Thumbnail / ปกคลิป</label>
+        <div class="thumb-upload">
+          <input type="file" id="fThumb" accept="image/*" onchange="previewThumb(this)">
+          <div id="thumbPlaceholder">🖼️<br><p>คลิกเพื่ออัปโหลดภาพปก</p></div>
+          <img id="thumbPreview">
+        </div>
+        <input type="hidden" id="fThumbData">
+      </div>
+      <div class="form-row"><label>Caption</label>
+        <textarea id="fCaption" placeholder="วางแคปชั่นที่นี่..."></textarea></div>
+      <div class="form-row"><label>Hashtag</label>
+        <textarea id="fHashtag" placeholder="#DCDentalClinic #ทำฟันจันทบุรี ..." style="min-height:60px"></textarea></div>
+      <div class="form-row"><label>หมายเหตุ / Storyboard</label>
+        <textarea id="fNote" placeholder="บันทึกเพิ่มเติม เช่น มุมกล้อง โลเคชั่น..." style="min-height:60px"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-delete" id="btnDelete" onclick="deletePost()" style="display:none">🗑 ลบ</button>
+        <button class="btn-cancel" onclick="closeModal('addModal')">ยกเลิก</button>
+        <button class="btn-save" onclick="savePost()">💾 บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📋 รายละเอียดโพสต์</h2>
+      <button class="modal-close" onclick="closeModal('viewModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <img id="viewThumb">
+      <div class="view-field"><div class="vfl">ชื่อโพสต์</div><div class="vfv" id="vTitle" style="font-weight:700;font-size:15px"></div></div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div class="view-field"><div class="vfl">วันที่-เวลา</div><div class="vfv" id="vDate"></div></div>
+        <div class="view-field"><div class="vfl">ช่องที่จะลง</div><div id="vDoctor"></div></div>
+        <div class="view-field" id="vCollabWrap"><div class="vfl">คอลแลป</div><div id="vCollab"></div></div>
+      </div>
+      <div class="view-field"><div class="badge-row" id="vBadges"></div></div>
+      <div class="view-field" id="vCaptionWrap"><div class="vfl">Caption</div>
+        <div class="vfv" id="vCaption" style="background:var(--bg);padding:10px;border-radius:8px;font-size:12px"></div></div>
+      <div class="view-field" id="vHashtagWrap"><div class="vfl">Hashtag</div>
+        <div class="vfv" id="vHashtag" style="color:var(--blue);font-size:12px"></div></div>
+      <div class="view-field" id="vNoteWrap"><div class="vfl">หมายเหตุ</div>
+        <div class="vfv" id="vNote" style="font-size:12px"></div></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal('viewModal')">ปิด</button>
+        <button class="btn-save" onclick="editFromView()">✏️ แก้ไข</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxnnzPggHLmPvLz9iVdMn1P7ol8Yn9963keHKYyvy9QBa-hiuHExFy6tKwugOT9hQ8Y/exec';
+
+const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const FESTIVALS={'01-01':'วันปีใหม่','02-14':'Valentine 💕','04-06':'วันจักรี','04-13':'สงกรานต์','05-01':'วันแรงงาน','06-03':'วันเฉลิมฯ','08-12':'วันแม่','10-23':'วันจุฬาลงกรณ์','12-05':'วันพ่อ','12-10':'รัฐธรรมนูญ','12-31':'สิ้นปี'};
+const PCLASS={'fb':'p-fb','ig':'p-ig','both':'p-both'};
+const PTEXT={'fb':'Facebook','ig':'Instagram','both':'FB+IG'};
+const TCLASS={'video':'t-video','photo':'t-photo','reel':'t-reel','story':'t-story','carousel':'t-carousel'};
+const TTEXT={'video':'🎬 วิดีโอ','photo':'📷 รูป','reel':'⚡ Reels','story':'📱 Story','carousel':'🎠 Carousel'};
+const SCLASS={'draft':'s-draft','ready':'s-ready','posted':'s-posted'};
+const STEXT={'draft':'📝 Draft','ready':'✅ Ready','posted':'🟢 Posted'};
+const SCOLOR={'draft':'#7F8C8D','ready':'#F0A500','posted':'#27AE60'};
+
+let cy=new Date().getFullYear(), cm=new Date().getMonth();
+let posts=[];
+let filter='all', viewingId=null;
+
+async function save(){
+  // ไม่ใช้ localStorage แล้ว ข้อมูลอยู่ใน Google Sheets
+}
+
+function showToast(msg, color='var(--blue)'){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';
+    t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:'+color+';color:white;padding:10px 22px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:opacity 0.4s;';
+    document.body.appendChild(t);}
+  t.textContent=msg; t.style.background=color; t.style.opacity='1';
+  clearTimeout(t._timer); t._timer=setTimeout(()=>t.style.opacity='0',2500);
+}
+
+async function apiCall(body){
+  try{
+    const res = await fetch(SHEET_URL, {method:'POST', body:JSON.stringify(body)});
+    return await res.json();
+  } catch(e){ showToast('❌ เชื่อมต่อ Sheets ไม่ได้','var(--red)'); return null; }
+}
+
+async function loadFromSheet(){
+  showLoading(true);
+  try{
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    posts = data.map(r=>({
+      id:String(r.id), title:r.title, date:r.date, time:r.time,
+      platform:r.platform, type:r.type, doctor:r.doctor, collab:r.collab, status:r.status,
+      thumbData:r.thumbData, caption:r.caption, hashtag:r.hashtag, note:r.note
+    }));
+    render();
+  } catch(e){ showToast('❌ โหลดข้อมูลไม่ได้ ลองรีเฟรช','var(--red)'); }
+  showLoading(false);
+}
+
+function showLoading(show){
+  let el=document.getElementById('loadingBar');
+  if(!el){el=document.createElement('div');el.id='loadingBar';
+    el.style.cssText='position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);z-index:9999;transition:opacity 0.3s;';
+    document.body.appendChild(el);}
+  el.style.opacity=show?'1':'0';
+}
+
+const CH_META = {
+  'dc-dental':  {label:'DC Dental Clinic', bg:'#FFFFFF', fg:'#1A6FB5', border:'#1A6FB5'},
+  'dc-aligner': {label:'DC Aligner',       bg:'#1A6FB5', fg:'#FFFFFF', border:'#1A6FB5'},
+  'junfun':     {label:'junfunreview',     bg:'#C4A882', fg:'#FFFFFF', border:'#C4A882'},
+  'implant':    {label:'implant review',   bg:'#3D3D3D', fg:'#FFFFFF', border:'#3D3D3D'},
+  'dr-north':   {label:'dr.north.judfun', bg:'#E67E22', fg:'#FFFFFF', border:'#E67E22'},
+  'dr-daran':   {label:'dr.daran.dc',     bg:'#27AE60', fg:'#FFFFFF', border:'#27AE60'},
+};
+
+function channelBadge(val, small=false){
+  const m=CH_META[val];
+  if(!m) return '<span style="font-size:12px;color:#aaa">—</span>';
+  const sz=small?'8px':'12px'; const pad=small?'1px 5px':'4px 10px';
+  return `<span style="display:inline-block;background:${m.bg};color:${m.fg};border:1px solid ${m.border};border-radius:5px;padding:${pad};font-size:${sz};font-weight:700">${m.label}</span>`;
+}
+
+function updateChannelPreview(selectId, previewId){
+  const val=document.getElementById(selectId).value;
+  document.getElementById(previewId).innerHTML=val?channelBadge(val):'';
+}
+
+function render(){
+  document.getElementById('monthLabel').textContent=MONTHS[cm]+' '+(cy+543);
+  const mp=postsInMonth();
+  document.getElementById('cDraft').textContent=mp.filter(p=>p.status==='draft').length;
+  document.getElementById('cReady').textContent=mp.filter(p=>p.status==='ready').length;
+  document.getElementById('cPosted').textContent=mp.filter(p=>p.status==='posted').length;
+  document.getElementById('cTotal').textContent=mp.length;
+  renderCal();
+}
+
+function postsInMonth(){
+  return posts.filter(p=>{const d=new Date(p.date);return d.getFullYear()===cy&&d.getMonth()===cm;});
+}
+
+function applyFilter(arr){
+  if(filter==='all') return arr;
+  if(['draft','ready','posted'].includes(filter)) return arr.filter(p=>p.status===filter);
+  if(filter==='video') return arr.filter(p=>p.type==='video'||p.type==='reel');
+  if(filter==='photo') return arr.filter(p=>p.type==='photo'||p.type==='carousel'||p.type==='story');
+  return arr;
+}
+
+function renderCal(){
+  const grid=document.getElementById('calGrid'); grid.innerHTML='';
+  const today=new Date(); today.setHours(0,0,0,0);
+  const first=new Date(cy,cm,1);
+  let dow=first.getDay(); dow=dow===0?6:dow-1;
+  const dim=new Date(cy,cm+1,0).getDate();
+  const diPrev=new Date(cy,cm,0).getDate();
+  const total=Math.ceil((dow+dim)/7)*7;
+
+  for(let i=0;i<total;i++){
+    let date, other=false;
+    if(i<dow){date=new Date(cy,cm-1,diPrev-dow+i+1);other=true;}
+    else if(i>=dow+dim){date=new Date(cy,cm+1,i-dow-dim+1);other=true;}
+    else{date=new Date(cy,cm,i-dow+1);}
+
+    const ds=date.toISOString().split('T')[0];
+    const isToday=date.getTime()===today.getTime();
+    const cell=document.createElement('div');
+    cell.className='day-cell'+(other?' other-month':'')+(isToday?' today':'');
+    cell.dataset.date=ds;
+
+    const fest=FESTIVALS[ds.slice(5)];
+    const top=document.createElement('div'); top.className='day-top';
+    top.innerHTML=`<span class="day-num-text">${date.getDate()}</span>${fest?`<span class="festival-badge">${fest}</span>`:''}
+      <button class="day-add-btn" onclick="openAdd('${ds}')">＋</button>`;
+    cell.appendChild(top);
+
+    const dayPosts=applyFilter(posts.filter(p=>p.date===ds));
+    const show=dayPosts.slice(0,2);
+    show.forEach(p=>{
+      const card=createCard(p);
+      cell.appendChild(card);
+    });
+    if(dayPosts.length>2){
+      const more=document.createElement('div');
+      more.className='more-tag';
+      more.textContent=`+${dayPosts.length-2} อีกโพสต์`;
+      more.onclick=()=>{ /* could show all */ };
+      cell.appendChild(more);
+    }
+    if(dayPosts.length===0 && !other){
+      const hint=document.createElement('div');
+      hint.className='empty-hint'; hint.textContent='ว่าง';
+      cell.appendChild(hint);
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function createCard(p){
+  const card=document.createElement('div'); card.className='post-card';
+  const thumb=p.thumbData?`<img src="${p.thumbData}">`:`<span>${{video:'🎬',photo:'📷',reel:'⚡',story:'📱',carousel:'🎠'}[p.type]||'📄'}</span>`;
+  const chBadge=channelBadge(p.doctor, true);
+  card.innerHTML=`<div class="pc-inner">
+    <div class="pc-thumb">${thumb}</div>
+    <div class="pc-info">
+      <div class="pc-title">${p.title}</div>
+      <div class="pc-meta">
+        ${chBadge}
+        <span class="pbadge ${TCLASS[p.type]||'t-video'}">${{video:'วิดีโอ',photo:'รูป',reel:'Reels',story:'Story',carousel:'Carousel'}[p.type]||'คอนเทนต์'}</span>
+        <span class="sdot ${SCLASS[p.status]||'s-draft'}"></span>
+      </div>
+    </div>
+  </div>`;
+  card.onclick=()=>openView(p.id);
+  return card;
+}
+
+function changeMonth(d){cm+=d;if(cm<0){cm=11;cy--;}if(cm>11){cm=0;cy++;}render();}
+function setFilter(f,btn){filter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
+
+// ADD/EDIT
+function openAdd(dateStr){
+  document.getElementById('editId').value='';
+  document.getElementById('modalTitle').textContent='➕ เพิ่มโพสต์ใหม่';
+  document.getElementById('btnDelete').style.display='none';
+  document.getElementById('fTitle').value='';
+  document.getElementById('fDate').value=dateStr||new Date().toISOString().split('T')[0];
+  document.getElementById('fTime').value='19:00';
+  document.getElementById('fPlatform').value='both';
+  document.getElementById('fType').value='video';
+  document.getElementById('fDoctor').value='';
+  document.getElementById('fCollab').value='';
+  document.getElementById('fDoctorPreview').innerHTML='';
+  document.getElementById('fCollabPreview').innerHTML='';
+  document.getElementById('fStatus').value='draft';
+  document.getElementById('fThumbData').value='';
+  document.getElementById('thumbPreview').style.display='none';
+  document.getElementById('thumbPlaceholder').style.display='block';
+  document.getElementById('fCaption').value='';
+  document.getElementById('fHashtag').value='';
+  document.getElementById('fNote').value='';
+  document.getElementById('addModal').classList.add('open');
+}
+
+function openEdit(id){
+  const p=posts.find(x=>x.id===id); if(!p) return;
+  closeModal('viewModal');
+  document.getElementById('editId').value=id;
+  document.getElementById('modalTitle').textContent='✏️ แก้ไขโพสต์';
+  document.getElementById('btnDelete').style.display='block';
+  document.getElementById('fTitle').value=p.title||'';
+  document.getElementById('fDate').value=p.date||'';
+  document.getElementById('fTime').value=p.time||'19:00';
+  document.getElementById('fPlatform').value=p.platform||'both';
+  document.getElementById('fType').value=p.type||'video';
+  document.getElementById('fDoctor').value=p.doctor||'';
+  document.getElementById('fCollab').value=p.collab||'';
+  updateChannelPreview('fDoctor','fDoctorPreview');
+  updateChannelPreview('fCollab','fCollabPreview');
+  document.getElementById('fStatus').value=p.status||'draft';
+  document.getElementById('fThumbData').value=p.thumbData||'';
+  if(p.thumbData){document.getElementById('thumbPreview').src=p.thumbData;document.getElementById('thumbPreview').style.display='block';document.getElementById('thumbPlaceholder').style.display='none';}
+  else{document.getElementById('thumbPreview').style.display='none';document.getElementById('thumbPlaceholder').style.display='block';}
+  document.getElementById('fCaption').value=p.caption||'';
+  document.getElementById('fHashtag').value=p.hashtag||'';
+  document.getElementById('fNote').value=p.note||'';
+  document.getElementById('addModal').classList.add('open');
+}
+
+async function savePost(){
+  const title=document.getElementById('fTitle').value.trim();
+  const date=document.getElementById('fDate').value;
+  if(!title){alert('กรุณาใส่ชื่อโพสต์');return;}
+  if(!date){alert('กรุณาเลือกวันที่');return;}
+  const id=document.getElementById('editId').value;
+  const post={
+    id:id||Date.now().toString(),
+    title,date,
+    time:document.getElementById('fTime').value,
+    platform:document.getElementById('fPlatform').value,
+    type:document.getElementById('fType').value,
+    doctor:document.getElementById('fDoctor').value,
+    collab:document.getElementById('fCollab').value,
+    status:document.getElementById('fStatus').value,
+    thumbData:document.getElementById('fThumbData').value,
+    caption:document.getElementById('fCaption').value,
+    hashtag:document.getElementById('fHashtag').value,
+    note:document.getElementById('fNote').value,
+  };
+  if(id){const i=posts.findIndex(x=>x.id===id);if(i>=0)posts[i]=post;else posts.push(post);}
+  else posts.push(post);
+  closeModal('addModal'); render();
+  showToast('⏳ กำลังบันทึก...');
+  const ok = await apiCall({action:'save', post});
+  if(ok) showToast('✅ บันทึกแล้ว');
+}
+
+async function deletePost(){
+  const id=document.getElementById('editId').value;
+  if(!id) return;
+  if(!confirm('ลบโพสต์นี้?')) return;
+  posts=posts.filter(p=>p.id!==id);
+  closeModal('addModal'); render();
+  showToast('⏳ กำลังลบ...');
+  const ok = await apiCall({action:'delete', id});
+  if(ok) showToast('🗑 ลบแล้ว');
+}
+
+// VIEW
+function openView(id){
+  const p=posts.find(x=>x.id===id); if(!p) return;
+  viewingId=id;
+  if(p.thumbData){document.getElementById('viewThumb').src=p.thumbData;document.getElementById('viewThumb').style.display='block';}
+  else document.getElementById('viewThumb').style.display='none';
+  document.getElementById('vTitle').textContent=p.title||'';
+  const d=new Date(p.date); const dStr=`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()+543}`;
+  document.getElementById('vDate').textContent=`${dStr} ${p.time?'เวลา '+p.time:''}`;
+  document.getElementById('vDoctor').innerHTML=channelBadge(p.doctor);
+  const collabWrap=document.getElementById('vCollabWrap');
+  document.getElementById('vCollab').innerHTML=channelBadge(p.collab);
+  collabWrap.style.display=p.collab?'block':'none';
+  const br=document.getElementById('vBadges');
+  br.innerHTML=`
+    <span class="vbadge" style="background:${{'fb':'#E7F0FF','ig':'#FDE7F3','both':'#E8F4FD'}[p.platform]};color:${{'fb':'#1877F2','ig':'#C13584','both':'var(--blue)'}[p.platform]}">${PTEXT[p.platform]||'FB+IG'}</span>
+    <span class="vbadge" style="background:#FEF0D9;color:var(--orange)">${TTEXT[p.type]||'คอนเทนต์'}</span>
+    <span class="vbadge" style="background:${{'draft':'#ECF0F1','ready':'#FEF9E7','posted':'#D5F5E3'}[p.status]};color:${SCOLOR[p.status]}">${STEXT[p.status]}</span>`;
+  const cw=document.getElementById('vCaptionWrap');
+  document.getElementById('vCaption').textContent=p.caption||''; cw.style.display=p.caption?'block':'none';
+  const hw=document.getElementById('vHashtagWrap');
+  document.getElementById('vHashtag').textContent=p.hashtag||''; hw.style.display=p.hashtag?'block':'none';
+  const nw=document.getElementById('vNoteWrap');
+  document.getElementById('vNote').textContent=p.note||''; nw.style.display=p.note?'block':'none';
+  document.getElementById('viewModal').classList.add('open');
+}
+
+function editFromView(){if(viewingId)openEdit(viewingId);}
+
+function previewThumb(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('fThumbData').value=e.target.result;
+    document.getElementById('thumbPreview').src=e.target.result;
+    document.getElementById('thumbPreview').style.display='block';
+    document.getElementById('thumbPlaceholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});});
+
+function printCalendar(){
+  document.getElementById('printMonthLabel').textContent = MONTHS[cm] + ' ' + (cy+543) + '  |  สร้างโดย DC Dental Content Team';
+  window.print();
+}
+
+loadFromSheet();
+</script>
+</body>
+</html>

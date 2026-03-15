@@ -550,9 +550,14 @@ async function loadFromSheet(){
       hashtag:String(r.hashtag||''), note:String(r.note||'')
     })).filter(r=>r.id && r.title);
     try{
-      const cacheData = posts.map(p=>({...p, thumbData:''}));
+      localStorage.removeItem('dcDentalCache');
+      const cacheData = posts.map(p=>({
+        id:p.id, title:p.title, date:p.date, platform:p.platform,
+        type:p.type, doctor:p.doctor, collab:p.collab, 
+        contentStyle:p.contentStyle, status:p.status
+      }));
       localStorage.setItem('dcDentalCache', JSON.stringify(cacheData));
-    }catch(e){ localStorage.removeItem('dcDentalCache'); }
+    }catch(e){ try{ localStorage.removeItem('dcDentalCache'); }catch(e2){} }
     render();
   } catch(e){ 
     console.error('Load error:', e);

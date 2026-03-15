@@ -385,7 +385,7 @@ async function loadFromSheet(){
     const data = JSON.parse(text);
     posts = data.map(r=>({
       id:String(r.id||''), title:String(r.title||''), 
-      date: r.date ? (typeof r.date === 'object' ? r.date.toISOString?.().split('T')[0] : String(r.date).split('T')[0]) : '',
+      date: r.date ? (() => { const s=String(r.date); if(s.includes('T')) return s.split('T')[0]; if(s.match(/^\d{4}-\d{2}-\d{2}$/)) return s; const d=new Date(s); d.setMinutes(d.getMinutes()+d.getTimezoneOffset()); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); })() : '',
       time:String(r.time||'19:00'),
       platform:String(r.platform||'both'), type:String(r.type||'video'), 
       doctor:String(r.doctor||''), collab:String(r.collab||''), status:String(r.status||'draft'),
@@ -466,7 +466,8 @@ function renderCal(){
     else if(i>=dow+dim){date=new Date(cy,cm+1,i-dow-dim+1);other=true;}
     else{date=new Date(cy,cm,i-dow+1);}
 
-    const ds=date.toISOString().split('T')[0];
+    const pad=n=>String(n).padStart(2,'0');
+    const ds=`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
     const isToday=date.getTime()===today.getTime();
     const cell=document.createElement('div');
     cell.className='day-cell'+(other?' other-month':'')+(isToday?' today':'');
@@ -488,7 +489,11 @@ function renderCal(){
       const more=document.createElement('div');
       more.className='more-tag';
       more.textContent=`+${dayPosts.length-2} อีกโพสต์`;
-      more.onclick=()=>{ /* could show all */ };
+      const hiddenPosts=dayPosts.slice(2);
+      more.onclick=()=>{
+        hiddenPosts.forEach(p=>{ const c=createCard(p); cell.insertBefore(c,more); });
+        more.remove();
+      };
       cell.appendChild(more);
     }
     if(dayPosts.length===0 && !other){

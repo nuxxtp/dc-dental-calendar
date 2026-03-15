@@ -51,7 +51,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
 .day-cell{background:white;border-radius:10px;min-height:120px;border:1.5px solid #E4EDF5;
   padding:7px;transition:border-color 0.2s,box-shadow 0.2s;position:relative;
-  overflow:hidden;display:flex;flex-direction:column;}
+  overflow:visible;display:flex;flex-direction:column;}
 .day-cell:hover{border-color:var(--blue-mid);box-shadow:var(--shadow);}
 .day-cell.other-month{background:#F9FAFC;border-color:#EDF0F3;}
 .day-cell.other-month .day-num-text{color:#C5CDD6;}
@@ -338,7 +338,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 </div>
 
 <script>
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzg-OKuPp1udbsfUfnU7qfEvSjDC_EDmkNC0yxdTafcTlnn7rCe0iEytnfeLJ1QsXGl/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxr4EaAdGQLiz1qlfcIKcsJBCcHf2lKuDWaHlQ5cfdxZQmFqJOh1fA2nhChcTn_2-qG/exec';
 
 const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const FESTIVALS={'01-01':'วันปีใหม่','02-14':'Valentine 💕','04-06':'วันจักรี','04-13':'สงกรานต์','05-01':'วันแรงงาน','06-03':'วันเฉลิมฯ','08-12':'วันแม่','10-23':'วันจุฬาลงกรณ์','12-05':'วันพ่อ','12-10':'รัฐธรรมนูญ','12-31':'สิ้นปี'};
@@ -385,7 +385,7 @@ async function loadFromSheet(){
     const data = JSON.parse(text);
     posts = data.map(r=>({
       id:String(r.id||''), title:String(r.title||''), 
-      date: r.date ? (() => { const s=String(r.date); if(s.includes('T')) return s.split('T')[0]; if(s.match(/^\d{4}-\d{2}-\d{2}$/)) return s; const d=new Date(s); d.setMinutes(d.getMinutes()+d.getTimezoneOffset()); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); })() : '',
+      date: (() => { const s=String(r.date||''); if(!s) return ''; const parts=s.split('T')[0].split('-'); if(parts.length===3) return parts[0]+'-'+parts[1].padStart(2,'0')+'-'+parts[2].padStart(2,'0'); return s; })(),
       time:String(r.time||'19:00'),
       platform:String(r.platform||'both'), type:String(r.type||'video'), 
       doctor:String(r.doctor||''), collab:String(r.collab||''), status:String(r.status||'draft'),
@@ -468,6 +468,7 @@ function renderCal(){
 
     const pad=n=>String(n).padStart(2,'0');
     const ds=`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+    // ds is now always local date, no timezone shift
     const isToday=date.getTime()===today.getTime();
     const cell=document.createElement('div');
     cell.className='day-cell'+(other?' other-month':'')+(isToday?' today':'');
@@ -489,11 +490,15 @@ function renderCal(){
       const more=document.createElement('div');
       more.className='more-tag';
       more.textContent=`+${dayPosts.length-2} อีกโพสต์`;
-      const hiddenPosts=dayPosts.slice(2);
-      more.onclick=()=>{
-        hiddenPosts.forEach(p=>{ const c=createCard(p); cell.insertBefore(c,more); });
+      more.style.cssText='cursor:pointer;font-size:9px;color:var(--blue);font-weight:700;padding:2px 4px;text-align:center;text-decoration:underline;';
+      const allPostsForDay=dayPosts;
+      more.addEventListener('click', function(e){
+        e.stopPropagation();
+        // remove the more button and show all remaining cards
+        const remaining=allPostsForDay.slice(2);
+        remaining.forEach(p=>{ const c=createCard(p); cell.insertBefore(c, more); });
         more.remove();
-      };
+      });
       cell.appendChild(more);
     }
     if(dayPosts.length===0 && !other){
@@ -584,7 +589,7 @@ async function savePost(){
   const id=document.getElementById('editId').value;
   const post={
     id:id||Date.now().toString(),
-    title,date,
+    title, date: date, // stored as YYYY-MM-DD string
     time:document.getElementById('fTime').value,
     platform:document.getElementById('fPlatform').value,
     type:document.getElementById('fType').value,

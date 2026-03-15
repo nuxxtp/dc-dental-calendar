@@ -622,6 +622,12 @@ async function apiCall(body){
 }
 
 async function loadFromSheet(){
+  // ซ่อน overlay ภายใน 8 วิเสมอ ป้องกันค้าง
+  const safetyTimer = setTimeout(()=>{
+    const ov=document.getElementById('loadingOverlay');
+    if(ov){ ov.style.opacity='0'; setTimeout(()=>{ try{ov.remove()}catch(e){} },500); }
+  }, 8000);
+
   // Show cached data instantly
   const cached = localStorage.getItem('dcDentalCache');
   if(cached){ 
@@ -636,10 +642,14 @@ async function loadFromSheet(){
   }
   showLoading(true);
   try{
+    const controller = new AbortController();
+    const fetchTimer = setTimeout(()=>controller.abort(), 10000);
     const res = await fetch(SHEET_URL + '?t=' + Date.now(), {
       method: 'GET',
-      redirect: 'follow'
+      redirect: 'follow',
+      signal: controller.signal
     });
+    clearTimeout(fetchTimer);
     const text = await res.text();
     const data = JSON.parse(text);
     posts = data.map(r=>({
@@ -684,12 +694,14 @@ async function loadFromSheet(){
     render();
   } catch(e){ 
     console.error('Load error:', e);
-    if(!cached) showToast('❌ โหลดข้อมูลไม่ได้ ลองรีเฟรช','var(--red)'); 
+    if(!cached) showToast('⚠️ ไม่ได้เชื่อมต่ออินเตอร์เน็ต — ใช้ข้อมูล cache','var(--orange)'); 
   }
+  clearTimeout(safetyTimer);
   showLoading(false);
-  // Hide loading overlay
+  // Hide loading overlay เสมอ ไม่ว่าจะเกิดอะไรขึ้น
   const ov = document.getElementById('loadingOverlay');
-  if(ov){ ov.style.opacity='0'; setTimeout(()=>ov.remove(), 500); }
+  if(ov){ ov.style.opacity='0'; setTimeout(()=>{ try{ov.remove()}catch(e){} }, 500); }
+  render();
 }
 
 function showLoading(show){
@@ -1372,65 +1384,6 @@ function deleteGridSlot(idx){
   renderGrid();
 }
 
-function openGridModal(editIdx){
-  let existing = editIdx !== null ? gridSlots[editIdx] : null;
-  let previewImg = existing ? existing.img || '' : '';
-
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,63,110,0.5);backdrop-filter:blur(4px);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;';
-
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background:white;border-radius:18px;width:100%;max-width:380px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:slideUp 0.2s ease;';
-  modal.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <h3 style="font-family:'Prompt',sans-serif;color:#0D3F6E;font-size:16px">${editIdx!==null?'✏️ แก้ไขรูป':'➕ เพิ่มรูปใน Grid'}</h3>
-      <button id="gmClose" style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;line-height:1">×</button>
-    </div>
-    <div style="margin-bottom:14px">
-      <label style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">ชื่อ / Caption สั้น</label>
-      <input id="gmTitle" type="text" placeholder="เช่น เคสจัดฟัน DAMON" value="${existing?existing.title||'':''}" style="width:100%;border:1.5px solid #D0DCE8;border-radius:9px;padding:9px 12px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;">
-    </div>
-    <div style="margin-bottom:18px">
-      <label style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">รูปปก</label>
-      <div id="gmThumbArea" style="border:2px dashed #D0DCE8;border-radius:10px;padding:16px;text-align:center;cursor:pointer;position:relative;min-height:90px;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:all 0.2s;">
-        <input type="file" accept="image/*" id="gmFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;">
-        <div id="gmThumbPreview" style="pointer-events:none;">${previewImg ? `<img src="${previewImg}" style="max-height:120px;max-width:100%;border-radius:8px;object-fit:contain;">` : '<div style="color:#bbb;font-size:13px;">🖼️ คลิกเพื่ออัปโหลดรูป</div>'}</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id="gmCancel" style="background:#ECF0F1;border:none;border-radius:9px;padding:9px 18px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;color:#555;">ยกเลิก</button>
-      <button id="gmSave" style="background:#1A6FB5;color:white;border:none;border-radius:9px;padding:9px 22px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">💾 บันทึก</button>
-    </div>`;
-
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-
-  document.getElementById('gmFile').onchange = function(){
-    const file = this.files[0]; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      previewImg = e.target.result;
-      document.getElementById('gmThumbPreview').innerHTML = `<img src="${previewImg}" style="max-height:120px;max-width:100%;border-radius:8px;object-fit:contain;">`;
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const close = () => document.body.removeChild(overlay);
-  document.getElementById('gmClose').onclick = close;
-  document.getElementById('gmCancel').onclick = close;
-  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
-
-  document.getElementById('gmSave').onclick = () => {
-    const title = document.getElementById('gmTitle').value.trim();
-    const slot = { id: Date.now().toString(), img: previewImg, title };
-    if(editIdx !== null){ gridSlots[editIdx] = slot; }
-    else { gridSlots.unshift(slot); }
-    saveGridSlots();
-    renderGrid();
-    close();
-  };
-}
-
 
 function renderGrid(){
   loadGridSlots();
@@ -1536,101 +1489,55 @@ function deleteGridSlot(idx){
 }
 
 function openGridModal(editIdx){
-  // Check if posts exist for this channel to auto-suggest
-  const ch = document.getElementById('gridChannelSelect').value;
-  const relPosts = posts.filter(p => p.doctor === ch || p.collab === ch);
-  
-  // Build modal
   let existing = editIdx !== null ? gridSlots[editIdx] : null;
-  
+  let previewImg = existing ? existing.img || '' : '';
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,63,110,0.5);backdrop-filter:blur(4px);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;';
-  
   const modal = document.createElement('div');
-  modal.style.cssText = 'background:white;border-radius:18px;width:100%;max-width:420px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:slideUp 0.2s ease;';
-  
-  const postOptions = relPosts.map(p => `<option value="${p.id}" ${existing && existing.postId===p.id?'selected':''}>${p.date} — ${p.title}</option>`).join('');
-  
+  modal.style.cssText = 'background:white;border-radius:18px;width:100%;max-width:380px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:slideUp 0.2s ease;';
   modal.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <h3 style="font-family:'Prompt',sans-serif;color:#0D3F6E;font-size:16px">${editIdx!==null?'✏️ แก้ไขรูป':'➕ เพิ่มรูปใน Grid'}</h3>
-      <button id="gmClose" style="background:none;border:none;font-size:22px;cursor:pointer;color:#999">×</button>
-    </div>
-    <div style="margin-bottom:14px">
-      <label style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">เชื่อมกับโพสต์ (optional)</label>
-      <select id="gmPost" style="width:100%;border:1.5px solid #D0DCE8;border-radius:9px;padding:9px 12px;font-family:'Sarabun',sans-serif;font-size:13px">
-        <option value="">— ไม่เชื่อม —</option>
-        ${postOptions}
-      </select>
+      <button id="gmClose" style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;line-height:1">×</button>
     </div>
     <div style="margin-bottom:14px">
       <label style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">ชื่อ / Caption สั้น</label>
-      <input id="gmTitle" type="text" placeholder="เช่น เคสจัดฟัน DAMON" value="${existing?existing.title||'':''}" style="width:100%;border:1.5px solid #D0DCE8;border-radius:9px;padding:9px 12px;font-family:'Sarabun',sans-serif;font-size:13px">
+      <input id="gmTitle" type="text" placeholder="เช่น เคสจัดฟัน DAMON" value="${existing?existing.title||'':''}" style="width:100%;border:1.5px solid #D0DCE8;border-radius:9px;padding:9px 12px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;">
     </div>
     <div style="margin-bottom:18px">
       <label style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">รูปปก</label>
-      <div id="gmThumbArea" style="border:2px dashed #D0DCE8;border-radius:10px;padding:16px;text-align:center;cursor:pointer;position:relative;min-height:80px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-        <input type="file" accept="image/*" id="gmFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
-        ${existing && existing.img ? `<img src="${existing.img}" style="max-height:120px;border-radius:8px;object-fit:contain">` : '<div style="color:#aaa;font-size:13px">🖼️ คลิกเพื่ออัปโหลดรูป</div>'}
+      <div style="border:2px dashed #D0DCE8;border-radius:10px;padding:16px;text-align:center;cursor:pointer;position:relative;min-height:90px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <input type="file" accept="image/*" id="gmFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;">
+        <div id="gmThumbPreview" style="pointer-events:none;">${previewImg ? `<img src="${previewImg}" style="max-height:120px;max-width:100%;border-radius:8px;object-fit:contain;">` : '<div style="color:#bbb;font-size:13px;">🖼️ คลิกเพื่ออัปโหลดรูป</div>'}</div>
       </div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id="gmCancel" style="background:#ECF0F1;border:none;border-radius:9px;padding:9px 18px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer">ยกเลิก</button>
-      <button id="gmSave" style="background:#1A6FB5;color:white;border:none;border-radius:9px;padding:9px 22px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer">💾 บันทึก</button>
+      <button id="gmCancel" style="background:#ECF0F1;border:none;border-radius:9px;padding:9px 18px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;color:#555;">ยกเลิก</button>
+      <button id="gmSave" style="background:#1A6FB5;color:white;border:none;border-radius:9px;padding:9px 22px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">💾 บันทึก</button>
     </div>`;
-  
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
-
-  let previewImg = existing ? existing.img || '' : '';
-
   document.getElementById('gmFile').onchange = function(){
     const file = this.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onload = e => {
       previewImg = e.target.result;
-      document.getElementById('gmThumbArea').innerHTML = `<input type="file" accept="image/*" id="gmFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%"><img src="${previewImg}" style="max-height:120px;border-radius:8px;object-fit:contain">`;
-      document.getElementById('gmFile').onchange = arguments.callee.bind({files:[file]});
+      document.getElementById('gmThumbPreview').innerHTML = `<img src="${previewImg}" style="max-height:120px;max-width:100%;border-radius:8px;object-fit:contain;">`;
     };
     reader.readAsDataURL(file);
   };
-
-  // Auto-fill from post selection
-  document.getElementById('gmPost').onchange = function(){
-    const pid = this.value;
-    const p = posts.find(x=>x.id===pid);
-    if(p){
-      document.getElementById('gmTitle').value = p.title;
-      if(p.thumbData && p.thumbData !== 'local'){
-        previewImg = p.thumbData;
-        document.getElementById('gmThumbArea').innerHTML = `<img src="${previewImg}" style="max-height:120px;border-radius:8px;object-fit:contain">`;
-      } else {
-        // Try localStorage thumb
-        try{ const t = localStorage.getItem('thumb_'+p.id); if(t){ previewImg=t; document.getElementById('gmThumbArea').innerHTML=`<img src="${previewImg}" style="max-height:120px;border-radius:8px;object-fit:contain">`; } }catch(e){}
-      }
-    }
-  };
-
   const close = () => document.body.removeChild(overlay);
   document.getElementById('gmClose').onclick = close;
   document.getElementById('gmCancel').onclick = close;
-  overlay.onclick = (e) => { if(e.target===overlay) close(); };
-
+  overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
   document.getElementById('gmSave').onclick = () => {
     const title = document.getElementById('gmTitle').value.trim();
-    const postId = document.getElementById('gmPost').value;
-    const slot = { id: Date.now().toString(), img: previewImg, title, postId };
+    const slot = { id: Date.now().toString(), img: previewImg, title };
     if(editIdx !== null){ gridSlots[editIdx] = slot; }
-    else { gridSlots.unshift(slot); } // unshift = เพิ่มหัว array (ซ้ายบน = ล่าสุด เหมือน IG)
+    else { gridSlots.unshift(slot); }
     saveGridSlots();
     renderGrid();
     close();
   };
 }
 
-loadFromSheet();
-</script>
-
-<div class="print-detail-section" id="printDetailSection"></div>
-</body>
-</html>

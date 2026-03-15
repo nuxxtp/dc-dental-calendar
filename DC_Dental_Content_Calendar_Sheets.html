@@ -191,10 +191,10 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 
   .print-day-page {
     page-break-after: always;
-    padding: 16px 24px;
-    min-height: 190mm;
+    min-height: 185mm;
     box-sizing: border-box;
     font-family: 'Sarabun', sans-serif;
+    overflow: hidden;
   }
   .print-day-page:last-child { page-break-after: avoid; }
 
@@ -340,6 +340,20 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
             <option value="carousel">🎠 Carousel</option>
           </select></div>
       </div>
+      <div class="form-row"><label>แนวคอนเทนต์</label>
+        <select id="fContentStyle">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="review">R — รีวิว</option>
+          <option value="educated">E — ให้ความรู้</option>
+          <option value="branding">B — ตัวตนของแบรนด์</option>
+          <option value="sale">S — ขาย</option>
+          <option value="event">V — กิจกรรม</option>
+          <option value="ads">A — โฆษณา</option>
+          <option value="lifestyle">L — ชีวิตประจำวัน</option>
+        </select>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label style="visibility:hidden">x</label><div></div></div>
       <div class="form-row"><label>ช่องที่จะลง</label>
         <select id="fDoctor" onchange="updateChannelPreview('fDoctor','fDoctorPreview')">
           <option value="">— ไม่ระบุ —</option>
@@ -364,8 +378,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         </select>
         <div id="fCollabPreview" style="margin-top:6px;min-height:20px"></div>
       </div>
-      <div class="form-grid">
-        <div class="form-row" style="display:none"><label>-</label><input type="text" style="visibility:hidden"></div>
+
         <div class="form-row"><label>Status</label>
           <select id="fStatus">
             <option value="draft">📝 Draft</option>
@@ -489,7 +502,7 @@ async function loadFromSheet(){
       })(),
       time:String(r.time||'19:00'),
       platform:String(r.platform||'both'), type:String(r.type||'video'), 
-      doctor:String(r.doctor||''), collab:String(r.collab||''), status:String(r.status||'draft'),
+      doctor:String(r.doctor||''), collab:String(r.collab||''), contentStyle:String(r.contentStyle||''), status:String(r.status||'draft'),
       thumbData:String(r.thumbData||''), caption:String(r.caption||''), 
       hashtag:String(r.hashtag||''), note:String(r.note||'')
     })).filter(r=>r.id && r.title);
@@ -645,6 +658,7 @@ function openAdd(dateStr){
   document.getElementById('fType').value='video';
   document.getElementById('fDoctor').value='';
   document.getElementById('fCollab').value='';
+  document.getElementById('fContentStyle').value='';
   document.getElementById('fDoctorPreview').innerHTML='';
   document.getElementById('fCollabPreview').innerHTML='';
   document.getElementById('fStatus').value='draft';
@@ -670,6 +684,7 @@ function openEdit(id){
   document.getElementById('fType').value=p.type||'video';
   document.getElementById('fDoctor').value=p.doctor||'';
   document.getElementById('fCollab').value=p.collab||'';
+  document.getElementById('fContentStyle').value=p.contentStyle||'';
   updateChannelPreview('fDoctor','fDoctorPreview');
   updateChannelPreview('fCollab','fCollabPreview');
   document.getElementById('fStatus').value=p.status||'draft';
@@ -696,6 +711,7 @@ async function savePost(){
     type:document.getElementById('fType').value,
     doctor:document.getElementById('fDoctor').value,
     collab:document.getElementById('fCollab').value,
+    contentStyle:document.getElementById('fContentStyle').value,
     status:document.getElementById('fStatus').value,
     thumbData:document.getElementById('fThumbData').value,
     caption:document.getElementById('fCaption').value,
@@ -767,9 +783,6 @@ function printCalendar(){
   const mp = postsInMonth();
   if(mp.length === 0){ section.innerHTML=''; window.print(); return; }
 
-  const byDate = {};
-  mp.forEach(p => { if(!byDate[p.date]) byDate[p.date]=[]; byDate[p.date].push(p); });
-
   const CH_META = {
     'dc-dental':  {label:'DC Dental Clinic', bg:'#FFFFFF', fg:'#1A6FB5', border:'#1A6FB5'},
     'dc-aligner': {label:'DC Aligner',       bg:'#1A6FB5', fg:'#FFFFFF', border:'#1A6FB5'},
@@ -778,73 +791,124 @@ function printCalendar(){
     'dr-north':   {label:'dr.north.judfun', bg:'#E67E22', fg:'#FFFFFF', border:'#E67E22'},
     'dr-daran':   {label:'dr.daran.dc',     bg:'#27AE60', fg:'#FFFFFF', border:'#27AE60'},
   };
-  const TYPE_LABEL = {video:'🎬 วิดีโอ',photo:'📷 รูปภาพ',reel:'⚡ Reels',story:'📱 Story',carousel:'🎠 Carousel'};
-  const STATUS_META = {draft:{label:'Draft',bg:'#ECF0F1',fg:'#7F8C8D'},ready:{label:'✅ Ready',bg:'#FEF9E7',fg:'#F0A500'},posted:{label:'🟢 Posted',bg:'#D5F5E3',fg:'#27AE60'}};
-  const PLAT_LABEL = {both:'FB + IG',fb:'Facebook',ig:'Instagram'};
+  const STYLE_META = {
+    review:   {letter:'R', label:'รีวิว',             color:'#A78BCA'},
+    educated: {letter:'E', label:'ให้ความรู้',        color:'#F4A57B'},
+    branding: {letter:'B', label:'ตัวตนของแบรนด์',   color:'#A0A0A0'},
+    sale:     {letter:'S', label:'ขาย',               color:'#7EC8E3'},
+    event:    {letter:'V', label:'กิจกรรม',           color:'#88D498'},
+    ads:      {letter:'A', label:'โฆษณา',             color:'#F4B8D1'},
+    lifestyle:{letter:'L', label:'ชีวิตประจำวัน',   color:'#1A6FB5'},
+  };
+  const TYPE_LABEL = {video:'คลิปวิดีโอ',photo:'รูปภาพ',reel:'Reels',story:'Story',carousel:'Carousel'};
+  const PLAT_ICONS = {both:'FB + IG', fb:'Facebook', ig:'Instagram'};
   const WEEKDAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
 
-  function chBadge(val){
-    const m=CH_META[val]; if(!m) return '';
-    return `<span class="print-badge" style="background:${m.bg};color:${m.fg};border-color:${m.border}">${m.label}</span>`;
-  }
-  function statusBadge(val){
-    const m=STATUS_META[val]||{label:val,bg:'#ECF0F1',fg:'#7F8C8D'};
-    return `<span class="print-badge" style="background:${m.bg};color:${m.fg}">${m.label}</span>`;
-  }
-
   let out = '';
-  const sortedDates = Object.keys(byDate).sort();
-  sortedDates.forEach(date => {
-    const d = new Date(date + 'T00:00:00');
-    const dayNum = d.getDate();
-    const dayName = WEEKDAYS[d.getDay()];
-    const monthName = MONTHS[d.getMonth()];
-    const yearThai = d.getFullYear()+543;
+  mp.sort((a,b)=>a.date.localeCompare(b.date)).forEach(p => {
+    const d = new Date(p.date + 'T00:00:00');
+    const dateStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    const ch = CH_META[p.doctor];
+    const cs = STYLE_META[p.contentStyle];
+    const typeLabel = TYPE_LABEL[p.type] || p.type || '—';
+    const platLabel = PLAT_ICONS[p.platform] || p.platform || '—';
 
-    out += `<div class="print-day-page">`;
-    out += `<div class="print-day-header">
-      <div class="date-box">${dayNum}</div>
-      <div>
-        <div class="month-box">${dayName} ${monthName} ${yearThai}</div>
-        <div class="clinic-name">DC Dental Clinic Chanthaburi — Content Plan</div>
+    // Platform icons
+    const platIcons = p.platform === 'both'
+      ? `<span style="font-size:22px">📘</span><span style="font-size:22px">📸</span>`
+      : p.platform === 'fb'
+        ? `<span style="font-size:22px">📘</span>`
+        : `<span style="font-size:22px">📸</span>`;
+
+    // Channel badge
+    const chBadge = ch
+      ? `<span style="background:${ch.bg};color:${ch.fg};border:1.5px solid ${ch.border};border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700">${ch.label}</span>`
+      : '';
+    const collabCh = CH_META[p.collab];
+    const collabBadge = collabCh
+      ? ` <span style="background:${collabCh.bg};color:${collabCh.fg};border:1.5px solid ${collabCh.border};border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700">${collabCh.label}</span>`
+      : '';
+
+    // Content style badge
+    const csBadge = cs
+      ? `<div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+           <span style="font-size:28px;font-weight:700;color:${cs.color};font-family:'Prompt',sans-serif">${cs.letter}</span>
+           <span style="font-size:13px;color:${cs.color};font-weight:600">${cs.label}</span>
+         </div>`
+      : '';
+
+    // Thumb
+    const thumbHtml = p.thumbData
+      ? `<img src="${p.thumbData}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block;">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;background:#E8F4FD;border-radius:10px">${{video:'🎬',photo:'📷',reel:'⚡',story:'📱',carousel:'🎠'}[p.type]||'📄'}</div>`;
+
+    out += `<div class="print-day-page" style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:#F5F0EB;font-family:'Sarabun',sans-serif;">
+
+      <!-- LEFT PANEL -->
+      <div style="padding:32px 28px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+            <div style="width:80px;height:80px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">🦷</div>
+            <div style="text-align:right">
+              <div style="font-size:13px;color:#888;font-weight:500">${d.getFullYear()} ${MONTHS[d.getMonth()].toUpperCase()}</div>
+              <div style="font-size:42px;font-weight:700;color:#3D3530;font-family:'Prompt',sans-serif;line-height:1">${MONTHS[d.getMonth()].toUpperCase()}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-bottom:18px">${platIcons}</div>
+
+          <div style="background:white;border-radius:12px;padding:12px 16px;margin-bottom:10px">
+            <span style="font-weight:700;font-size:14px">CONTENT : </span>
+            <span style="font-size:14px">${typeLabel}</span>
+          </div>
+          <div style="background:white;border-radius:12px;padding:12px 16px;margin-bottom:10px">
+            <span style="font-weight:700;font-size:14px">TOPIC : </span>
+            <span style="font-size:13px">${p.title}</span>
+          </div>
+          <div style="background:white;border-radius:12px;padding:12px 16px;margin-bottom:10px">
+            <span style="font-weight:700;font-size:14px">Date : </span>
+            <span style="font-size:14px">${dateStr}</span>
+          </div>
+          <div style="background:white;border-radius:12px;padding:12px 16px;margin-bottom:10px">
+            <span style="font-weight:700;font-size:14px">Post type : </span>
+            <span style="font-size:14px">${typeLabel}</span>
+          </div>
+          ${csBadge ? `<div style="background:white;border-radius:12px;padding:10px 16px;margin-bottom:10px">${csBadge}</div>` : ''}
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${chBadge}${collabBadge}</div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: COVER + CAPTION -->
+      <div style="background:white;padding:28px 24px;display:flex;flex-direction:column;gap:0">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:16px">
+          <div style="text-align:center;padding:10px;background:#4A4540;color:white;border-radius:8px 0 0 8px;font-size:14px;font-weight:700;letter-spacing:1px">COVER</div>
+          <div style="text-align:center;padding:10px;background:#6A6560;color:white;border-radius:0 8px 8px 0;font-size:14px;font-weight:700;letter-spacing:1px">CAPTION</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1">
+          <!-- Cover image -->
+          <div style="width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;border:1px solid #E0E0E0">
+            ${thumbHtml}
+          </div>
+          <!-- Caption -->
+          <div style="background:#F9F9F9;border-radius:10px;padding:12px;border:1px solid #E8E8E8;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+              <span style="font-size:16px">🦷</span>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#1A1A2E">${ch ? ch.label : 'DC Dental Clinic'}</div>
+                <div style="font-size:9px;color:#888">Ad · 🌐</div>
+              </div>
+            </div>
+            <div style="font-size:11px;line-height:1.7;color:#1A1A2E;white-space:pre-wrap;max-height:160px;overflow:hidden">${p.caption||''}</div>
+            ${p.hashtag ? `<div style="font-size:10px;color:#1A6FB5;margin-top:6px;line-height:1.6">${p.hashtag}</div>` : ''}
+          </div>
+        </div>
+        ${p.note ? `<div style="margin-top:10px;font-size:11px;color:#888;font-style:italic;padding:8px 12px;background:#F5F5F5;border-radius:8px">📝 ${p.note}</div>` : ''}
       </div>
     </div>`;
-
-    byDate[date].forEach(p => {
-      const thumbHtml = p.thumbData
-        ? `<img class="print-post-thumb" src="${p.thumbData}">`
-        : `<div class="print-post-thumb-placeholder">${{video:'🎬',photo:'📷',reel:'⚡',story:'📱',carousel:'🎠'}[p.type]||'📄'}</div>`;
-
-      out += `<div class="print-post-card">
-        <div class="print-post-card-header">
-          ${thumbHtml}
-          <div style="flex:1;min-width:0">
-            <div class="print-post-title">${p.title}</div>
-            <div class="print-badge-row">
-              ${chBadge(p.doctor)}
-              ${p.collab ? chBadge(p.collab) : ''}
-              <span class="print-badge" style="background:#FEF0D9;color:#E67E22">${TYPE_LABEL[p.type]||p.type}</span>
-              <span class="print-badge" style="background:#E8F4FD;color:#1A6FB5">${PLAT_LABEL[p.platform]||p.platform}</span>
-              ${statusBadge(p.status)}
-            </div>
-            <div class="print-post-time">⏰ ${p.time||'—'}</div>
-          </div>
-        </div>`;
-
-      if(p.caption || p.hashtag || p.note){
-        out += `<div class="print-post-body">`;
-        if(p.caption){ out += `<div class="print-section-label">Caption</div><div class="print-caption">${p.caption}</div>`; }
-        if(p.hashtag){ out += `<div class="print-section-label">Hashtag</div><div class="print-hashtag">${p.hashtag}</div>`; }
-        if(p.note){ out += `<div class="print-section-label">หมายเหตุ</div><div class="print-note">${p.note}</div>`; }
-        out += `</div>`;
-      }
-      out += `</div>`;
-    });
-    out += `</div>`;
   });
 
   section.innerHTML = out;
-  setTimeout(()=>window.print(), 150);
+  setTimeout(()=>window.print(), 200);
 }
 
 loadFromSheet();

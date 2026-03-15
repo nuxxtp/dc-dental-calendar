@@ -154,23 +154,67 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 }
 
 @media print {
-  header, .stats-bar, .modal-overlay { display: none !important; }
-  body { background: white !important; }
-  .calendar-wrap { padding: 10px !important; }
-  .day-cell { break-inside: avoid; border: 1px solid #ccc !important; min-height: 90px !important; }
-  .day-add-btn { display: none !important; }
-  .pc-thumb { width: 28px !important; height: 28px !important; }
-  .print-header { display: block !important; }
+  header, .stats-bar, .modal-overlay, .calendar-wrap, .print-header { display: none !important; }
+  body { background: white !important; margin: 0; padding: 0; }
   .print-detail-section { display: block !important; }
-  .print-detail-section { page-break-before: always; }
-  .print-post-item { border: 1px solid #D0DCE8; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; break-inside: avoid; }
-  .print-post-item h3 { font-size: 14px; color: #0D3F6E; margin-bottom: 6px; }
-  .print-post-meta { font-size: 11px; color: #7F8C8D; margin-bottom: 6px; }
-  .print-post-caption { font-size: 11px; color: #1A1A2E; white-space: pre-wrap; background: #F4F7FB; padding: 8px; border-radius: 6px; margin-top: 6px; }
-  .print-post-hashtag { font-size: 10px; color: #1A6FB5; margin-top: 4px; }
-  .print-post-note { font-size: 10px; color: #7F8C8D; margin-top: 4px; font-style: italic; }
-  .print-day-group { margin-bottom: 20px; break-inside: avoid; }
-  .print-day-group h2 { font-size: 13px; background: #0D3F6E; color: white; padding: 6px 12px; border-radius: 6px; margin-bottom: 8px; }
+
+  .print-day-page {
+    page-break-after: always;
+    padding: 24px 28px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .print-day-page:last-child { page-break-after: avoid; }
+
+  .print-day-header {
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 3px solid #1A6FB5; padding-bottom: 10px; margin-bottom: 16px;
+  }
+  .print-day-header .date-box {
+    background: #0D3F6E; color: white; border-radius: 10px;
+    padding: 8px 16px; font-size: 22px; font-weight: 700; font-family: 'Prompt', sans-serif;
+    line-height: 1.2; text-align: center; min-width: 60px;
+  }
+  .print-day-header .month-box {
+    font-size: 14px; color: #1A6FB5; font-weight: 600;
+  }
+  .print-day-header .clinic-name {
+    font-size: 13px; color: #7F8C8D; margin-top: 2px;
+  }
+
+  .print-post-card {
+    border: 1.5px solid #D0DCE8; border-radius: 10px;
+    margin-bottom: 14px; overflow: hidden;
+    break-inside: avoid;
+  }
+  .print-post-card-header {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px; background: #F4F7FB;
+  }
+  .print-post-thumb {
+    width: 72px; height: 72px; border-radius: 8px; object-fit: cover;
+    flex-shrink: 0; border: 1px solid #D0DCE8;
+  }
+  .print-post-thumb-placeholder {
+    width: 72px; height: 72px; border-radius: 8px;
+    background: #E8F4FD; display: flex; align-items: center;
+    justify-content: center; font-size: 28px; flex-shrink: 0;
+    border: 1px solid #D0DCE8;
+  }
+  .print-post-title { font-size: 15px; font-weight: 700; color: #0D3F6E; margin-bottom: 6px; }
+  .print-badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .print-badge {
+    padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+  .print-post-time { font-size: 11px; color: #7F8C8D; margin-top: 4px; }
+
+  .print-post-body { padding: 10px 14px; }
+  .print-section-label { font-size: 10px; font-weight: 700; color: #7F8C8D; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; margin-top: 8px; }
+  .print-caption { font-size: 12px; color: #1A1A2E; white-space: pre-wrap; line-height: 1.7; }
+  .print-hashtag { font-size: 11px; color: #1A6FB5; margin-top: 4px; line-height: 1.6; }
+  .print-note { font-size: 11px; color: #7F8C8D; font-style: italic; line-height: 1.6; }
 }
 .print-detail-section { display: none; }
 .print-header { display: none; text-align: center; padding: 12px 0 6px; font-family: 'Prompt', sans-serif; }
@@ -689,58 +733,88 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});});
 
 function printCalendar(){
-  document.getElementById('printMonthLabel').textContent = MONTHS[cm] + ' ' + (cy+543) + '  |  สร้างโดย DC Dental Content Team';
-  
-  // Build detail section
   const section = document.getElementById('printDetailSection');
   const mp = postsInMonth();
-  
-  if(mp.length === 0){ section.innerHTML = ''; window.print(); return; }
-  
-  // Group by date
+  if(mp.length === 0){ section.innerHTML=''; window.print(); return; }
+
   const byDate = {};
-  mp.forEach(p => {
-    if(!byDate[p.date]) byDate[p.date] = [];
-    byDate[p.date].push(p);
-  });
-  
-  const CH_LABEL = {
-    'dc-dental':'DC Dental Clinic','dc-aligner':'DC Aligner',
-    'junfun':'junfunreview','implant':'implant review',
-    'dr-north':'dr.north.judfun','dr-daran':'dr.daran.dc'
+  mp.forEach(p => { if(!byDate[p.date]) byDate[p.date]=[]; byDate[p.date].push(p); });
+
+  const CH_META = {
+    'dc-dental':  {label:'DC Dental Clinic', bg:'#FFFFFF', fg:'#1A6FB5', border:'#1A6FB5'},
+    'dc-aligner': {label:'DC Aligner',       bg:'#1A6FB5', fg:'#FFFFFF', border:'#1A6FB5'},
+    'junfun':     {label:'junfunreview',     bg:'#C4A882', fg:'#FFFFFF', border:'#C4A882'},
+    'implant':    {label:'implant review',   bg:'#3D3D3D', fg:'#FFFFFF', border:'#3D3D3D'},
+    'dr-north':   {label:'dr.north.judfun', bg:'#E67E22', fg:'#FFFFFF', border:'#E67E22'},
+    'dr-daran':   {label:'dr.daran.dc',     bg:'#27AE60', fg:'#FFFFFF', border:'#27AE60'},
   };
-  const TYPE_LABEL = {video:'วิดีโอ',photo:'รูปภาพ',reel:'Reels',story:'Story',carousel:'Carousel'};
-  const STATUS_LABEL = {draft:'Draft',ready:'Ready to Post',posted:'Posted'};
+  const TYPE_LABEL = {video:'🎬 วิดีโอ',photo:'📷 รูปภาพ',reel:'⚡ Reels',story:'📱 Story',carousel:'🎠 Carousel'};
+  const STATUS_META = {draft:{label:'Draft',bg:'#ECF0F1',fg:'#7F8C8D'},ready:{label:'✅ Ready',bg:'#FEF9E7',fg:'#F0A500'},posted:{label:'🟢 Posted',bg:'#D5F5E3',fg:'#27AE60'}};
   const PLAT_LABEL = {both:'FB + IG',fb:'Facebook',ig:'Instagram'};
-  
-  let html2 = '<div style="padding:20px 10px">';
-  html2 += `<h2 style="font-family:Prompt,sans-serif;font-size:18px;color:#0D3F6E;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #1A6FB5">📋 รายละเอียดโพสต์ — ${MONTHS[cm]} ${cy+543}</h2>`;
-  
+  const WEEKDAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+
+  function chBadge(val){
+    const m=CH_META[val]; if(!m) return '';
+    return `<span class="print-badge" style="background:${m.bg};color:${m.fg};border-color:${m.border}">${m.label}</span>`;
+  }
+  function statusBadge(val){
+    const m=STATUS_META[val]||{label:val,bg:'#ECF0F1',fg:'#7F8C8D'};
+    return `<span class="print-badge" style="background:${m.bg};color:${m.fg}">${m.label}</span>`;
+  }
+
+  let out = '';
   const sortedDates = Object.keys(byDate).sort();
   sortedDates.forEach(date => {
     const d = new Date(date + 'T00:00:00');
-    const dateLabel = `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()+543}`;
-    html2 += `<div class="print-day-group"><h2>📅 ${dateLabel}</h2>`;
+    const dayNum = d.getDate();
+    const dayName = WEEKDAYS[d.getDay()];
+    const monthName = MONTHS[d.getMonth()];
+    const yearThai = d.getFullYear()+543;
+
+    out += `<div class="print-day-page">`;
+    out += `<div class="print-day-header">
+      <div class="date-box">${dayNum}</div>
+      <div>
+        <div class="month-box">${dayName} ${monthName} ${yearThai}</div>
+        <div class="clinic-name">DC Dental Clinic Chanthaburi — Content Plan</div>
+      </div>
+    </div>`;
+
     byDate[date].forEach(p => {
-      const ch = CH_LABEL[p.doctor] || p.doctor || '—';
-      const collab = p.collab ? ` × ${CH_LABEL[p.collab]||p.collab}` : '';
-      const type = TYPE_LABEL[p.type] || p.type || '—';
-      const status = STATUS_LABEL[p.status] || p.status || '—';
-      const plat = PLAT_LABEL[p.platform] || p.platform || '—';
-      html2 += `<div class="print-post-item">`;
-      html2 += `<h3>${p.title}</h3>`;
-      html2 += `<div class="print-post-meta">ช่อง: ${ch}${collab} &nbsp;|&nbsp; ประเภท: ${type} &nbsp;|&nbsp; แพลตฟอร์ม: ${plat} &nbsp;|&nbsp; เวลา: ${p.time||'—'} &nbsp;|&nbsp; Status: ${status}</div>`;
-      if(p.caption) html2 += `<div class="print-post-caption">${p.caption}</div>`;
-      if(p.hashtag) html2 += `<div class="print-post-hashtag">${p.hashtag}</div>`;
-      if(p.note) html2 += `<div class="print-post-note">📝 ${p.note}</div>`;
-      html2 += '</div>';
+      const thumbHtml = p.thumbData
+        ? `<img class="print-post-thumb" src="${p.thumbData}">`
+        : `<div class="print-post-thumb-placeholder">${{video:'🎬',photo:'📷',reel:'⚡',story:'📱',carousel:'🎠'}[p.type]||'📄'}</div>`;
+
+      out += `<div class="print-post-card">
+        <div class="print-post-card-header">
+          ${thumbHtml}
+          <div style="flex:1;min-width:0">
+            <div class="print-post-title">${p.title}</div>
+            <div class="print-badge-row">
+              ${chBadge(p.doctor)}
+              ${p.collab ? chBadge(p.collab) : ''}
+              <span class="print-badge" style="background:#FEF0D9;color:#E67E22">${TYPE_LABEL[p.type]||p.type}</span>
+              <span class="print-badge" style="background:#E8F4FD;color:#1A6FB5">${PLAT_LABEL[p.platform]||p.platform}</span>
+              ${statusBadge(p.status)}
+            </div>
+            <div class="print-post-time">⏰ ${p.time||'—'}</div>
+          </div>
+        </div>`;
+
+      if(p.caption || p.hashtag || p.note){
+        out += `<div class="print-post-body">`;
+        if(p.caption){ out += `<div class="print-section-label">Caption</div><div class="print-caption">${p.caption}</div>`; }
+        if(p.hashtag){ out += `<div class="print-section-label">Hashtag</div><div class="print-hashtag">${p.hashtag}</div>`; }
+        if(p.note){ out += `<div class="print-section-label">หมายเหตุ</div><div class="print-note">${p.note}</div>`; }
+        out += `</div>`;
+      }
+      out += `</div>`;
     });
-    html2 += '</div>';
+    out += `</div>`;
   });
-  html2 += '</div>';
-  section.innerHTML = html2;
-  
-  setTimeout(()=>window.print(), 100);
+
+  section.innerHTML = out;
+  setTimeout(()=>window.print(), 150);
 }
 
 loadFromSheet();

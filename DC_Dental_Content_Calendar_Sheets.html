@@ -338,7 +338,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 </div>
 
 <script>
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxcgdWN6OI4dU8coBCtCQVf2mx9QTtMPN39VcbzDnnY9-O4fim6FolBOn2FdatbEEoL/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzg-OKuPp1udbsfUfnU7qfEvSjDC_EDmkNC0yxdTafcTlnn7rCe0iEytnfeLJ1QsXGl/exec';
 
 const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const FESTIVALS={'01-01':'วันปีใหม่','02-14':'Valentine 💕','04-06':'วันจักรี','04-13':'สงกรานต์','05-01':'วันแรงงาน','06-03':'วันเฉลิมฯ','08-12':'วันแม่','10-23':'วันจุฬาลงกรณ์','12-05':'วันพ่อ','12-10':'รัฐธรรมนูญ','12-31':'สิ้นปี'};
@@ -377,15 +377,26 @@ async function apiCall(body){
 async function loadFromSheet(){
   showLoading(true);
   try{
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
+    const res = await fetch(SHEET_URL + '?t=' + Date.now(), {
+      method: 'GET',
+      redirect: 'follow'
+    });
+    const text = await res.text();
+    const data = JSON.parse(text);
     posts = data.map(r=>({
-      id:String(r.id), title:r.title, date:r.date, time:r.time,
-      platform:r.platform, type:r.type, doctor:r.doctor, collab:r.collab, status:r.status,
-      thumbData:r.thumbData, caption:r.caption, hashtag:r.hashtag, note:r.note
-    }));
+      id:String(r.id||''), title:String(r.title||''), 
+      date: r.date ? (typeof r.date === 'object' ? r.date.toISOString?.().split('T')[0] : String(r.date).split('T')[0]) : '',
+      time:String(r.time||'19:00'),
+      platform:String(r.platform||'both'), type:String(r.type||'video'), 
+      doctor:String(r.doctor||''), collab:String(r.collab||''), status:String(r.status||'draft'),
+      thumbData:String(r.thumbData||''), caption:String(r.caption||''), 
+      hashtag:String(r.hashtag||''), note:String(r.note||'')
+    })).filter(r=>r.id && r.title);
     render();
-  } catch(e){ showToast('❌ โหลดข้อมูลไม่ได้ ลองรีเฟรช','var(--red)'); }
+  } catch(e){ 
+    console.error('Load error:', e);
+    showToast('❌ โหลดข้อมูลไม่ได้ ลองรีเฟรช','var(--red)'); 
+  }
   showLoading(false);
 }
 

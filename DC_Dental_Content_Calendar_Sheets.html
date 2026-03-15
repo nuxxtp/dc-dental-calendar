@@ -549,7 +549,10 @@ async function loadFromSheet(){
       thumbData:String(r.thumbData||''), caption:String(r.caption||''), 
       hashtag:String(r.hashtag||''), note:String(r.note||'')
     })).filter(r=>r.id && r.title);
-    localStorage.setItem('dcDentalCache', JSON.stringify(posts));
+    try{
+      const cacheData = posts.map(p=>({...p, thumbData:''}));
+      localStorage.setItem('dcDentalCache', JSON.stringify(cacheData));
+    }catch(e){ localStorage.removeItem('dcDentalCache'); }
     render();
   } catch(e){ 
     console.error('Load error:', e);

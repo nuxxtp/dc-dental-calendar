@@ -691,12 +691,14 @@ function createCard(p){
   const card=document.createElement('div'); card.className='post-card';
   const thumb=p.thumbData?`<img src="${p.thumbData}">`:`<span>${{video:'🎬',photo:'📷',reel:'⚡',story:'📱',carousel:'🎠'}[p.type]||'📄'}</span>`;
   const chBadge=channelBadge(p.doctor, true);
+  const collabBadge=p.collab?channelBadge(p.collab, true):'';
   card.innerHTML=`<div class="pc-inner">
     <div class="pc-thumb">${thumb}</div>
     <div class="pc-info">
       <div class="pc-title">${p.title}</div>
       <div class="pc-meta">
         ${chBadge}
+        ${collabBadge}
         <span class="pbadge ${TCLASS[p.type]||'t-video'}">${{video:'วิดีโอ',photo:'รูป',reel:'Reels',story:'Story',carousel:'Carousel'}[p.type]||'คอนเทนต์'}</span>
         <span class="sdot ${SCLASS[p.status]||'s-draft'}"></span>
       </div>

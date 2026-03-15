@@ -622,11 +622,12 @@ async function apiCall(body){
 }
 
 async function loadFromSheet(){
-  // ซ่อน overlay ภายใน 8 วิเสมอ ป้องกันค้าง
-  const safetyTimer = setTimeout(()=>{
+  // ซ่อน overlay ภายใน 5 วิเสมอ ป้องกันค้าง
+  const hideOverlay = () => {
     const ov=document.getElementById('loadingOverlay');
     if(ov){ ov.style.opacity='0'; setTimeout(()=>{ try{ov.remove()}catch(e){} },500); }
-  }, 8000);
+  };
+  const safetyTimer = setTimeout(hideOverlay, 5000);
 
   // Show cached data instantly
   const cached = localStorage.getItem('dcDentalCache');
@@ -634,8 +635,7 @@ async function loadFromSheet(){
     try{ 
       posts=JSON.parse(cached); render();
       // Has cache - hide overlay quickly
-      const ov=document.getElementById('loadingOverlay');
-      if(ov){ ov.style.opacity='0'; setTimeout(()=>ov.remove(),400); }
+      hideOverlay();
       const lt=document.getElementById('ldText');
       if(lt) lt.textContent='กำลัง sync ข้อมูล...';
     }catch(e){} 
@@ -698,9 +698,7 @@ async function loadFromSheet(){
   }
   clearTimeout(safetyTimer);
   showLoading(false);
-  // Hide loading overlay เสมอ ไม่ว่าจะเกิดอะไรขึ้น
-  const ov = document.getElementById('loadingOverlay');
-  if(ov){ ov.style.opacity='0'; setTimeout(()=>{ try{ov.remove()}catch(e){} }, 500); }
+  hideOverlay();
   render();
 }
 
@@ -1540,4 +1538,3 @@ function openGridModal(editIdx){
     close();
   };
 }
-

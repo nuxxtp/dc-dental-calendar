@@ -568,7 +568,7 @@ window.addEventListener('DOMContentLoaded', function(){
 </div>
 
 <script>
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxWAqM2r9TLeU3qbIs_wE79RLRSfX-rmfz2sgYIBe5tW-YfaVGC9ctXFq6odrn-UGyYvw/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyK2GR-h3pS2BqwyF5Xao90R5xoENgfZxPIIIbjAx05K1QIUO4t050jyo_V8F-Xdb8LcA/exec';
 
 const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const FESTIVALS={'01-01':'วันปีใหม่','02-14':'Valentine 💕','04-06':'วันจักรี','04-13':'สงกรานต์','05-01':'วันแรงงาน','06-03':'วันเฉลิมฯ','08-12':'วันแม่','10-23':'วันจุฬาลงกรณ์','12-05':'วันพ่อ','12-10':'รัฐธรรมนูญ','12-31':'สิ้นปี'};
@@ -859,7 +859,7 @@ function createCard(p){
   return card;
 }
 
-window.changeMonth = function(d){cm+=d;if(cm<0){cm=11;cy--;}if(cm>11){cm=0;cy++;}render();}
+function changeMonth(d){cm+=d;if(cm<0){cm=11;cy--;}if(cm>11){cm=0;cy++;}render();}
 function setFilter(f,btn){filter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
 
 // ADD/EDIT
@@ -1272,7 +1272,7 @@ const GRID_CHANNEL_META = {
 let gridSlots = []; // [{id, img, title, date, postId}]
 let dragSrcIdx = null;
 
-window.switchTab = function(tab){
+function switchTab(tab){
   const isGrid = tab === 'grid';
   document.getElementById('igGridSection').style.display = isGrid ? 'block' : 'none';
   document.querySelector('.calendar-wrap').style.display = isGrid ? 'none' : 'block';

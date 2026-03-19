@@ -1892,7 +1892,12 @@ function switchTab(tab){
   document.getElementById('tabCalBtn').style.color = isGrid ? 'rgba(255,255,255,0.7)' : 'white';
   document.getElementById('tabGridBtn').style.background = isGrid ? 'rgba(255,255,255,0.25)' : 'transparent';
   document.getElementById('tabGridBtn').style.color = isGrid ? 'white' : 'rgba(255,255,255,0.7)';
-  if(isGrid){ loadGridSlots(); renderGrid(); }
+  if(isGrid){ 
+    loadGridSlots(); 
+    renderGrid(); 
+    // auto sync: ถ้า localStorage มีรูป แต่ Sheet ว่าง → sync ขึ้น Sheet อัตโนมัติ
+    setTimeout(autoSyncGridToSheet, 1500);
+  }
 }
 
 // ==========================================
@@ -2576,6 +2581,30 @@ function enableCalendarDrag(){
     });
     card.addEventListener('dragend', ()=>{ card.style.opacity='1'; dragPost=null; });
   });
+}
+
+// ========== AUTO SYNC GRID TO SHEET ==========
+async function autoSyncGridToSheet(){
+  // โหลด Sheet ดูก่อนว่ามีข้อมูลไหม
+  try{
+    const res = await fetch(SHEET_URL + '?t=' + Date.now() + '&action=getGrid&sheet=' + encodeURIComponent(getGridSheetName(activeChannel)), {
+      method:'GET', redirect:'follow'
+    });
+    const text = await res.text();
+    const sheetData = JSON.parse(text);
+    
+    // นับ slots ที่มีรูปจริงๆ
+    const localSlots = gridSlots.filter(s => s.img && s.img.trim() !== '');
+    const sheetSlotsWithImg = Array.isArray(sheetData) ? sheetData.filter(s => s.img && s.img.trim() !== '') : [];
+    
+    // ถ้า localStorage มีรูปมากกว่า Sheet → sync ขึ้น Sheet
+    if(localSlots.length > sheetSlotsWithImg.length){
+      console.log('Auto sync: local', localSlots.length, '> sheet', sheetSlotsWithImg.length, '→ syncing...');
+      gridSlots = localSlots;
+      await saveGridSlotsToSheet();
+      console.log('Auto sync done!');
+    }
+  }catch(e){ console.log('autoSync error:', e); }
 }
 
 // ========== IG GRID DRAG FUNCTIONS ==========

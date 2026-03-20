@@ -1020,7 +1020,7 @@ function render(){
   renderCal();
   renderUnscheduled();
 
-  // sync วันที่จาก posts → gridSlots เพื่อให้ badge วันที่ใน Grid อัปเดต real-time
+  // sync วันที่จาก posts → gridSlots แบบ real-time
   let gridUpdated = false;
   gridSlots.forEach((slot, i) => {
     const calPost = posts.find(p => p.id === slot.id);
@@ -1029,8 +1029,11 @@ function render(){
       gridUpdated = true;
     }
   });
-  // ถ้า Grid กำลังเปิดอยู่ → renderGrid ด้วย
   if(gridUpdated){
+    // save ลง localStorage + Sheet ทันที
+    try{ localStorage.setItem(getGridStorageKey(), JSON.stringify(gridSlots)); }catch(e){}
+    saveGridSlotsToSheet();
+    // re-render Grid ถ้าเปิดอยู่
     const igSection = document.getElementById('igGridSection');
     if(igSection && igSection.style.display !== 'none') renderGrid();
   }
@@ -1247,7 +1250,13 @@ function createCard(p){
   return card;
 }
 
-function changeMonth(d){cm+=d;if(cm<0){cm=11;cy--;}if(cm>11){cm=0;cy++;}render();}
+function changeMonth(d){
+  cm+=d; if(cm<0){cm=11;cy--;} if(cm>11){cm=0;cy++;}
+  render();
+  // ถ้า Grid เปิดอยู่ → re-render Grid ตามเดือนที่เปลี่ยน
+  const igSection = document.getElementById('igGridSection');
+  if(igSection && igSection.style.display !== 'none') renderGrid();
+}
 function setFilter(f,btn){filter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
 
 // ADD/EDIT
@@ -1501,7 +1510,14 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('cl
 
 function buildIGGridPrintPage(){
   // ใช้ gridSlots ที่ load ไว้แล้วใน memory (sync กับ Sheet แล้ว)
-  let allSlots = gridSlots.map(s => ({...s, _channel: activeChannel}));
+  // filter เฉพาะ slot ของเดือนที่กำลังพิมพ์ (cm/cy) เหมือนกับที่แสดงบนหน้าจอ
+  let allSlots = gridSlots
+    .filter(s => {
+      if(!s.date) return false; // ไม่พิมพ์ slot ที่ยังไม่มีวัน
+      const d = new Date(s.date + 'T00:00:00');
+      return d.getFullYear() === cy && d.getMonth() === cm;
+    })
+    .map(s => ({...s, _channel: activeChannel}));
 
   // แปลงลำดับให้ตรงกับที่เห็นบนหน้าจอ IG Grid
   // gridSlots[0] = ใหม่สุด = บนขวา
@@ -2178,27 +2194,37 @@ function renderUnscheduled(){
 }
 
 function renderGrid(){
-  // ไม่เรียก loadGridSlots ที่นี่ — ใช้ gridSlots ที่มีอยู่ใน memory แทน
-  // (loadGridSlots จะถูกเรียกตอน switchChannel / init เท่านั้น)
   const ch = GRID_CHANNEL_META[activeChannel] || GRID_CHANNEL_META['dc-dental'];
   const chMeta = CHANNEL_META[activeChannel];
   document.getElementById('igUsername').textContent = ch.username;
   const lbl = document.getElementById('igChannelLabel');
   if(lbl && chMeta) lbl.textContent = chMeta.label;
-  document.getElementById('igPostCount').textContent = gridSlots.length + ' โพสต์ · ' + gridSlots.filter(s=>s.date).length + ' จัดวันแล้ว';
+
+  // filter เฉพาะ slot ของเดือนที่กำลังดูอยู่ + slot ที่ยังไม่มีวัน (รอจัดวัน)
+  const monthSlots = gridSlots.filter(s => {
+    if(!s.date) return true; // ไม่มีวัน → แสดงใน "รอจัดวัน" panel
+    const d = new Date(s.date + 'T00:00:00');
+    return d.getFullYear() === cy && d.getMonth() === cm;
+  });
+
+  // อัปเดต header
+  const scheduledInMonth = monthSlots.filter(s => s.date).length;
+  document.getElementById('igPostCount').textContent =
+    MONTHS[cm] + ' ' + (cy+543) + ' · ' + scheduledInMonth + ' จัดวันแล้ว · ' +
+    gridSlots.filter(s=>!s.date).length + ' รอจัดวัน';
 
   const grid = document.getElementById('igGrid');
   grid.innerHTML = '';
 
   const MAX_SLOTS = 23;
-  const n = gridSlots.length;
+  const n = monthSlots.length;
   const posInRow = n % 3;
 
   let items;
   if(posInRow === 0){
-    items = ['+', null, null, ...gridSlots];
+    items = ['+', null, null, ...monthSlots];
   } else {
-    items = ['+', ...gridSlots];
+    items = ['+', ...monthSlots];
     while(items.length % 3 !== 0) items.push(null);
   }
 

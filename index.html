@@ -1985,7 +1985,26 @@ async function loadGridSlotsFromSheet(){
         id:      String(r.id      || ''),
         img:     String(r.img     || ''),
         title:   String(r.title   || ''),
-        date:    String(r.date    || ''),
+        date:    (() => {
+          const s = String(r.date || '');
+          if(!s) return '';
+          // ถ้าเป็น ISO string หรือมี T → แปลงเป็น yyyy-MM-dd
+          if(s.includes('T') || s.includes('Z')){
+            const d = new Date(s);
+            if(!isNaN(d)){
+              const pad = n => String(n).padStart(2,'0');
+              return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+            }
+          }
+          // ถ้าเป็น Date object จาก GAS
+          if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+          const d2 = new Date(s);
+          if(!isNaN(d2)){
+            const pad = n => String(n).padStart(2,'0');
+            return d2.getFullYear()+'-'+pad(d2.getMonth()+1)+'-'+pad(d2.getDate());
+          }
+          return s;
+        })(),
         channel: String(r.channel || activeChannel),
         caption: String(r.caption || ''),
         hashtag: String(r.hashtag || ''),

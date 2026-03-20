@@ -1019,6 +1019,21 @@ function render(){
   document.getElementById('cTotal').textContent=mp.length;
   renderCal();
   renderUnscheduled();
+
+  // sync วันที่จาก posts → gridSlots เพื่อให้ badge วันที่ใน Grid อัปเดต real-time
+  let gridUpdated = false;
+  gridSlots.forEach((slot, i) => {
+    const calPost = posts.find(p => p.id === slot.id);
+    if(calPost && calPost.date !== slot.date){
+      gridSlots[i].date = calPost.date;
+      gridUpdated = true;
+    }
+  });
+  // ถ้า Grid กำลังเปิดอยู่ → renderGrid ด้วย
+  if(gridUpdated){
+    const igSection = document.getElementById('igGridSection');
+    if(igSection && igSection.style.display !== 'none') renderGrid();
+  }
 }
 
 function postsInMonth(){
@@ -1148,7 +1163,7 @@ function renderCal(){
         e.preventDefault();
         dragPost.date = ds;
         const res = await apiCall({action:'save', post: dragPost}, dragPost.doctor || activeChannel);
-        if(res&&res.ok){ showNoti('📅 ย้ายไป '+ds+' แล้ว','#27AE60'); render(); }
+        if(res&&res.ok){ showNoti('📅 ย้ายไป '+ds+' แล้ว','#27AE60'); render(); syncCalendarDatesToGrid(); }
         dragPost = null;
       }
     });
@@ -1348,6 +1363,8 @@ async function savePost(){
   } else {
     showNoti('✅ บันทึกสำเร็จ!', '#27AE60');
   }
+  // sync วันที่ใหม่กลับ Grid ถ้ามีรูปใน gridSlots
+  syncCalendarDatesToGrid();
 }
 
 async function deletePost(){
@@ -2078,7 +2095,27 @@ async function syncSlotToCalendar(slot){
     posts.push(calPost);
   }
   const res = await apiCall({ action:'save', post: calPost }, ch || activeChannel);
+  if(res && res.ok){
+    // re-render calendar ให้แสดงวันที่ใหม่ทันที
+    render();
+  }
   return res;
+}
+
+// sync วันที่จาก posts[] → gridSlots[] แล้ว re-render Grid
+function syncCalendarDatesToGrid(){
+  let changed = false;
+  gridSlots.forEach((slot, idx) => {
+    const calPost = posts.find(p => p.id === slot.id);
+    if(calPost && calPost.date && calPost.date !== slot.date){
+      gridSlots[idx].date = calPost.date;
+      changed = true;
+    }
+  });
+  if(changed){
+    saveGridSlots();
+    renderGrid();
+  }
 }
 
 // render แถบ "รอจัดวัน" ใน Calendar
@@ -2386,6 +2423,12 @@ function openGridModal(editIdx){
 
   let slot = gridSlots[editIdx];
   if(!slot) return;
+
+  // sync วันที่จาก Calendar posts มาใส่ slot ด้วย
+  // เพราะผู้ใช้อาจแก้วันใน Calendar แล้ว gridSlots ยังไม่ได้อัปเดต
+  const calPost = posts.find(p => p.id === slot.id);
+  if(calPost && calPost.date) slot.date = calPost.date;
+
   let uploadedUrl = slot.img || '';
 
   const overlay = document.createElement('div');

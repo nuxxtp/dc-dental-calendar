@@ -2750,61 +2750,102 @@ function renderSandbox(){
   const grid = document.getElementById('sbGrid');
   if(!grid) return;
 
-  // อัปเดต count + enable confirm button
+  // นับเฉพาะ slot จริง (ไม่นับ placeholder)
+  const realCount = sandboxSlots.filter(s => s.type !== 'blank').length;
   const countEl = document.getElementById('sbCount');
-  if(countEl) countEl.textContent = sandboxSlots.length + ' รูป';
+  if(countEl) countEl.textContent = sandboxSlots.length + ' ช่อง';
   const confirmBtn = document.getElementById('sbConfirm');
-  if(confirmBtn){ confirmBtn.disabled = sandboxSlots.length === 0; confirmBtn.style.opacity = sandboxSlots.length > 0 ? '1' : '0.5'; }
+  if(confirmBtn){ confirmBtn.disabled = realCount === 0; confirmBtn.style.opacity = realCount > 0 ? '1' : '0.5'; }
 
-  // rebuild grid
   grid.innerHTML = '';
 
-  // รูปทั้งหมด
   sandboxSlots.forEach((slot, idx) => {
     const cell = document.createElement('div');
-    cell.style.cssText = 'position:relative;aspect-ratio:4/5;border-radius:8px;overflow:hidden;cursor:grab;';
+    cell.style.cssText = 'position:relative;aspect-ratio:4/5;border-radius:8px;overflow:hidden;cursor:grab;transition:outline 0.1s;';
     cell.draggable = true;
     cell.dataset.idx = idx;
 
-    const img = document.createElement('img');
-    img.src = slot.img;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-    cell.appendChild(img);
+    if(slot.type === 'pending'){
+      // รอปก — สีทอง
+      cell.style.background = 'linear-gradient(135deg,#8B6F3E,#C8956C)';
+      cell.innerHTML = `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:white;">
+        <div style="font-size:28px;">🖼️</div>
+        <div style="font-size:12px;font-weight:700;">รอปก</div>
+        <div style="font-size:10px;opacity:0.7;">ยังไม่มีรูป</div>
+      </div>`;
+    } else if(slot.type === 'blank'){
+      // หน้าเปล่า — สีขาว/เทา
+      cell.style.background = 'rgba(255,255,255,0.12)';
+      cell.style.border = '1.5px solid rgba(255,255,255,0.2)';
+      cell.innerHTML = `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:rgba(255,255,255,0.5);">
+        <div style="font-size:22px;">▭</div>
+        <div style="font-size:11px;">คั่น</div>
+      </div>`;
+    } else {
+      // รูปจริง
+      const img = document.createElement('img');
+      img.src = slot.img;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;pointer-events:none;';
+      cell.appendChild(img);
+    }
 
-    // ปุ่มลบ
+    // ปุ่มลบ (hover)
     const del = document.createElement('button');
     del.innerHTML = '✕';
-    del.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;display:none;';
+    del.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.65);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;display:none;z-index:2;';
     del.onclick = (e) => { e.stopPropagation(); sandboxSlots.splice(idx,1); renderSandbox(); };
     cell.appendChild(del);
 
-    cell.addEventListener('mouseenter', ()=>{ del.style.display='block'; cell.style.outline='2px solid white'; });
-    cell.addEventListener('mouseleave', ()=>{ del.style.display='none'; cell.style.outline=''; });
+    // ลำดับ
+    const num = document.createElement('div');
+    num.textContent = '#' + (idx+1);
+    num.style.cssText = 'position:absolute;top:4px;left:6px;font-size:10px;font-weight:700;color:white;text-shadow:0 1px 3px rgba(0,0,0,0.7);z-index:2;';
+    cell.appendChild(num);
 
-    // drag to reorder
-    cell.addEventListener('dragstart', e => { e.dataTransfer.setData('sbIdx', idx); cell.style.opacity='0.4'; });
-    cell.addEventListener('dragend', () => { cell.style.opacity='1'; });
-    cell.addEventListener('dragover', e => { e.preventDefault(); cell.style.outline='2px solid #F0A500'; });
-    cell.addEventListener('dragleave', () => { cell.style.outline=''; });
+    cell.addEventListener('mouseenter', ()=>{ del.style.display='block'; cell.style.outline='2px solid white'; });
+    cell.addEventListener('mouseleave', ()=>{ del.style.display='none'; cell.style.outline='none'; });
+
+    // SWAP drag (ไม่ขยับอื่น — สลับที่กันเลย)
+    cell.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('sbIdx', idx);
+      setTimeout(()=>{ cell.style.opacity='0.35'; }, 0);
+    });
+    cell.addEventListener('dragend', () => { cell.style.opacity='1'; cell.style.outline='none'; });
+    cell.addEventListener('dragover', e => {
+      e.preventDefault();
+      cell.style.outline='2.5px solid #F0A500';
+      cell.style.background = slot.type==='blank' ? 'rgba(240,165,0,0.2)' : '';
+    });
+    cell.addEventListener('dragleave', () => {
+      cell.style.outline='none';
+      if(slot.type==='blank') cell.style.background='rgba(255,255,255,0.12)';
+    });
     cell.addEventListener('drop', e => {
-      e.preventDefault(); cell.style.outline='';
+      e.preventDefault(); e.stopPropagation();
+      cell.style.outline='none';
       const fromIdx = parseInt(e.dataTransfer.getData('sbIdx'));
       if(isNaN(fromIdx) || fromIdx === idx) return;
-      const moved = sandboxSlots.splice(fromIdx, 1)[0];
-      sandboxSlots.splice(idx, 0, moved);
+      // SWAP — สลับที่กันเลย ไม่ขยับอื่น
+      const tmp = sandboxSlots[fromIdx];
+      sandboxSlots[fromIdx] = sandboxSlots[idx];
+      sandboxSlots[idx] = tmp;
       renderSandbox();
     });
 
     grid.appendChild(cell);
   });
 
-  // ปุ่มเพิ่มรูป
-  const addBtn = document.createElement('label');
-  addBtn.style.cssText = 'aspect-ratio:4/5;background:rgba(255,255,255,0.1);border:2px dashed rgba(255,255,255,0.4);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:white;font-size:12px;transition:all 0.2s;';
-  addBtn.innerHTML = '<input type="file" accept="image/*" multiple style="display:none;" onchange="handleSandboxFiles(this.files)"><div style="font-size:28px;">+</div><div style="font-weight:600;">เพิ่มรูป</div>';
-  addBtn.addEventListener('mouseover', ()=>{ addBtn.style.background='rgba(255,255,255,0.2)'; });
-  addBtn.addEventListener('mouseout', ()=>{ addBtn.style.background='rgba(255,255,255,0.1)'; });
-  grid.appendChild(addBtn);
+  // toolbar ด้านล่าง: เพิ่มรูป + รอปก + คั่น
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = 'grid-column:1/-1;display:flex;gap:8px;padding:8px 0;flex-wrap:wrap;';
+  toolbar.innerHTML = `
+    <label style="flex:1;min-width:100px;background:rgba(255,255,255,0.1);border:2px dashed rgba(255,255,255,0.35);border-radius:8px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:white;font-size:11px;font-weight:600;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+      <input type="file" accept="image/*" multiple style="display:none;" onchange="handleSandboxFiles(this.files)">
+      <span style="font-size:20px;">+</span>เพิ่มรูป
+    </label>
+    <button onclick="sandboxSlots.push({id:'pend-'+Date.now(),type:'pending',img:'',title:'รอปก'});renderSandbox();" style="flex:1;min-width:100px;background:linear-gradient(135deg,#8B6F3E,#C8956C);border:none;border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:600;cursor:pointer;">🖼️ รอปก</button>
+    <button onclick="sandboxSlots.push({id:'blank-'+Date.now(),type:'blank',img:'',title:''});renderSandbox();" style="flex:1;min-width:100px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer;">▭ หน้าเปล่า</button>`;
+  grid.appendChild(toolbar);
 }
 
 async function confirmSandbox(){
@@ -2812,10 +2853,11 @@ async function confirmSandbox(){
   const remaining = Math.max(0, 23 - gridSlots.length);
   if(remaining === 0){ showNoti('⚠️ Grid เต็ม 23 รูปแล้ว ลบรูปเก่าก่อน','#E74C3C'); return; }
 
-  const toAdd = sandboxSlots.slice(0, remaining);
+  // กรองเฉพาะรูปจริง (ไม่เอา blank และ pending)
+  const realSlots = sandboxSlots.filter(s => s.img && s.img.trim() !== '' && s.type !== 'blank' && s.type !== 'pending');
+  const toAdd = realSlots.slice(0, remaining);
   showNoti('⏳ กำลังย้าย ' + toAdd.length + ' รูปเข้า Grid...', '#1A6FB5');
 
-  // เพิ่มเข้า gridSlots (ใส่ตามลำดับ sandbox = ใหม่สุดอยู่บน)
   [...toAdd].reverse().forEach(s => {
     gridSlots.unshift({ id: Date.now()+'-'+Math.random().toString(36).slice(2), img: s.img, title: s.title, date:'', caption:'', hashtag:'', note:'' });
   });

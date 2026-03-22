@@ -2773,8 +2773,33 @@ function renderSandbox(){
 
   grid.innerHTML = '';
 
-  sandboxSlots.forEach((slot, idx) => {
-    const cell = document.createElement('div');
+  // จัดลำดับให้เหมือน IG Grid จริง:
+  // slot[0] = ใหม่สุด = บนขวา, เรียง row จากบนลงล่าง ซ้าย→ขวา = เก่า→ใหม่
+  // แปลง sandboxSlots → chunks แล้ว render แถวละ 3 โดย reverse ใน row
+  const sbN = sandboxSlots.length;
+  const sbPosInRow = sbN % 3;
+  let sbItems;
+  if(sbPosInRow === 0){
+    sbItems = [null, null, ...sandboxSlots]; // placeholder 2 ช่องซ้ายบน
+  } else {
+    sbItems = [...sandboxSlots];
+    while(sbItems.length % 3 !== 0) sbItems.push(null);
+  }
+  const sbChunks = [];
+  for(let i = 0; i < sbItems.length; i += 3) sbChunks.push(sbItems.slice(i, i+3));
+
+  sbChunks.forEach(chunk => {
+    // reverse ใน row เพื่อให้ใหม่สุดอยู่ขวา
+    const rowItems = [chunk[2], chunk[1], chunk[0]];
+    rowItems.forEach((slot) => {
+      if(!slot){
+        const empty = document.createElement('div');
+        empty.style.cssText = 'aspect-ratio:4/5;';
+        grid.appendChild(empty);
+        return;
+      }
+      const idx = sandboxSlots.indexOf(slot);
+      const cell = document.createElement('div');
     cell.style.cssText = 'position:relative;aspect-ratio:4/5;border-radius:8px;overflow:hidden;cursor:grab;transition:outline 0.1s;';
     cell.draggable = true;
     cell.dataset.idx = idx;
@@ -2857,7 +2882,8 @@ function renderSandbox(){
     });
 
     grid.appendChild(cell);
-  });
+    }); // end rowItems.forEach
+  }); // end sbChunks.forEach
 
   // toolbar ด้านล่าง: เพิ่มรูป + รอปก + คั่น
   const toolbar = document.createElement('div');
@@ -2880,15 +2906,17 @@ async function confirmSandbox(){
   const toAdd = sandboxSlots.slice(0, remaining);
   showNoti('⏳ กำลังย้าย ' + toAdd.length + ' ช่องเข้า Grid...', '#1A6FB5');
 
-  [...toAdd].reverse().forEach(s => {
-    gridSlots.unshift({
-      id: Date.now()+'-'+Math.random().toString(36).slice(2),
-      img: s.img || '',
-      title: s.title || '',
-      type: s.type || 'image', // 'image', 'pending', 'blank'
-      date:'', caption:'', hashtag:'', note:''
-    });
-  });
+  // sandbox[0] = #1 ใหม่สุด = gridSlots[0] (บนซ้ายของ IG Grid)
+  // ใส่ตามลำดับ sandbox โดยตรง ไม่ reverse
+  const newSlots = toAdd.map(s => ({
+    id: Date.now()+'-'+Math.random().toString(36).slice(2),
+    img: s.img || '',
+    title: s.title || '',
+    type: s.type || 'image',
+    date:'', caption:'', hashtag:'', note:''
+  }));
+  // prepend ทั้งก้อน (sandbox[0] จะเป็น gridSlots[0])
+  gridSlots = [...newSlots, ...gridSlots];
 
   saveGridSlots();
   closeSandbox();

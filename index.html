@@ -484,7 +484,7 @@ let posts=[],filter='all',viewingId=null,activeChannel='dc-dental';
 const CHANNEL_THEMES={
   'dc-dental':{bg:'#FDF6F0',bgLight:'#F5E8DE',primary:'#8B6F5E',primaryDark:'#6B5040',primaryLight:'#F5E8DE',accent:'#C8956C',headerGrad:'135deg, #6B5040 0%, #8B6F5E 100%'},
   'dc-aligner':{bg:'#EBF5FB',bgLight:'#D6EAF8',primary:'#2E86C1',primaryDark:'#1A5276',primaryLight:'#D6EAF8',accent:'#2E86C1',headerGrad:'135deg, #1A5276 0%, #2E86C1 100%'},
-  'junfun':{bg:'#F5F0F8',bgLight:'#EDE0F5',primary:'#8E7BB5',primaryDark:'#6A5A8E',primaryLight:'#EDE0F5',accent:'#8E7BB5',headerGrad:'135deg, #6A5A8E 0%, #8E7BB5 100%'},
+  'junfun':{bg:'#FAF3EE',bgLight:'#F2E8E0',primary:'#B8876A',primaryDark:'#7A5540',primaryLight:'#F2E8E0',accent:'#B8876A',headerGrad:'135deg, #7A5540 0%, #B8876A 100%'},
   'implant':{bg:'#F2F3F4',bgLight:'#E5E7E9',primary:'#5D6D7E',primaryDark:'#2C3E50',primaryLight:'#E5E7E9',accent:'#5D6D7E',headerGrad:'135deg, #2C3E50 0%, #5D6D7E 100%'},
   'dr-north':{bg:'#FEF5EC',bgLight:'#FDEBD0',primary:'#E67E22',primaryDark:'#A04000',primaryLight:'#FDEBD0',accent:'#E67E22',headerGrad:'135deg, #A04000 0%, #E67E22 100%'},
   'dr-daran':{bg:'#EAFAF1',bgLight:'#D5F5E3',primary:'#27AE60',primaryDark:'#1A6B3A',primaryLight:'#D5F5E3',accent:'#27AE60',headerGrad:'135deg, #1A6B3A 0%, #27AE60 100%'},
@@ -500,7 +500,7 @@ const CHANNEL_LOGOS={
 const CHANNEL_META={
   'dc-dental':{label:'DC Dental Clinic',emoji:'🦷',sheetName:'DC Dental Content Calendar',color:'#1A6FB5'},
   'dc-aligner':{label:'DC Aligner',emoji:'😁',sheetName:'DC Aligner Content Calendar',color:'#1A6FB5'},
-  'junfun':{label:'judfunreview',emoji:'⭐',sheetName:'judfunreview Content Calendar',color:'#C4A882'},
+  'junfun':{label:'judfunreview',emoji:'⭐',sheetName:'judfunreview Content Calendar',color:'#B8876A'},
   'implant':{label:'implant review',emoji:'🔩',sheetName:'implant review Calendar',color:'#3D3D3D'},
   'dr-north':{label:'dr.north.judfun',emoji:'👨‍⚕️',sheetName:'dr.north Calendar',color:'#E67E22'},
   'dr-daran':{label:'dr.daran.dc',emoji:'👩‍⚕️',sheetName:'dr.daran Calendar',color:'#27AE60'},
@@ -516,7 +516,7 @@ const GRID_CHANNEL_META={
 const CH_META={
   'dc-dental':{label:'DC Dental Clinic',bg:'#FFFFFF',fg:'#1A6FB5',border:'#1A6FB5'},
   'dc-aligner':{label:'DC Aligner',bg:'#1A6FB5',fg:'#FFFFFF',border:'#1A6FB5'},
-  'junfun':{label:'junfunreview',bg:'#C4A882',fg:'#FFFFFF',border:'#C4A882'},
+  'junfun':{label:'junfunreview',bg:'#B8876A',fg:'#FFFFFF',border:'#B8876A'},
   'implant':{label:'implant review',bg:'#3D3D3D',fg:'#FFFFFF',border:'#3D3D3D'},
   'dr-north':{label:'dr.north.judfun',bg:'#E67E22',fg:'#FFFFFF',border:'#E67E22'},
   'dr-daran':{label:'dr.daran.dc',bg:'#27AE60',fg:'#FFFFFF',border:'#27AE60'},
@@ -1178,6 +1178,47 @@ function renderGrid(){
   const scheduledInMonth=monthSlots.filter(s=>s.date).length;
   document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date).length+' รอจัดวัน';
   const grid=document.getElementById('igGrid');grid.innerHTML='';
+
+  // ถ้าไม่มีรูปเลย → แสดงกล่องใหญ่อันเดียวตรงกลาง
+  if(monthSlots.length===0){
+    grid.style.display='block';
+    const emptyBox=document.createElement('div');
+    emptyBox.onclick=()=>openGridSandbox();
+    const t=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
+    emptyBox.style.cssText=`width:100%;aspect-ratio:3/2;border-radius:20px;background:${t.primaryLight};border:2.5px dashed ${t.primary};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:all 0.3s cubic-bezier(.25,.8,.25,1);transform:scale(1);`;
+    emptyBox.innerHTML=`
+      <div class="eb-icon" style="width:72px;height:72px;border-radius:50%;background:${t.primary}22;border:2.5px solid ${t.primary};display:flex;align-items:center;justify-content:center;transition:all 0.3s;">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><line x1="16" y1="5" x2="16" y2="27" stroke="${t.primary}" stroke-width="2.8" stroke-linecap="round"/><line x1="5" y1="16" x2="27" y2="16" stroke="${t.primary}" stroke-width="2.8" stroke-linecap="round"/></svg>
+      </div>
+      <div style="text-align:center;">
+        <div class="eb-title" style="font-family:'Prompt',sans-serif;font-size:18px;font-weight:700;color:${t.primaryDark};margin-bottom:6px;transition:all 0.3s;">เริ่มจัด Grid เดือนนี้</div>
+        <div class="eb-sub" style="font-family:'Sarabun',sans-serif;font-size:13px;color:${t.primary};transition:all 0.3s;">กดเพื่อเปิดหน้าทดลองจัด</div>
+      </div>`;
+    emptyBox.addEventListener('mouseenter',()=>{
+      emptyBox.style.background=t.bgLight;
+      emptyBox.style.borderColor=t.primaryDark;
+      emptyBox.style.transform='scale(1.012)';
+      emptyBox.style.boxShadow=`0 8px 40px ${t.primary}33`;
+      emptyBox.querySelector('.eb-icon').style.background=`${t.primary}33`;
+      emptyBox.querySelector('.eb-icon').style.transform='scale(1.12)';
+      emptyBox.querySelector('.eb-title').style.color=t.primaryDark;
+    });
+    emptyBox.addEventListener('mouseleave',()=>{
+      emptyBox.style.background=t.primaryLight;
+      emptyBox.style.borderColor=t.primary;
+      emptyBox.style.transform='scale(1)';
+      emptyBox.style.boxShadow='none';
+      emptyBox.querySelector('.eb-icon').style.background=`${t.primary}22`;
+      emptyBox.querySelector('.eb-icon').style.transform='scale(1)';
+      emptyBox.querySelector('.eb-title').style.color=t.primaryDark;
+    });
+    emptyBox.addEventListener('mousedown',()=>{ emptyBox.style.transform='scale(0.99)'; });
+    emptyBox.addEventListener('mouseup',()=>{ emptyBox.style.transform='scale(1.012)'; });
+    grid.appendChild(emptyBox);
+    return;
+  }
+
+  grid.style.display='grid';
   let items=[...monthSlots];
   while(items.length%3!==0) items.push(null);
   const chunks=[];

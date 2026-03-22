@@ -532,13 +532,24 @@ function getGridStorageKey(){ return 'igGridSlots_'+activeChannel; }
 function getGridSheetName(ch){ return 'IG Grid '+(ch||activeChannel); }
 
 function parseSheetDate(val){
-  const s=String(val||'');
+  const s=String(val||'').trim();
   if(!s) return '';
+  // yyyy-MM-dd แล้ว → คืนตรงๆ ไม่แปลง
   if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  const d=new Date(s);
+  // มี T หรือ Z = ISO string → ใช้ UTC แล้วแปลงเป็น local date string
+  if(s.includes('T')||s.includes('Z')){
+    const d=new Date(s);
+    if(isNaN(d)) return s;
+    const pad=n=>String(n).padStart(2,'0');
+    // บวก offset ไทย +7 เพื่อให้ได้วันที่ถูกต้อง
+    const local=new Date(d.getTime()+(7*60*60*1000));
+    return local.getUTCFullYear()+'-'+pad(local.getUTCMonth()+1)+'-'+pad(local.getUTCDate());
+  }
+  // รูปแบบอื่น เช่น "March 5, 2026" → เพิ่ม T00:00:00 เพื่อกัน timezone
+  const d=new Date(s+'T00:00:00');
   if(isNaN(d)) return s;
   const pad=n=>String(n).padStart(2,'0');
-  return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate());
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 }
 
 function saveToLocalCache(){
@@ -2004,7 +2015,8 @@ function buildIGGridPrintPage(){
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:${gap}mm;">${rows_html}</div>
-  </div>`;}
+  </div>`;
+}
 
 // =====================================================
 // INIT

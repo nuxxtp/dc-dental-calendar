@@ -1960,23 +1960,37 @@ function buildIGGridPrintPage(){
     return d.getFullYear()===cy&&d.getMonth()===cm;
   });
   if(allSlots.length===0) return '';
-  const COLS=3,gap=1;
-  const usableW=194,usableH=265;
-  let cellW=(usableW-gap*(COLS-1))/COLS;
-  let cellH=cellW*(5/4);
-  const totalH=Math.ceil(allSlots.length/COLS)*cellH+gap*(Math.ceil(allSlots.length/COLS)-1);
-  if(totalH>usableH){const scale=usableH/totalH;cellH=cellH*scale;cellW=cellH*(4/5);}
+
+  const COLS=3,gap=2; // mm
+  // A4 portrait usable: 210-16=194mm wide, 297-16=281mm tall
+  // header ~18mm, padding ~8mm top+bottom → usable height for grid = 281-18-8 = 255mm
+  const pageW=194, pageH=255;
+  const rows=Math.ceil(allSlots.length/COLS);
+
+  // คำนวณขนาด cell ให้พอดีทั้ง width และ height
+  let cellW=(pageW-gap*(COLS-1))/COLS;
+  let cellH=cellW*(5/4); // ratio 4:5
+  // ถ้า rows สูงเกิน → ย่อ
+  const totalH=rows*cellH+gap*(rows-1);
+  if(totalH>pageH){
+    const scale=pageH/totalH;
+    cellH=cellH*scale;
+    cellW=cellH*(4/5);
+  }
+  const gridTotalW=cellW*COLS+gap*(COLS-1);
+
   const totalWithDate=allSlots.filter(s=>s.date).length;
   const n=allSlots.length;
+
   // จัดลำดับให้ตรงกับ Grid จริง (chunk reverse)
   let ordered=[];
-  const rows=Math.ceil(n/COLS);
   for(let r=0;r<rows;r++){
     for(let c=COLS-1;c>=0;c--){
       const idx=r*COLS+c;
       if(idx<n) ordered.push(allSlots[idx]);
     }
   }
+
   let rows_html='';
   for(let r=0;r<Math.ceil(ordered.length/COLS);r++){
     const rowSlots=ordered.slice(r*COLS,r*COLS+COLS);
@@ -1987,34 +2001,43 @@ function buildIGGridPrintPage(){
       const imgContent=slot.type==='blank'
         ?`<div style="position:absolute;inset:0;background:#F5F5F5;border:1px dashed #CCC;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`
         :slot.type==='pending'
-        ?`<div style="position:absolute;inset:0;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><div style="font-size:7px;font-weight:700;color:white;">รอปก</div></div>`
+        ?`<div style="position:absolute;inset:0;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><div style="font-size:${Math.max(5,cellH*0.06)}mm;font-weight:700;color:white;">รอปก</div></div>`
         :slot.img
         ?`<img src="${slot.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`
         :`<div style="position:absolute;inset:0;background:#E8F4FD;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`;
       const dateBadge=dateStr
-        ?`<div style="position:absolute;top:${cellH*0.03}mm;right:${cellH*0.03}mm;background:rgba(26,111,181,0.88);color:white;font-size:${Math.max(3.5,cellH*0.07)}mm;font-weight:700;padding:${cellH*0.02}mm ${cellH*0.04}mm;border-radius:${cellH*0.03}mm;line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${dateStr}</div>`:'';
-      cells+=`<div style="position:relative;width:${cellW}mm;height:${cellH}mm;overflow:hidden;background:#111;flex-shrink:0;">${imgContent}${dateBadge}</div>`;
+        ?`<div style="position:absolute;bottom:${cellH*0.03}mm;left:0;right:0;background:rgba(26,111,181,0.88);color:white;font-size:${Math.max(3,cellH*0.065)}mm;font-weight:700;padding:${cellH*0.02}mm 0;text-align:center;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${dateStr}</div>`:'';
+      cells+=`<div style="position:relative;width:${cellW.toFixed(2)}mm;height:${cellH.toFixed(2)}mm;overflow:hidden;background:#eee;flex-shrink:0;">${imgContent}${dateBadge}</div>`;
     });
-    rows_html+=`<div style="display:flex;gap:${gap}mm;">${cells}</div>`;
+    rows_html+=`<div style="display:flex;gap:${gap}mm;justify-content:center;">${cells}</div>`;
   }
+
   const pTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
   const pLogo=CHANNEL_LOGOS[activeChannel]||'';
-  const gridW=cellW*COLS+gap*(COLS-1);
-  return `<div style="page:ig-portrait;width:210mm;height:297mm;max-height:297mm;overflow:hidden;padding:8mm;box-sizing:border-box;background:white;font-family:'Sarabun',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;flex-direction:column;align-items:center;">
-    <div style="display:flex;align-items:center;gap:5mm;margin-bottom:3mm;padding-bottom:3mm;border-bottom:0.5mm solid ${pTheme.primary};width:${gridW}mm;">
-      <div style="width:13mm;height:13mm;border-radius:50%;overflow:hidden;border:0.5mm solid ${pTheme.primary};flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+
+  return `<div style="page-break-after:always;width:210mm;min-height:297mm;height:297mm;max-height:297mm;overflow:hidden;padding:8mm;box-sizing:border-box;background:white;font-family:'Sarabun',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:4mm;margin-bottom:4mm;padding-bottom:3mm;border-bottom:0.5mm solid ${pTheme.primary};width:${gridTotalW.toFixed(2)}mm;">
+      <div style="width:11mm;height:11mm;border-radius:50%;overflow:hidden;border:0.5mm solid ${pTheme.primary};flex-shrink:0;background:${pTheme.primaryLight};-webkit-print-color-adjust:exact;print-color-adjust:exact;">
         ${pLogo?`<img src="${pLogo}" style="width:100%;height:100%;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`:''}
       </div>
       <div style="flex:1;">
-        <div style="font-size:4.5mm;font-weight:700;color:${pTheme.primaryDark};font-family:'Prompt',sans-serif;">${GRID_CHANNEL_META[activeChannel]?.username||'@dc_dentalclinic'}</div>
-        <div style="font-size:3mm;color:#888;">${CHANNEL_META[activeChannel]?.label||'DC Dental Clinic'} — ${MONTHS[cm]} ${cy+543}</div>
+        <div style="font-size:4mm;font-weight:700;color:${pTheme.primaryDark};font-family:'Prompt',sans-serif;">${GRID_CHANNEL_META[activeChannel]?.username||'@dc_dentalclinic'}</div>
+        <div style="font-size:2.8mm;color:#888;margin-top:0.5mm;">${CHANNEL_META[activeChannel]?.label||'DC Dental Clinic'} · ${MONTHS[cm]} ${cy+543}</div>
       </div>
-      <div style="display:flex;gap:5mm;text-align:center;">
-        <div><div style="font-size:4.5mm;font-weight:700;color:#1A1A2E;">${n}</div><div style="font-size:2.8mm;color:#888;">Posts</div></div>
-        <div><div style="font-size:4.5mm;font-weight:700;color:#27AE60;">${totalWithDate}</div><div style="font-size:2.8mm;color:#888;">Scheduled</div></div>
+      <div style="display:flex;gap:4mm;text-align:center;">
+        <div><div style="font-size:4mm;font-weight:700;color:#1A1A2E;">${n}</div><div style="font-size:2.5mm;color:#888;">Posts</div></div>
+        <div><div style="font-size:4mm;font-weight:700;color:#27AE60;">${totalWithDate}</div><div style="font-size:2.5mm;color:#888;">Scheduled</div></div>
+        <div><div style="font-size:4mm;font-weight:700;color:#E74C3C;">${n-totalWithDate}</div><div style="font-size:2.5mm;color:#888;">Pending</div></div>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:${gap}mm;">${rows_html}</div>
+
+    <!-- Grid — กึ่งกลาง -->
+    <div style="display:flex;flex-direction:column;gap:${gap}mm;align-items:center;width:${gridTotalW.toFixed(2)}mm;">
+      ${rows_html}
+    </div>
+
   </div>`;
 }
 

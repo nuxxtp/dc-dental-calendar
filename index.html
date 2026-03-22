@@ -811,7 +811,7 @@ function render(){
 
 function postsInMonth(){
   return posts.filter(p=>{
-    const d=new Date(p.date);
+    const d=new Date(p.date+'T00:00:00');
     return d.getFullYear()===cy&&d.getMonth()===cm&&(!p.doctor||p.doctor===activeChannel);
   });
 }
@@ -1077,7 +1077,7 @@ function openView(id){
   if(p.thumbData){document.getElementById('viewThumb').src=p.thumbData;document.getElementById('viewThumb').style.display='block';}
   else document.getElementById('viewThumb').style.display='none';
   document.getElementById('vTitle').textContent=p.title||'';
-  const d=new Date(p.date);const dStr=`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()+543}`;
+  const d=new Date(p.date+'T00:00:00');const dStr=`${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()+543}`;
   document.getElementById('vDate').textContent=`${dStr} ${p.time?'เวลา '+p.time:''}`;
   const doctorWrap=document.getElementById('vDoctorWrap');
   const collabWrap=document.getElementById('vCollabWrap');
@@ -1932,7 +1932,7 @@ function printCalendar(){
       </div>
     </div>`;
   });
-  section.innerHTML=buildSummaryTable(mp)+out;
+  section.innerHTML=buildIGGridPrintPage()+buildSummaryTable(mp)+out;
   setTimeout(()=>{
     document.querySelectorAll('[id^="capDiv_"]').forEach(div=>{
       let size=11;div.style.fontSize=size+'px';
@@ -1941,6 +1941,70 @@ function printCalendar(){
     window.print();
   },300);
 }
+
+function buildIGGridPrintPage(){
+  const allSlots=gridSlots.filter(s=>{
+    if(!s.date) return false;
+    const d=new Date(s.date+'T00:00:00');
+    return d.getFullYear()===cy&&d.getMonth()===cm;
+  });
+  if(allSlots.length===0) return '';
+  const COLS=3,gap=1;
+  const usableW=194,usableH=265;
+  let cellW=(usableW-gap*(COLS-1))/COLS;
+  let cellH=cellW*(5/4);
+  const totalH=Math.ceil(allSlots.length/COLS)*cellH+gap*(Math.ceil(allSlots.length/COLS)-1);
+  if(totalH>usableH){const scale=usableH/totalH;cellH=cellH*scale;cellW=cellH*(4/5);}
+  const totalWithDate=allSlots.filter(s=>s.date).length;
+  const n=allSlots.length;
+  // จัดลำดับให้ตรงกับ Grid จริง (chunk reverse)
+  let ordered=[];
+  const rows=Math.ceil(n/COLS);
+  for(let r=0;r<rows;r++){
+    for(let c=COLS-1;c>=0;c--){
+      const idx=r*COLS+c;
+      if(idx<n) ordered.push(allSlots[idx]);
+    }
+  }
+  let rows_html='';
+  for(let r=0;r<Math.ceil(ordered.length/COLS);r++){
+    const rowSlots=ordered.slice(r*COLS,r*COLS+COLS);
+    let cells='';
+    rowSlots.forEach(slot=>{
+      const d=slot.date?new Date(slot.date+'T00:00:00'):null;
+      const dateStr=d?`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`:null;
+      const imgContent=slot.type==='blank'
+        ?`<div style="position:absolute;inset:0;background:#F5F5F5;border:1px dashed #CCC;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`
+        :slot.type==='pending'
+        ?`<div style="position:absolute;inset:0;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><div style="font-size:7px;font-weight:700;color:white;">รอปก</div></div>`
+        :slot.img
+        ?`<img src="${slot.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`
+        :`<div style="position:absolute;inset:0;background:#E8F4FD;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`;
+      const dateBadge=dateStr
+        ?`<div style="position:absolute;top:${cellH*0.03}mm;right:${cellH*0.03}mm;background:rgba(26,111,181,0.88);color:white;font-size:${Math.max(3.5,cellH*0.07)}mm;font-weight:700;padding:${cellH*0.02}mm ${cellH*0.04}mm;border-radius:${cellH*0.03}mm;line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${dateStr}</div>`:'';
+      cells+=`<div style="position:relative;width:${cellW}mm;height:${cellH}mm;overflow:hidden;background:#111;flex-shrink:0;">${imgContent}${dateBadge}</div>`;
+    });
+    rows_html+=`<div style="display:flex;gap:${gap}mm;">${cells}</div>`;
+  }
+  const pTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
+  const pLogo=CHANNEL_LOGOS[activeChannel]||'';
+  const gridW=cellW*COLS+gap*(COLS-1);
+  return `<div style="page:ig-portrait;width:210mm;height:297mm;max-height:297mm;overflow:hidden;padding:8mm;box-sizing:border-box;background:white;font-family:'Sarabun',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;flex-direction:column;align-items:center;">
+    <div style="display:flex;align-items:center;gap:5mm;margin-bottom:3mm;padding-bottom:3mm;border-bottom:0.5mm solid ${pTheme.primary};width:${gridW}mm;">
+      <div style="width:13mm;height:13mm;border-radius:50%;overflow:hidden;border:0.5mm solid ${pTheme.primary};flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+        ${pLogo?`<img src="${pLogo}" style="width:100%;height:100%;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`:''}
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:4.5mm;font-weight:700;color:${pTheme.primaryDark};font-family:'Prompt',sans-serif;">${GRID_CHANNEL_META[activeChannel]?.username||'@dc_dentalclinic'}</div>
+        <div style="font-size:3mm;color:#888;">${CHANNEL_META[activeChannel]?.label||'DC Dental Clinic'} — ${MONTHS[cm]} ${cy+543}</div>
+      </div>
+      <div style="display:flex;gap:5mm;text-align:center;">
+        <div><div style="font-size:4.5mm;font-weight:700;color:#1A1A2E;">${n}</div><div style="font-size:2.8mm;color:#888;">Posts</div></div>
+        <div><div style="font-size:4.5mm;font-weight:700;color:#27AE60;">${totalWithDate}</div><div style="font-size:2.8mm;color:#888;">Scheduled</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:${gap}mm;">${rows_html}</div>
+  </div>`;
 
 // =====================================================
 // INIT

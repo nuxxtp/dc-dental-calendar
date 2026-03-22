@@ -1944,12 +1944,28 @@ function printCalendar(){
     </div>`;
   });
   section.innerHTML=buildIGGridPrintPage()+buildSummaryTable(mp)+out;
+
+  // preload รูปทั้งหมดก่อน print → กัน กระตุก
   setTimeout(()=>{
-    document.querySelectorAll('[id^="capDiv_"]').forEach(div=>{
-      let size=11;div.style.fontSize=size+'px';
-      while(div.scrollHeight>div.clientHeight+5&&size>7){size-=0.5;div.style.fontSize=size+'px';div.style.lineHeight=(size<=9?1.5:1.6).toString();}
+    const imgs=section.querySelectorAll('img');
+    let loaded=0;
+    const total=imgs.length;
+    const doPrint=()=>{
+      document.querySelectorAll('[id^="capDiv_"]').forEach(div=>{
+        let size=11;div.style.fontSize=size+'px';
+        while(div.scrollHeight>div.clientHeight+5&&size>7){size-=0.5;div.style.fontSize=size+'px';div.style.lineHeight=(size<=9?1.5:1.6).toString();}
+      });
+      window.print();
+    };
+    if(total===0){doPrint();return;}
+    imgs.forEach(img=>{
+      if(img.complete){loaded++;if(loaded>=total) doPrint();}
+      else{
+        img.onload=img.onerror=()=>{loaded++;if(loaded>=total) doPrint();};
+      }
     });
-    window.print();
+    // safety timeout 8 วิ ถ้ารูปโหลดนานเกิน
+    setTimeout(doPrint, 8000);
   },300);
 }
 
@@ -1961,30 +1977,30 @@ function buildIGGridPrintPage(){
   });
   if(allSlots.length===0) return '';
 
-  const COLS=3,gap=2; // mm
-  // A4 portrait usable: 210-16=194mm wide, 297-16=281mm tall
-  // header ~18mm, padding ~8mm top+bottom → usable height for grid = 281-18-8 = 255mm
-  const pageW=194, pageH=255;
-  const rows=Math.ceil(allSlots.length/COLS);
+  const COLS=3, GAP=2; // mm
+  // A4 portrait: 210mm wide, 297mm tall
+  // padding 10mm each side → usable = 190mm wide
+  // header ~20mm → usable height for grid = 297-20-20-20 = 237mm
+  const usableW=190, usableH=237;
+  const numRows=Math.ceil(allSlots.length/COLS);
 
-  // คำนวณขนาด cell ให้พอดีทั้ง width และ height
-  let cellW=(pageW-gap*(COLS-1))/COLS;
-  let cellH=cellW*(5/4); // ratio 4:5
-  // ถ้า rows สูงเกิน → ย่อ
-  const totalH=rows*cellH+gap*(rows-1);
-  if(totalH>pageH){
-    const scale=pageH/totalH;
-    cellH=cellH*scale;
+  // คำนวณ cellW จาก width ก่อน
+  let cellW=(usableW-GAP*(COLS-1))/COLS;
+  let cellH=cellW*(5/4);
+  // ถ้า rows สูงเกิน → ย่อ height แล้วคำนวณ width ใหม่
+  const totalH=numRows*cellH+GAP*(numRows-1);
+  if(totalH>usableH){
+    cellH=(usableH-GAP*(numRows-1))/numRows;
     cellW=cellH*(4/5);
   }
-  const gridTotalW=cellW*COLS+gap*(COLS-1);
+  const gridW=cellW*COLS+GAP*(COLS-1);
 
   const totalWithDate=allSlots.filter(s=>s.date).length;
   const n=allSlots.length;
 
-  // จัดลำดับให้ตรงกับ Grid จริง (chunk reverse)
+  // จัดลำดับ chunk reverse ให้ตรงกับ Grid บนหน้าจอ
   let ordered=[];
-  for(let r=0;r<rows;r++){
+  for(let r=0;r<numRows;r++){
     for(let c=COLS-1;c>=0;c--){
       const idx=r*COLS+c;
       if(idx<n) ordered.push(allSlots[idx]);
@@ -1999,42 +2015,42 @@ function buildIGGridPrintPage(){
       const d=slot.date?new Date(slot.date+'T00:00:00'):null;
       const dateStr=d?`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`:null;
       const imgContent=slot.type==='blank'
-        ?`<div style="position:absolute;inset:0;background:#F5F5F5;border:1px dashed #CCC;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`
+        ?`<div style="position:absolute;inset:0;background:#F0F0F0;border:0.5px dashed #CCC;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`
         :slot.type==='pending'
-        ?`<div style="position:absolute;inset:0;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><div style="font-size:${Math.max(5,cellH*0.06)}mm;font-weight:700;color:white;">รอปก</div></div>`
+        ?`<div style="position:absolute;inset:0;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><span style="font-size:${Math.max(4,cellH*0.06)}mm;font-weight:700;color:white;font-family:sans-serif;">รอปก</span></div>`
         :slot.img
-        ?`<img src="${slot.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`
+        ?`<img src="${slot.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`
         :`<div style="position:absolute;inset:0;background:#E8F4FD;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`;
+      const fs=Math.max(2.5,cellH*0.06);
+      const pad=Math.max(1,cellH*0.025);
       const dateBadge=dateStr
-        ?`<div style="position:absolute;bottom:${cellH*0.03}mm;left:0;right:0;background:rgba(26,111,181,0.88);color:white;font-size:${Math.max(3,cellH*0.065)}mm;font-weight:700;padding:${cellH*0.02}mm 0;text-align:center;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${dateStr}</div>`:'';
-      cells+=`<div style="position:relative;width:${cellW.toFixed(2)}mm;height:${cellH.toFixed(2)}mm;overflow:hidden;background:#eee;flex-shrink:0;">${imgContent}${dateBadge}</div>`;
+        ?`<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(26,111,181,0.9);color:white;font-size:${fs}mm;font-weight:700;padding:${pad}mm 0;text-align:center;line-height:1.3;font-family:sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${dateStr}</div>`:'';
+      cells+=`<div style="position:relative;width:${cellW.toFixed(2)}mm;height:${cellH.toFixed(2)}mm;overflow:hidden;background:#ddd;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${imgContent}${dateBadge}</div>`;
     });
-    rows_html+=`<div style="display:flex;gap:${gap}mm;justify-content:center;">${cells}</div>`;
+    rows_html+=`<div style="display:flex;flex-direction:row;gap:${GAP}mm;">${cells}</div>`;
   }
 
   const pTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
   const pLogo=CHANNEL_LOGOS[activeChannel]||'';
 
-  return `<div style="page-break-after:always;width:210mm;min-height:297mm;height:297mm;max-height:297mm;overflow:hidden;padding:8mm;box-sizing:border-box;background:white;font-family:'Sarabun',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+  return `<div style="width:210mm;height:297mm;box-sizing:border-box;padding:10mm;background:white;font-family:'Sarabun',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
 
-    <!-- Header -->
-    <div style="display:flex;align-items:center;gap:4mm;margin-bottom:4mm;padding-bottom:3mm;border-bottom:0.5mm solid ${pTheme.primary};width:${gridTotalW.toFixed(2)}mm;">
-      <div style="width:11mm;height:11mm;border-radius:50%;overflow:hidden;border:0.5mm solid ${pTheme.primary};flex-shrink:0;background:${pTheme.primaryLight};-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+    <div style="display:flex;align-items:center;gap:4mm;padding-bottom:3mm;border-bottom:0.6mm solid ${pTheme.primary};width:${gridW.toFixed(2)}mm;margin-bottom:4mm;">
+      <div style="width:10mm;height:10mm;border-radius:50%;overflow:hidden;flex-shrink:0;background:${pTheme.primaryLight};border:0.4mm solid ${pTheme.primary};-webkit-print-color-adjust:exact;print-color-adjust:exact;">
         ${pLogo?`<img src="${pLogo}" style="width:100%;height:100%;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`:''}
       </div>
       <div style="flex:1;">
-        <div style="font-size:4mm;font-weight:700;color:${pTheme.primaryDark};font-family:'Prompt',sans-serif;">${GRID_CHANNEL_META[activeChannel]?.username||'@dc_dentalclinic'}</div>
-        <div style="font-size:2.8mm;color:#888;margin-top:0.5mm;">${CHANNEL_META[activeChannel]?.label||'DC Dental Clinic'} · ${MONTHS[cm]} ${cy+543}</div>
+        <div style="font-size:3.8mm;font-weight:700;color:${pTheme.primaryDark};font-family:'Prompt',sans-serif;">${GRID_CHANNEL_META[activeChannel]?.username||'@dc_dentalclinic'}</div>
+        <div style="font-size:2.6mm;color:#888;margin-top:0.3mm;">${CHANNEL_META[activeChannel]?.label||'DC Dental Clinic'} · ${MONTHS[cm]} ${cy+543}</div>
       </div>
       <div style="display:flex;gap:4mm;text-align:center;">
-        <div><div style="font-size:4mm;font-weight:700;color:#1A1A2E;">${n}</div><div style="font-size:2.5mm;color:#888;">Posts</div></div>
-        <div><div style="font-size:4mm;font-weight:700;color:#27AE60;">${totalWithDate}</div><div style="font-size:2.5mm;color:#888;">Scheduled</div></div>
-        <div><div style="font-size:4mm;font-weight:700;color:#E74C3C;">${n-totalWithDate}</div><div style="font-size:2.5mm;color:#888;">Pending</div></div>
+        <div><div style="font-size:3.8mm;font-weight:700;color:#1A1A2E;">${n}</div><div style="font-size:2.2mm;color:#888;">Posts</div></div>
+        <div><div style="font-size:3.8mm;font-weight:700;color:#27AE60;">${totalWithDate}</div><div style="font-size:2.2mm;color:#888;">Scheduled</div></div>
+        <div><div style="font-size:3.8mm;font-weight:700;color:#E74C3C;">${n-totalWithDate}</div><div style="font-size:2.2mm;color:#888;">Pending</div></div>
       </div>
     </div>
 
-    <!-- Grid — กึ่งกลาง -->
-    <div style="display:flex;flex-direction:column;gap:${gap}mm;align-items:center;width:${gridTotalW.toFixed(2)}mm;">
+    <div style="display:flex;flex-direction:column;gap:${GAP}mm;align-items:center;">
       ${rows_html}
     </div>
 

@@ -2793,7 +2793,17 @@ function renderSandbox(){
     const del = document.createElement('button');
     del.innerHTML = '✕';
     del.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.65);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;display:none;z-index:2;';
-    del.onclick = (e) => { e.stopPropagation(); sandboxSlots.splice(idx,1); renderSandbox(); };
+    del.onclick = (e) => {
+      e.stopPropagation();
+      if(slot.type === 'blank'){
+        // ถ้าเป็น blank อยู่แล้ว → ลบออกจริง
+        sandboxSlots.splice(idx, 1);
+      } else {
+        // ถ้าเป็นรูปหรือ pending → เปลี่ยนเป็น blank แทน (ไม่ขยับอื่น)
+        sandboxSlots[idx] = { id:'blank-'+Date.now(), type:'blank', img:'', title:'' };
+      }
+      renderSandbox();
+    };
     cell.appendChild(del);
 
     // ลำดับ

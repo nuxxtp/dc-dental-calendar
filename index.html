@@ -1183,7 +1183,7 @@ function renderGrid(){
   const chunks=[];
   for(let i=0;i<items.length;i+=3) chunks.push(items.slice(i,i+3));
   chunks.forEach(chunk=>{
-    [chunk[2], chunk[1], chunk[0]].forEach(item => {
+    [chunk[2],chunk[1],chunk[0]].forEach(item=>{
       const cell=document.createElement('div');
       cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;';
       if(item&&item.type==='pending'){
@@ -1235,22 +1235,29 @@ function renderGrid(){
           renderGrid();
         });
       } else {
-  cell.style.cssText = 'position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:8px;background:rgba(255,255,255,0.08);border:1.5px dashed rgba(255,255,255,0.25);cursor:pointer;transition:all 0.25s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;';
-  cell.innerHTML = `
-    <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(255,255,255,0.7);transition:all 0.25s;backdrop-filter:blur(4px);">+</div>
-    <div style="font-family:'Sarabun',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.5px;">กดเพื่อจัดวาง</div>`;
-  cell.addEventListener('mouseenter', () => {
-    cell.style.background = 'rgba(255,255,255,0.16)';
-    cell.style.borderColor = 'rgba(255,255,255,0.5)';
-    cell.querySelector('div').style.background = 'rgba(255,255,255,0.25)';
-  });
-  cell.addEventListener('mouseleave', () => {
-    cell.style.background = 'rgba(255,255,255,0.08)';
-    cell.style.borderColor = 'rgba(255,255,255,0.25)';
-    cell.querySelector('div').style.background = 'rgba(255,255,255,0.15)';
-  });
-  cell.addEventListener('click', () => openBulkUpload());
-}
+        // ช่องว่าง — ปุ่ม + กดเพื่อจัดวาง
+        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:8px;background:rgba(255,255,255,0.07);border:1.5px dashed rgba(255,255,255,0.22);cursor:pointer;transition:all 0.25s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;';
+        cell.innerHTML=`
+          <div class="grid-add-icon" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;transition:all 0.25s;backdrop-filter:blur(6px);">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><line x1="9" y1="3" x2="9" y2="15" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </div>
+          <div class="grid-add-label" style="font-family:'Sarabun',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);letter-spacing:0.5px;transition:color 0.25s;">กดเพื่อจัดวาง</div>`;
+        cell.addEventListener('mouseenter',()=>{
+          cell.style.background='rgba(255,255,255,0.15)';
+          cell.style.borderColor='rgba(255,255,255,0.45)';
+          cell.querySelector('.grid-add-icon').style.background='rgba(255,255,255,0.22)';
+          cell.querySelector('.grid-add-icon').style.borderColor='rgba(255,255,255,0.55)';
+          cell.querySelector('.grid-add-label').style.color='rgba(255,255,255,0.65)';
+        });
+        cell.addEventListener('mouseleave',()=>{
+          cell.style.background='rgba(255,255,255,0.07)';
+          cell.style.borderColor='rgba(255,255,255,0.22)';
+          cell.querySelector('.grid-add-icon').style.background='rgba(255,255,255,0.12)';
+          cell.querySelector('.grid-add-icon').style.borderColor='rgba(255,255,255,0.3)';
+          cell.querySelector('.grid-add-label').style.color='rgba(255,255,255,0.4)';
+        });
+        cell.addEventListener('click',()=>openBulkUpload());
+      }
       grid.appendChild(cell);
     });
   });

@@ -1571,7 +1571,11 @@ function buildIGGridPrintPage(){
         : null;
       const sched = !!d;
 
-      const imgContent = slot.img
+      const imgContent = slot.type === 'blank'
+        ? `<div style="position:absolute;inset:0;background:#F5F5F5;border:1px dashed #CCC;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`
+        : slot.type === 'pending'
+        ? `<div style="position:absolute;inset:0;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><div style="font-size:14px;">🖼️</div><div style="font-size:7px;font-weight:700;color:white;">รอปก</div></div>`
+        : slot.img
         ? `<img src="${slot.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`
         : `<div style="position:absolute;inset:0;background:#E8F4FD;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>`;
 
@@ -1954,8 +1958,8 @@ function getGridSheetName(ch){
 
 // cache ใน localStorage เพื่อ speed
 function saveGridSlots(){
-  // กรองก่อน save
-  gridSlots = gridSlots.filter(s => s.img && s.img.trim() !== '');
+  // กรองเฉพาะ slot ที่มีรูป หรือเป็น placeholder (pending/blank)
+  gridSlots = gridSlots.filter(s => (s.img && s.img.trim() !== '') || s.type === 'pending' || s.type === 'blank');
   try{ localStorage.setItem(getGridStorageKey(), JSON.stringify(gridSlots)); }catch(e){}
   // หยุด pending Sheet load ที่อาจทับข้อมูล
   window._gridSheetLoadPending = false;
@@ -1996,8 +2000,8 @@ function loadGridSlots(){
   try{
     const saved = localStorage.getItem(getGridStorageKey());
     const parsed = saved ? JSON.parse(saved) : [];
-    // กรองเฉพาะ slot ที่มีรูปจริงๆ
-    gridSlots = parsed.filter(s => s.img && s.img.trim() !== '');
+    // กรองเฉพาะ slot ที่มีรูป หรือเป็น placeholder
+    gridSlots = parsed.filter(s => (s.img && s.img.trim() !== '') || s.type === 'pending' || s.type === 'blank');
   }catch(e){ gridSlots = []; }
   // แล้วค่อย async โหลดจาก Sheet
   loadGridSlotsFromSheet();
@@ -2059,8 +2063,7 @@ async function loadGridSlotsFromSheet(){
         if(!merged.find(s => s.id === ls.id)) merged.push(ls);
       });
 
-      // กรองเฉพาะ slot ที่มีรูปจริงๆ
-      gridSlots = merged.filter(s => s.img && s.img.trim() !== '');
+      gridSlots = merged.filter(s => (s.img && s.img.trim() !== '') || s.type === 'pending' || s.type === 'blank');
       try{ localStorage.setItem(getGridStorageKey(), JSON.stringify(gridSlots)); }catch(e){}
       renderGrid();
       renderUnscheduled();
@@ -2244,6 +2247,17 @@ function renderGrid(){
         cell.addEventListener('click', ()=> openGridModal(null));
         cell.addEventListener('mouseenter', ()=>{ cell.style.background='#E8F4FD'; });
         cell.addEventListener('mouseleave', ()=>{ cell.style.background='#F0F7FF'; });
+
+      } else if(item && item.type === 'pending'){
+        // รอปก
+        cell.style.cssText = 'position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;';
+        cell.innerHTML = `<div style="font-size:22px;">🖼️</div><div style="font-size:10px;font-weight:700;color:white;">รอปก</div>`;
+        cell.addEventListener('click', ()=> openGridModal(gridSlots.findIndex(s=>s.id===item.id)));
+
+      } else if(item && item.type === 'blank'){
+        // หน้าเปล่าคั่น
+        cell.style.cssText = 'position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:rgba(200,200,200,0.25);border:1.5px dashed rgba(150,150,150,0.4);';
+        cell.innerHTML = '';
 
       } else if(item && item.img){
         const realIdx = gridSlots.findIndex(s => s.id === item.id);
@@ -2863,13 +2877,17 @@ async function confirmSandbox(){
   const remaining = Math.max(0, 23 - gridSlots.length);
   if(remaining === 0){ showNoti('⚠️ Grid เต็ม 23 รูปแล้ว ลบรูปเก่าก่อน','#E74C3C'); return; }
 
-  // กรองเฉพาะรูปจริง (ไม่เอา blank และ pending)
-  const realSlots = sandboxSlots.filter(s => s.img && s.img.trim() !== '' && s.type !== 'blank' && s.type !== 'pending');
-  const toAdd = realSlots.slice(0, remaining);
-  showNoti('⏳ กำลังย้าย ' + toAdd.length + ' รูปเข้า Grid...', '#1A6FB5');
+  const toAdd = sandboxSlots.slice(0, remaining);
+  showNoti('⏳ กำลังย้าย ' + toAdd.length + ' ช่องเข้า Grid...', '#1A6FB5');
 
   [...toAdd].reverse().forEach(s => {
-    gridSlots.unshift({ id: Date.now()+'-'+Math.random().toString(36).slice(2), img: s.img, title: s.title, date:'', caption:'', hashtag:'', note:'' });
+    gridSlots.unshift({
+      id: Date.now()+'-'+Math.random().toString(36).slice(2),
+      img: s.img || '',
+      title: s.title || '',
+      type: s.type || 'image', // 'image', 'pending', 'blank'
+      date:'', caption:'', hashtag:'', note:''
+    });
   });
 
   saveGridSlots();

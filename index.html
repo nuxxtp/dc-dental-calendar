@@ -171,11 +171,8 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .no-print{}
 @media print{
   .no-print{display:none !important;}
-  /* default = portrait สำหรับ IG Grid และสรุปคอนเทนต์ */
-  @page{size:A4 portrait;margin:8mm;}
-  /* landscape สำหรับหน้าปฏิทินและรายละเอียดโพสต์ */
-  @page landscape-page{size:A4 landscape;margin:8mm;}
-  .calendar-wrap,.print-day-page,.landscape-page{page:landscape-page;}
+  @page{size:A4 landscape;margin:8mm;}
+  @page portrait-page{size:A4 portrait;margin:8mm;}
   .ig-grid-print-wrap{page:portrait-page;}
   header,.stats-bar,.modal-overlay{display:none !important;}
   body{background:white !important;margin:0;padding:0;}
@@ -269,7 +266,8 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <span class="month-label" id="monthLabel"></span>
         <button onclick="changeMonth(1)">›</button>
       </div>
-      <button class="btn-export" onclick="printCalendar()">🖨️ พิมพ์/Share</button>
+      <button class="btn-export" onclick="printCalendar()">🖨️ พิมพ์ปฏิทิน</button>
+      <button class="btn-export" onclick="printIGGrid()" id="btnPrintGrid" style="background:rgba(255,255,255,0.1);">📸 พิมพ์ IG Grid</button>
       <button class="btn-add" onclick="openAdd()">＋ เพิ่มโพสต์</button>
     </div>
     <div id="gridControls" style="display:none;align-items:center;gap:10px">
@@ -1870,6 +1868,34 @@ function buildSummaryTable(posts){
       <tbody>${rows}</tbody>
     </table>
   </div>`;
+}
+
+function printIGGrid(){
+  const content=buildIGGridPrintPage();
+  if(!content){showNoti('ไม่มีรูปใน Grid เดือนนี้','#E67E22');return;}
+  const win=window.open('','_blank','width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=Prompt:wght@700&display=swap" rel="stylesheet">
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      @page{size:A4 portrait;margin:0;}
+      body{background:white;}
+      @media print{body{margin:0;padding:0;}}
+    </style>
+  </head><body>${content}</body></html>`);
+  win.document.close();
+  // รอโหลดรูปแล้วค่อยพิมพ์
+  win.onload=()=>{
+    const imgs=win.document.querySelectorAll('img');
+    let loaded=0;const total=imgs.length;
+    const doPrint=()=>{ win.focus(); win.print(); };
+    if(total===0){setTimeout(doPrint,300);return;}
+    imgs.forEach(img=>{
+      if(img.complete){loaded++;if(loaded>=total) setTimeout(doPrint,300);}
+      else{ img.onload=img.onerror=()=>{loaded++;if(loaded>=total) setTimeout(doPrint,300);}; }
+    });
+    setTimeout(doPrint,8000);
+  };
 }
 
 function printCalendar(){

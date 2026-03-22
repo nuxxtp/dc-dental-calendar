@@ -580,7 +580,14 @@ async function loadGridSlots(){
         id:String(r.id||''),img:String(r.img||''),title:String(r.title||''),
         date:parseSheetDate(r.date),channel:String(r.channel||activeChannel),
         caption:String(r.caption||''),hashtag:String(r.hashtag||''),
-        note:String(r.note||''),type:String(r.type||'image'),
+        // type: ถ้า Sheet ส่งมาว่างให้ดูจาก img ว่างหรือไม่ — ถ้าไม่มี img ให้เป็น pending ไม่ใช่ image
+        note:String(r.note||''),
+        type:(()=>{
+          const t=String(r.type||'');
+          if(t==='pending'||t==='blank') return t;  // เก็บ type จาก Sheet ตรงๆ
+          if(t==='image'||t==='') return r.img?'image':'pending'; // ถ้าไม่มีรูปแต่ type=image = pending
+          return t||'image';
+        })(),
       })).filter(r=>r.id);
 
       if(sheetSlots.length===0 && gridSlots.length>0){
@@ -601,6 +608,7 @@ async function loadGridSlots(){
 
 // บันทึก Sheet ก่อน แล้วค่อย update cache
 async function saveGridSlots(){
+  // กรองเฉพาะ slot ที่มีรูปจริง หรือเป็น pending/blank (คงอยู่จนกว่าจะลบเอง)
   gridSlots=gridSlots.filter(s=>s.img||s.type==='pending'||s.type==='blank');
   showGridLoading(true);
   const result=await saveGridSlotsToSheet();
@@ -616,9 +624,16 @@ async function saveGridSlots(){
 async function saveGridSlotsToSheet(){
   try{
     const cleanSlots=gridSlots.map(s=>({
-      id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',
-      channel:activeChannel,caption:s.caption||'',hashtag:s.hashtag||'',
-      note:s.note||'',type:s.type||'image',
+      id:s.id||'',
+      img:s.img||'',
+      title:s.title||'',
+      date:s.date||'',
+      channel:activeChannel,
+      caption:s.caption||'',
+      hashtag:s.hashtag||'',
+      note:s.note||'',
+      // ส่ง type ขึ้น Sheet ตรงๆ เสมอ — pending/blank ต้องไม่หาย
+      type:s.type==='pending'?'pending':s.type==='blank'?'blank':'image',
     }));
     const res=await fetch(SHEET_URL,{
       method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
@@ -1228,11 +1243,43 @@ function renderGrid(){
       const cell=document.createElement('div');
       cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;';
       if(item&&item.type==='pending'){
-        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;';
-        cell.innerHTML=`<div style="font-size:22px;">🖼️</div><div style="font-size:10px;font-weight:700;color:white;">รอปก</div>`;
-        cell.addEventListener('click',()=>openGridModal(gridSlots.findIndex(s=>s.id===item.id)));
+        const realIdx=gridSlots.findIndex(s=>s.id===item.id);
+        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:grab;';
+        cell.draggable=true;
+        cell.innerHTML=`<div style="font-size:22px;pointer-events:none;">🖼️</div><div style="font-size:10px;font-weight:700;color:white;pointer-events:none;">รอปก</div>`;
+        // badge ลำดับ
+        const numBadge=document.createElement('div');
+        numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.45);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
+        numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
+        cell.addEventListener('click',()=>openGridModal(realIdx));
+        cell.addEventListener('dragstart',e=>{dragSrcIdx=realIdx;setTimeout(()=>cell.style.opacity='0.4',0);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('type','grid');});
+        cell.addEventListener('dragend',()=>{cell.style.opacity='1';document.querySelectorAll('#igGrid > div').forEach(c=>c.style.outline='none');});
+        cell.addEventListener('dragover',e=>{e.preventDefault();cell.style.outline='2px solid #C8956C';return false;});
+        cell.addEventListener('dragleave',()=>{cell.style.outline='none';});
+        cell.addEventListener('drop',async e=>{
+          e.preventDefault();e.stopPropagation();cell.style.outline='none';
+          if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
+          const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
+          dragSrcIdx=null;await saveGridSlots();renderGrid();
+        });
       } else if(item&&item.type==='blank'){
-        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:rgba(200,200,200,0.25);border:1.5px dashed rgba(150,150,150,0.4);';
+        const realIdx=gridSlots.findIndex(s=>s.id===item.id);
+        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:rgba(200,200,200,0.25);border:1.5px dashed rgba(150,150,150,0.4);cursor:grab;';
+        cell.draggable=true;
+        // badge ลำดับ
+        const numBadge=document.createElement('div');
+        numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.3);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
+        numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
+        cell.addEventListener('dragstart',e=>{dragSrcIdx=realIdx;setTimeout(()=>cell.style.opacity='0.4',0);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('type','grid');});
+        cell.addEventListener('dragend',()=>{cell.style.opacity='1';document.querySelectorAll('#igGrid > div').forEach(c=>c.style.outline='none');});
+        cell.addEventListener('dragover',e=>{e.preventDefault();cell.style.outline='2px solid #aaa';return false;});
+        cell.addEventListener('dragleave',()=>{cell.style.outline='none';});
+        cell.addEventListener('drop',async e=>{
+          e.preventDefault();e.stopPropagation();cell.style.outline='none';
+          if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
+          const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
+          dragSrcIdx=null;await saveGridSlots();renderGrid();
+        });
       } else if(item&&item.img){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
         cell.style.cursor='grab';cell.draggable=true;

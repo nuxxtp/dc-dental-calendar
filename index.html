@@ -485,10 +485,6 @@ window.addEventListener('DOMContentLoaded', function(){
     <div id="gridControls" style="display:none;align-items:center;gap:10px">
       <input type="hidden" id="gridChannelSelect" value="dc-dental">
       <button onclick="openGridSandbox()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">🎨 ทดลองจัด</button>
-      <label style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
-        <input type="file" accept="image/*" multiple style="display:none;" onchange="handleBulkUploadFiles(this.files)">
-        ＋ เพิ่มรูป
-      </label>
 
     </div>
   </div>
@@ -524,19 +520,6 @@ window.addEventListener('DOMContentLoaded', function(){
         <div style="font-size:12px;color:#888;margin-top:2px" id="igPostCount">0 posts planned</div>
       </div>
     </div>
-    <!-- Preview 6 ช่อง + ปุ่มทดลองจัด -->
-    <div id="igGridPreview" onclick="openGridSandbox()" style="cursor:pointer;margin-bottom:16px;border-radius:14px;overflow:hidden;border:1.5px solid #E0EAF4;transition:all 0.2s;position:relative;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 20px rgba(26,111,181,0.12)'" onmouseout="this.style.borderColor='#E0EAF4';this.style.boxShadow=''">
-      <div id="igPreviewGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:#F0F2F5;"></div>
-      <div style="position:absolute;inset:0;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(1px);">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,0.18);">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="12" y1="4" x2="12" y2="20" stroke="#1A1A2E" stroke-width="2.2" stroke-linecap="round"/>
-            <line x1="4" y1="12" x2="20" y2="12" stroke="#1A1A2E" stroke-width="2.2" stroke-linecap="round"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
     <!-- Grid -->
     <div style="position:relative;">
     <div id="igGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;"></div>
@@ -2233,7 +2216,6 @@ function renderGrid(){
   document.getElementById('igPostCount').textContent =
     MONTHS[cm] + ' ' + (cy+543) + ' · ' + scheduledInMonth + ' จัดวันแล้ว · ' +
     gridSlots.filter(s=>!s.date).length + ' รอจัดวัน';
-  renderIgPreview();
 
   const grid = document.getElementById('igGrid');
   grid.innerHTML = '';
@@ -2929,57 +2911,6 @@ async function confirmSandbox(){
   renderGrid();
   renderUnscheduled();
   showNoti('✅ ย้าย ' + toAdd.length + ' รูปเข้า Grid แล้ว!', '#27AE60');
-}
-
-// ========== BULK UPLOAD DIRECT ==========
-async function handleBulkUploadFiles(files){
-  const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
-  if(!arr.length) return;
-  const remaining = Math.max(0, 23 - gridSlots.length);
-  if(remaining === 0){ showNoti('⚠️ Grid เต็ม 23 รูปแล้ว','#E74C3C'); return; }
-  const toUpload = arr.slice(0, remaining);
-  showNoti('⏳ กำลังอัปโหลด ' + toUpload.length + ' รูป...', '#1A6FB5');
-  let done = 0;
-  for(let i = 0; i < toUpload.length; i++){
-    const file = toUpload[i];
-    try{
-      const fd = new FormData();
-      fd.append('file', file); fd.append('upload_preset', CLOUDINARY_PRESET); fd.append('folder','dc-dental-grid');
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
-      const data = await res.json();
-      if(data.secure_url){
-        gridSlots.unshift({ id: Date.now()+'-'+i, img: data.secure_url, title: file.name.replace(/\.[^.]+$/,''), date:'', caption:'', hashtag:'', note:'' });
-        done++;
-      }
-    }catch(e){ console.error(e); }
-  }
-  saveGridSlots();
-  renderGrid();
-  renderUnscheduled();
-  showNoti('✅ อัปโหลด ' + done + ' รูปสำเร็จ!', '#27AE60');
-}
-
-// render preview 6 ช่องบน IG Grid page
-function renderIgPreview(){
-  const previewGrid = document.getElementById('igPreviewGrid');
-  if(!previewGrid) return;
-  previewGrid.innerHTML = '';
-  // แสดง 6 ช่องแรก
-  for(let i = 0; i < 6; i++){
-    const cell = document.createElement('div');
-    cell.style.cssText = 'aspect-ratio:1;overflow:hidden;background:#E8EDF5;';
-    const slot = gridSlots[i];
-    if(slot && slot.img){
-      cell.innerHTML = `<img src="${slot.img}" style="width:100%;height:100%;object-fit:cover;">`;
-    } else if(slot && slot.type === 'pending'){
-      cell.style.background = 'linear-gradient(135deg,#8B6F3E,#C8956C)';
-      cell.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">🖼️</div>`;
-    } else {
-      // ช่องเปล่า
-      cell.style.background = '#EEF1F5';
-    }
-    previewGrid.appendChild(cell);
-  }
 }
 
 // ========== AUTO SYNC GRID TO SHEET ==========

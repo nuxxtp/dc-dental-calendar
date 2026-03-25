@@ -1977,28 +1977,44 @@ function printCalendar(){
   });
   section.innerHTML=buildIGGridPrintPage()+buildSummaryTable(mp)+out;
 
-  // preload รูปทั้งหมดก่อน print → กัน กระตุก
-  setTimeout(()=>{
-    const imgs=section.querySelectorAll('img');
-    let loaded=0;
-    const total=imgs.length;
-    const doPrint=()=>{
-      document.querySelectorAll('[id^="capDiv_"]').forEach(div=>{
-        let size=11;div.style.fontSize=size+'px';
-        while(div.scrollHeight>div.clientHeight+5&&size>7){size-=0.5;div.style.fontSize=size+'px';div.style.lineHeight=(size<=9?1.5:1.6).toString();}
-      });
-      window.print();
-    };
-    if(total===0){doPrint();return;}
-    imgs.forEach(img=>{
-      if(img.complete){loaded++;if(loaded>=total) doPrint();}
-      else{
-        img.onload=img.onerror=()=>{loaded++;if(loaded>=total) doPrint();};
+  // preload + decode รูปทั้งหมดก่อน print → กัน กระตุก
+  const allImgs=Array.from(section.querySelectorAll('img'));
+  // บังคับ eager loading ทุกรูป
+  allImgs.forEach(img=>{ img.loading='eager'; img.decoding='sync'; });
+
+  const doPrint=()=>{
+    document.querySelectorAll('[id^="capDiv_"]').forEach(div=>{
+      let size=11;div.style.fontSize=size+'px';
+      while(div.scrollHeight>div.clientHeight+5&&size>7){
+        size-=0.5;div.style.fontSize=size+'px';
+        div.style.lineHeight=(size<=9?1.5:1.6).toString();
       }
     });
-    // safety timeout 8 วิ ถ้ารูปโหลดนานเกิน
-    setTimeout(doPrint, 8000);
-  },300);
+    window.print();
+  };
+
+  if(allImgs.length===0){setTimeout(doPrint,300);return;}
+
+  showNoti('⏳ กำลังโหลดรูปก่อนพิมพ์...','#1A6FB5');
+
+  // รอให้รูปทุกใบโหลด+decode เสร็จก่อน
+  Promise.allSettled(
+    allImgs.map(img=>{
+      if(img.complete && img.naturalWidth>0){
+        return img.decode ? img.decode().catch(()=>{}) : Promise.resolve();
+      }
+      return new Promise(resolve=>{
+        img.onload=()=>{ (img.decode ? img.decode().catch(()=>{}) : Promise.resolve()).then(resolve); };
+        img.onerror=resolve;
+      });
+    })
+  ).then(()=>{
+    showNoti('✅ โหลดรูปครบแล้ว กำลังเปิด print...','#27AE60');
+    setTimeout(doPrint,400);
+  });
+
+  // safety timeout 12 วิ
+  setTimeout(doPrint,12000);
 }
 
 function buildIGGridPrintPage(){

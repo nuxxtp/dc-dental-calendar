@@ -209,6 +209,16 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .print-header{display:none;text-align:center;padding:12px 0 6px;font-family:'Prompt',sans-serif;}
 .btn-export{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:10px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
 .btn-export:hover{background:rgba(255,255,255,0.28);}
+
+/* ── ARCHIVE MODAL STYLES ── */
+.archive-month-section{border:1.5px solid #E4EDF5;border-radius:10px;overflow:hidden;transition:border-color 0.2s;}
+.archive-month-section.current{border-color:var(--blue);}
+.archive-month-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:#F9FAFC;user-select:none;transition:background 0.15s;}
+.archive-month-section.current .archive-month-header{background:var(--blue-light);}
+.archive-month-header:hover{background:#EEF4FC;}
+.archive-post-row{display:flex;align-items:center;gap:8px;padding:7px 14px;border-top:1px solid #EDF2F7;cursor:pointer;transition:background 0.15s;}
+.archive-post-row:hover{background:var(--blue-light);}
+.arch-arrow{font-size:13px;color:var(--gray-dark);transition:transform 0.2s;display:inline-block;}
 </style>
 </head>
 <body>
@@ -266,6 +276,8 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <span class="month-label" id="monthLabel"></span>
         <button onclick="changeMonth(1)">›</button>
       </div>
+      <!-- ปุ่ม Archive เพิ่มใหม่ -->
+      <button class="btn-export" onclick="openArchive()">📁 Archive</button>
       <button class="btn-export" onclick="printCalendar()">🖨️ พิมพ์/Share</button>
       <button class="btn-add" onclick="openAdd()">＋ เพิ่มโพสต์</button>
     </div>
@@ -304,7 +316,6 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <div style="font-size:12px;color:#888;margin-top:2px" id="igPostCount">0 posts planned</div>
       </div>
     </div>
-    <!-- Grid Loading Bar -->
     <div id="gridLoadingBanner" style="display:none;background:#E8F4FD;border-radius:8px;padding:8px 14px;margin-bottom:12px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1A6FB5;font-weight:600;text-align:center;">⏳ กำลังโหลดรูปจาก Server...</div>
     <div style="position:relative;">
       <div id="igGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;"></div>
@@ -466,6 +477,29 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   </div>
 </div>
 
+<!-- ── ARCHIVE MODAL (ใหม่) ── -->
+<div class="modal-overlay" id="archiveModal">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <h2>📁 Archive — ประวัติโพสต์ทั้งหมด</h2>
+      <button class="modal-close" onclick="closeModal('archiveModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <!-- Filter bar -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:.5px;">กรอง:</span>
+        <button class="filter-btn active" id="archFilterAll" onclick="setArchiveFilter('all',this)">ทั้งหมด</button>
+        <button class="filter-btn" onclick="setArchiveFilter('draft',this)">Draft</button>
+        <button class="filter-btn" onclick="setArchiveFilter('ready',this)">Ready</button>
+        <button class="filter-btn" onclick="setArchiveFilter('posted',this)">Posted</button>
+        <span id="archiveTotalBadge" style="margin-left:auto;font-size:12px;color:var(--gray-dark);font-weight:600;"></span>
+      </div>
+      <!-- Accordion list -->
+      <div id="archiveList" style="display:flex;flex-direction:column;gap:8px;max-height:62vh;overflow-y:auto;padding-right:4px;"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 const SHEET_URL='https://script.google.com/macros/s/AKfycbyDDw1k83NgPHtmIO0w6S9GSgYL_5aphvEXvpgS8GwcyNmQ7zg9IR0BPcZOqKfKnsydog/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
@@ -525,7 +559,7 @@ const CH_META={
 };
 
 // =====================================================
-// GRID STORAGE — Sheet as Single Source of Truth
+// GRID STORAGE
 // =====================================================
 let gridSlots=[];
 let dragSrcIdx=null;
@@ -536,18 +570,14 @@ function getGridSheetName(ch){ return 'IG Grid '+(ch||activeChannel); }
 function parseSheetDate(val){
   const s=String(val||'').trim();
   if(!s) return '';
-  // yyyy-MM-dd แล้ว → คืนตรงๆ ไม่แปลง
   if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  // มี T หรือ Z = ISO string → ใช้ UTC แล้วแปลงเป็น local date string
   if(s.includes('T')||s.includes('Z')){
     const d=new Date(s);
     if(isNaN(d)) return s;
     const pad=n=>String(n).padStart(2,'0');
-    // บวก offset ไทย +7 เพื่อให้ได้วันที่ถูกต้อง
     const local=new Date(d.getTime()+(7*60*60*1000));
     return local.getUTCFullYear()+'-'+pad(local.getUTCMonth()+1)+'-'+pad(local.getUTCDate());
   }
-  // รูปแบบอื่น เช่น "March 5, 2026" → เพิ่ม T00:00:00 เพื่อกัน timezone
   const d=new Date(s+'T00:00:00');
   if(isNaN(d)) return s;
   const pad=n=>String(n).padStart(2,'0');
@@ -564,9 +594,7 @@ function showGridLoading(show){
   if(el) el.style.display=show?'block':'none';
 }
 
-// โหลดจาก Sheet เสมอ — localStorage เป็นแค่ cache แสดงระหว่างรอ
 async function loadGridSlots(){
-  // แสดง cache ก่อนเพื่อไม่ให้หน้าว่าง
   try{
     const cached=localStorage.getItem(getGridStorageKey());
     if(cached){
@@ -575,7 +603,6 @@ async function loadGridSlots(){
     }
   }catch(e){ gridSlots=[]; }
 
-  // โหลดจาก Sheet เสมอ (ไม่ skip)
   showGridLoading(true);
   const loadChannel=activeChannel;
   try{
@@ -585,43 +612,34 @@ async function loadGridSlots(){
       {method:'GET',redirect:'follow',signal:controller.signal});
     clearTimeout(timer);
     const data=JSON.parse(await res.text());
-
-    if(loadChannel!==activeChannel) return; // ช่องเปลี่ยนระหว่างโหลด
-
+    if(loadChannel!==activeChannel) return;
     if(Array.isArray(data)){
       const sheetSlots=data.map(r=>({
         id:String(r.id||''),img:String(r.img||''),title:String(r.title||''),
         date:parseSheetDate(r.date),channel:String(r.channel||activeChannel),
         caption:String(r.caption||''),hashtag:String(r.hashtag||''),
-        // type: ถ้า Sheet ส่งมาว่างให้ดูจาก img ว่างหรือไม่ — ถ้าไม่มี img ให้เป็น pending ไม่ใช่ image
         note:String(r.note||''),
         type:(()=>{
           const t=String(r.type||'');
-          if(t==='pending'||t==='blank') return t;  // เก็บ type จาก Sheet ตรงๆ
-          if(t==='image'||t==='') return r.img?'image':'pending'; // ถ้าไม่มีรูปแต่ type=image = pending
+          if(t==='pending'||t==='blank') return t;
+          if(t==='image'||t==='') return r.img?'image':'pending';
           return t||'image';
         })(),
       })).filter(r=>r.id);
-
       if(sheetSlots.length===0 && gridSlots.length>0){
-        // Sheet ว่างแต่ cache มีข้อมูล → sync ขึ้น Sheet
         await saveGridSlotsToSheet();
       } else {
-        // Sheet มีข้อมูล → ใช้ Sheet เป็นหลักทันที
         gridSlots=sheetSlots;
       }
     }
   }catch(e){
     console.warn('loadGridSlots: ใช้ cache เพราะ Sheet ไม่ตอบ:',e);
   }
-
   saveToLocalCache();
   showGridLoading(false);
 }
 
-// บันทึก Sheet ก่อน แล้วค่อย update cache
 async function saveGridSlots(){
-  // กรองเฉพาะ slot ที่มีรูปจริง หรือเป็น pending/blank (คงอยู่จนกว่าจะลบเอง)
   gridSlots=gridSlots.filter(s=>s.img||s.type==='pending'||s.type==='blank');
   showGridLoading(true);
   const result=await saveGridSlotsToSheet();
@@ -637,15 +655,8 @@ async function saveGridSlots(){
 async function saveGridSlotsToSheet(){
   try{
     const cleanSlots=gridSlots.map(s=>({
-      id:s.id||'',
-      img:s.img||'',
-      title:s.title||'',
-      date:s.date||'',
-      channel:activeChannel,
-      caption:s.caption||'',
-      hashtag:s.hashtag||'',
-      note:s.note||'',
-      // ส่ง type ขึ้น Sheet ตรงๆ เสมอ — pending/blank ต้องไม่หาย
+      id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
+      caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
       type:s.type==='pending'?'pending':s.type==='blank'?'blank':'image',
     }));
     const res=await fetch(SHEET_URL,{
@@ -701,7 +712,6 @@ async function switchChannel(ch){
   const sel=document.getElementById('gridChannelSelect');
   if(sel) sel.value=ch;
   applyChannelTheme(ch);
-  // โหลด Grid จาก Sheet ทันที
   await loadGridSlots();
   renderGrid();
   renderUnscheduled();
@@ -809,7 +819,6 @@ function render(){
   document.getElementById('cTotal').textContent=mp.length;
   renderCal();
   renderUnscheduled();
-  // sync วันที่จาก posts → gridSlots
   let gridUpdated=false;
   gridSlots.forEach((slot,i)=>{
     const calPost=posts.find(p=>p.id===slot.id);
@@ -1169,7 +1178,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',e=>{if(e.target===el) el.classList.remove('open');});});
 
 // =====================================================
-// SWITCH TAB — await loadGridSlots ก่อน render
+// SWITCH TAB
 // =====================================================
 async function switchTab(tab){
   const isGrid=tab==='grid';
@@ -1183,7 +1192,7 @@ async function switchTab(tab){
   document.getElementById('tabGridBtn').style.background=isGrid?'rgba(255,255,255,0.25)':'transparent';
   document.getElementById('tabGridBtn').style.color=isGrid?'white':'rgba(255,255,255,0.7)';
   if(isGrid){
-    await loadGridSlots(); // รอโหลดจาก Sheet ก่อน
+    await loadGridSlots();
     renderGrid();
     renderUnscheduled();
   }
@@ -1207,7 +1216,6 @@ function renderGrid(){
   document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date).length+' รอจัดวัน';
   const grid=document.getElementById('igGrid');grid.innerHTML='';
 
-  // ถ้าไม่มีรูปเลย → แสดงกล่องใหญ่อันเดียวตรงกลาง
   if(monthSlots.length===0){
     grid.style.display='block';
     const emptyBox=document.createElement('div');
@@ -1223,21 +1231,14 @@ function renderGrid(){
         <div class="eb-sub" style="font-family:'Sarabun',sans-serif;font-size:13px;color:${t.primary};transition:all 0.3s;">กดเพื่อเปิดหน้าทดลองจัด</div>
       </div>`;
     emptyBox.addEventListener('mouseenter',()=>{
-      emptyBox.style.background=t.bgLight;
-      emptyBox.style.borderColor=t.primaryDark;
-      emptyBox.style.transform='scale(1.012)';
+      emptyBox.style.background=t.bgLight;emptyBox.style.borderColor=t.primaryDark;emptyBox.style.transform='scale(1.012)';
       emptyBox.style.boxShadow=`0 8px 40px ${t.primary}33`;
-      emptyBox.querySelector('.eb-icon').style.background=`${t.primary}33`;
-      emptyBox.querySelector('.eb-icon').style.transform='scale(1.12)';
+      emptyBox.querySelector('.eb-icon').style.background=`${t.primary}33`;emptyBox.querySelector('.eb-icon').style.transform='scale(1.12)';
       emptyBox.querySelector('.eb-title').style.color=t.primaryDark;
     });
     emptyBox.addEventListener('mouseleave',()=>{
-      emptyBox.style.background=t.primaryLight;
-      emptyBox.style.borderColor=t.primary;
-      emptyBox.style.transform='scale(1)';
-      emptyBox.style.boxShadow='none';
-      emptyBox.querySelector('.eb-icon').style.background=`${t.primary}22`;
-      emptyBox.querySelector('.eb-icon').style.transform='scale(1)';
+      emptyBox.style.background=t.primaryLight;emptyBox.style.borderColor=t.primary;emptyBox.style.transform='scale(1)';emptyBox.style.boxShadow='none';
+      emptyBox.querySelector('.eb-icon').style.background=`${t.primary}22`;emptyBox.querySelector('.eb-icon').style.transform='scale(1)';
       emptyBox.querySelector('.eb-title').style.color=t.primaryDark;
     });
     emptyBox.addEventListener('mousedown',()=>{ emptyBox.style.transform='scale(0.99)'; });
@@ -1260,7 +1261,6 @@ function renderGrid(){
         cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:grab;';
         cell.draggable=true;
         cell.innerHTML=`<div style="font-size:22px;pointer-events:none;">🖼️</div><div style="font-size:10px;font-weight:700;color:white;pointer-events:none;">รอปก</div>`;
-        // badge ลำดับ
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.45);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
         numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
@@ -1279,7 +1279,6 @@ function renderGrid(){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
         cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:rgba(200,200,200,0.25);border:1.5px dashed rgba(150,150,150,0.4);cursor:grab;';
         cell.draggable=true;
-        // badge ลำดับ
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.3);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
         numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
@@ -1331,32 +1330,17 @@ function renderGrid(){
           e.preventDefault();e.stopPropagation();cell.style.outline='none';
           if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
           const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
-          dragSrcIdx=null;
-          await saveGridSlots(); // รอ Sheet ก่อน
-          renderGrid();
+          dragSrcIdx=null;await saveGridSlots();renderGrid();
         });
       } else {
-        // ช่องว่าง — ปุ่ม + กดเพื่อจัดวาง
         cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:8px;background:rgba(255,255,255,0.07);border:1.5px dashed rgba(255,255,255,0.22);cursor:pointer;transition:all 0.25s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;';
         cell.innerHTML=`
           <div class="grid-add-icon" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;transition:all 0.25s;backdrop-filter:blur(6px);">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><line x1="9" y1="3" x2="9" y2="15" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round"/><line x1="3" y1="9" x2="15" y2="9" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round"/></svg>
           </div>
           <div class="grid-add-label" style="font-family:'Sarabun',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);letter-spacing:0.5px;transition:color 0.25s;">กดเพื่อจัดวาง</div>`;
-        cell.addEventListener('mouseenter',()=>{
-          cell.style.background='rgba(255,255,255,0.15)';
-          cell.style.borderColor='rgba(255,255,255,0.45)';
-          cell.querySelector('.grid-add-icon').style.background='rgba(255,255,255,0.22)';
-          cell.querySelector('.grid-add-icon').style.borderColor='rgba(255,255,255,0.55)';
-          cell.querySelector('.grid-add-label').style.color='rgba(255,255,255,0.65)';
-        });
-        cell.addEventListener('mouseleave',()=>{
-          cell.style.background='rgba(255,255,255,0.07)';
-          cell.style.borderColor='rgba(255,255,255,0.22)';
-          cell.querySelector('.grid-add-icon').style.background='rgba(255,255,255,0.12)';
-          cell.querySelector('.grid-add-icon').style.borderColor='rgba(255,255,255,0.3)';
-          cell.querySelector('.grid-add-label').style.color='rgba(255,255,255,0.4)';
-        });
+        cell.addEventListener('mouseenter',()=>{cell.style.background='rgba(255,255,255,0.15)';cell.style.borderColor='rgba(255,255,255,0.45)';cell.querySelector('.grid-add-icon').style.background='rgba(255,255,255,0.22)';cell.querySelector('.grid-add-icon').style.borderColor='rgba(255,255,255,0.55)';cell.querySelector('.grid-add-label').style.color='rgba(255,255,255,0.65)';});
+        cell.addEventListener('mouseleave',()=>{cell.style.background='rgba(255,255,255,0.07)';cell.style.borderColor='rgba(255,255,255,0.22)';cell.querySelector('.grid-add-icon').style.background='rgba(255,255,255,0.12)';cell.querySelector('.grid-add-icon').style.borderColor='rgba(255,255,255,0.3)';cell.querySelector('.grid-add-label').style.color='rgba(255,255,255,0.4)';});
         cell.addEventListener('click',()=>openBulkUpload());
       }
       grid.appendChild(cell);
@@ -1445,7 +1429,7 @@ function renderUnscheduled(){
 }
 
 // =====================================================
-// GRID MODAL (edit single slot)
+// GRID MODAL
 // =====================================================
 async function openGridModal(editIdx){
   if(editIdx===null){openBulkUpload();return;}
@@ -1538,7 +1522,7 @@ async function openGridModal(editIdx){
     slot.note=document.getElementById('gmNote').value;
     gridSlots[editIdx]=slot;
     showNoti('⏳ กำลังบันทึก...','#1A6FB5');
-    const ok=await saveGridSlots(); // รอ Sheet ก่อน
+    const ok=await saveGridSlots();
     if(!ok){btn.disabled=false;btn.textContent='💾 บันทึก';return;}
     if(slot.date){
       const res=await syncSlotToCalendar(slot);
@@ -1635,7 +1619,7 @@ function openBulkUpload(){
     }
     [...newSlots].reverse().forEach(s=>gridSlots.unshift(s));
     showNoti('⏳ กำลังบันทึกลง Server...','#1A6FB5');
-    const ok=await saveGridSlots(); // รอ Sheet ก่อน
+    const ok=await saveGridSlots();
     renderGrid();renderUnscheduled();
     document.getElementById('bmStatus').innerHTML=ok
       ?`<span style="color:#27AE60;font-weight:700;">✅ สำเร็จ ${done} รูป${failed>0?' / ❌ ล้มเหลว '+failed+' รูป':''}</span><br><span style="color:#888;font-size:11px;">ตั้งวันที่ได้ใน Grid เพื่อให้ขึ้น Calendar</span>`
@@ -1817,7 +1801,7 @@ async function confirmSandbox(){
   showNoti('⏳ กำลังย้าย '+toAdd.length+' ช่องเข้า Grid...','#1A6FB5');
   const newSlots=toAdd.map(s=>({id:Date.now()+'-'+Math.random().toString(36).slice(2),img:s.img||'',title:s.title||'',type:s.type||'image',date:'',caption:'',hashtag:'',note:''}));
   gridSlots=[...newSlots,...gridSlots];
-  const ok=await saveGridSlots(); // รอ Sheet ก่อน
+  const ok=await saveGridSlots();
   closeSandbox();renderGrid();renderUnscheduled();
   if(ok) showNoti('✅ ย้าย '+toAdd.length+' รูปเข้า Grid แล้ว!','#27AE60');
   else showNoti('⚠️ ย้ายแล้วแต่บันทึก Sheet ไม่สำเร็จ','#E67E22');
@@ -1879,10 +1863,7 @@ function printIGGrid(){
       *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
       @page{size:A4 portrait;margin:0;}
       html,body{width:210mm;background:white;}
-      @media print{
-        html,body{margin:0;padding:0;}
-        .ig-grid-print-wrap{page-break-after:avoid;}
-      }
+      @media print{html,body{margin:0;padding:0;}.ig-grid-print-wrap{page-break-after:avoid;}}
     </style>
   </head><body>${content}</body></html>`);
   win.document.close();
@@ -1916,7 +1897,6 @@ function printCalendar(){
   if(mp.length===0){section.innerHTML='';window.print();return;}
   const STYLE_META={review:{letter:'R',label:'รีวิว',color:'#A78BCA'},educated:{letter:'E',label:'ให้ความรู้',color:'#F4A57B'},branding:{letter:'B',label:'ตัวตนของแบรนด์',color:'#A0A0A0'},sale:{letter:'S',label:'ขาย',color:'#7EC8E3'},event:{letter:'V',label:'กิจกรรม',color:'#88D498'},ads:{letter:'A',label:'โฆษณา',color:'#F4B8D1'},lifestyle:{letter:'L',label:'ชีวิตประจำวัน',color:'#1A6FB5'}};
   const TYPE_LABEL={video:'คลิปวิดีโอ',photo:'รูปภาพ',reel:'Reels',story:'Story',carousel:'Carousel'};
-  const PLAT_ICONS={both:'FB + IG',fb:'Facebook',ig:'Instagram'};
   let out='';
   mp.sort((a,b)=>a.date.localeCompare(b.date)).forEach(p=>{
     const d=new Date(p.date+'T00:00:00');
@@ -1938,7 +1918,8 @@ function printCalendar(){
         <div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
             <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,0.15);flex-shrink:0;background:white;display:flex;align-items:center;justify-content:center;border:2px solid ${pTheme.primaryLight};">
-              ${pLogo?`<img src="${pLogo}" style="width:82%;height:82%;object-fit:contain;-webkit-print-color-adjust:exact;">`:''}</div>
+              ${pLogo?`<img src="${pLogo}" style="width:82%;height:82%;object-fit:contain;-webkit-print-color-adjust:exact;">`:''}
+            </div>
             <div style="text-align:right">
               <div style="font-size:13px;color:#888;font-weight:500">${d.getFullYear()} ${MONTHS[d.getMonth()].toUpperCase()}</div>
               <div style="font-size:30px;font-weight:700;color:${pTheme.primaryDark};font-family:'Prompt',sans-serif;line-height:1">${MONTHS[d.getMonth()].toUpperCase()}</div>
@@ -1976,7 +1957,6 @@ function printCalendar(){
     </div>`;
   });
   section.innerHTML=buildIGGridPrintPage()+buildSummaryTable(mp)+out;
-
   setTimeout(()=>{
     const imgs=section.querySelectorAll('img');
     let loaded=0;const total=imgs.length;
@@ -2003,24 +1983,16 @@ function buildIGGridPrintPage(){
     return d.getFullYear()===cy&&d.getMonth()===cm;
   });
   if(allSlots.length===0) return '';
-
-  const COLS=3, GAP=2;
-  // A4 portrait: 210mm wide, 297mm tall, padding 10mm → usable 190×257mm, header ~18mm → grid 239mm tall
-  const usableW=190, usableH=235;
+  const COLS=3,GAP=2;
+  const usableW=190,usableH=235;
   const numRows=Math.ceil(allSlots.length/COLS);
   let cellW=(usableW-GAP*(COLS-1))/COLS;
   let cellH=cellW*(5/4);
   const totalH=numRows*cellH+GAP*(numRows-1);
-  if(totalH>usableH){
-    cellH=(usableH-GAP*(numRows-1))/numRows;
-    cellW=cellH*(4/5);
-  }
+  if(totalH>usableH){cellH=(usableH-GAP*(numRows-1))/numRows;cellW=cellH*(4/5);}
   const gridW=cellW*COLS+GAP*(COLS-1);
-
   const totalWithDate=allSlots.filter(s=>s.date).length;
   const n=allSlots.length;
-
-  // จัดลำดับ chunk reverse ให้ตรงกับ Grid บนหน้าจอ
   let ordered=[];
   for(let r=0;r<numRows;r++){
     for(let c=COLS-1;c>=0;c--){
@@ -2028,7 +2000,6 @@ function buildIGGridPrintPage(){
       if(idx<n) ordered.push(allSlots[idx]);
     }
   }
-
   let rows_html='';
   for(let r=0;r<Math.ceil(ordered.length/COLS);r++){
     const rowSlots=ordered.slice(r*COLS,r*COLS+COLS);
@@ -2051,12 +2022,9 @@ function buildIGGridPrintPage(){
     });
     rows_html+=`<div style="display:flex;flex-direction:row;gap:${GAP}mm;">${cells}</div>`;
   }
-
   const pTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
   const pLogo=CHANNEL_LOGOS[activeChannel]||'';
-
   return `<div class="ig-grid-print-wrap" style="width:210mm;height:297mm;box-sizing:border-box;padding:10mm;background:white;font-family:'Sarabun',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;page-break-after:always;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-
     <div style="display:flex;align-items:center;gap:4mm;padding-bottom:3mm;border-bottom:0.6mm solid ${pTheme.primary};width:${gridW.toFixed(2)}mm;margin-bottom:4mm;">
       <div style="width:10mm;height:10mm;border-radius:50%;overflow:hidden;flex-shrink:0;background:${pTheme.primaryLight};border:0.4mm solid ${pTheme.primary};-webkit-print-color-adjust:exact;print-color-adjust:exact;">
         ${pLogo?`<img src="${pLogo}" style="width:100%;height:100%;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`:''}
@@ -2071,12 +2039,155 @@ function buildIGGridPrintPage(){
         <div><div style="font-size:3.8mm;font-weight:700;color:#E74C3C;">${n-totalWithDate}</div><div style="font-size:2.2mm;color:#888;">Pending</div></div>
       </div>
     </div>
-
-    <div style="display:flex;flex-direction:column;gap:${GAP}mm;align-items:center;">
-      ${rows_html}
-    </div>
-
+    <div style="display:flex;flex-direction:column;gap:${GAP}mm;align-items:center;">${rows_html}</div>
   </div>`;
+}
+
+// =====================================================
+// ARCHIVE (ใหม่)
+// =====================================================
+let archiveFilter='all';
+
+function openArchive(){
+  archiveFilter='all';
+  document.querySelectorAll('#archiveModal .filter-btn').forEach(b=>b.classList.remove('active'));
+  const firstBtn=document.getElementById('archFilterAll');
+  if(firstBtn) firstBtn.classList.add('active');
+  renderArchive();
+  document.getElementById('archiveModal').classList.add('open');
+}
+
+function setArchiveFilter(f,btn){
+  archiveFilter=f;
+  document.querySelectorAll('#archiveModal .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderArchive();
+}
+
+function renderArchive(){
+  const list=document.getElementById('archiveList');
+  if(!list) return;
+
+  // กรอง status
+  let filtered=posts;
+  if(archiveFilter!=='all') filtered=posts.filter(p=>p.status===archiveFilter);
+
+  // อัพเดต badge จำนวนรวม
+  const totalBadge=document.getElementById('archiveTotalBadge');
+  if(totalBadge) totalBadge.textContent=filtered.length+' โพสต์';
+
+  if(filtered.length===0){
+    list.innerHTML='<div style="text-align:center;padding:32px 16px;color:var(--gray-dark);font-size:13px;">ไม่มีโพสต์ที่ตรงเงื่อนไข</div>';
+    return;
+  }
+
+  // จัดกลุ่มตาม ปี-เดือน
+  const groups={};
+  filtered.forEach(p=>{
+    if(!p.date) return;
+    const key=p.date.slice(0,7); // "2025-03"
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(p);
+  });
+
+  // เรียงจากใหม่ → เก่า
+  const sortedKeys=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+
+  list.innerHTML='';
+
+  sortedKeys.forEach((key,groupIdx)=>{
+    const [year,month]=key.split('-');
+    const monthName=MONTHS[parseInt(month)-1];
+    const buddhistYear=parseInt(year)+543;
+    const groupPosts=groups[key].sort((a,b)=>a.date.localeCompare(b.date));
+    const isCurrentMonth=parseInt(year)===cy&&parseInt(month)-1===cm;
+
+    const section=document.createElement('div');
+    section.className='archive-month-section'+(isCurrentMonth?' current':'');
+
+    // Header
+    const header=document.createElement('div');
+    header.className='archive-month-header';
+
+    // นับ status
+    const nPosted=groupPosts.filter(p=>p.status==='posted').length;
+    const nReady=groupPosts.filter(p=>p.status==='ready').length;
+    const nDraft=groupPosts.filter(p=>p.status==='draft').length;
+
+    header.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        ${isCurrentMonth?'<span style="font-size:9px;font-weight:700;background:var(--blue);color:white;padding:2px 8px;border-radius:10px;">เดือนนี้</span>':''}
+        <span style="font-family:\'Prompt\',sans-serif;font-size:14px;font-weight:700;color:var(--blue-dark);">${monthName} ${buddhistYear}</span>
+        <span style="font-size:11px;color:var(--gray-dark);">${groupPosts.length} โพสต์</span>
+        <span style="font-size:10px;display:flex;gap:4px;align-items:center;">
+          ${nPosted>0?`<span style="background:#D5F5E3;color:#27AE60;border-radius:4px;padding:1px 6px;font-weight:700;">${nPosted} posted</span>`:''}
+          ${nReady>0?`<span style="background:#FEF9E7;color:#F0A500;border-radius:4px;padding:1px 6px;font-weight:700;">${nReady} ready</span>`:''}
+          ${nDraft>0?`<span style="background:#ECF0F1;color:#7F8C8D;border-radius:4px;padding:1px 6px;font-weight:700;">${nDraft} draft</span>`:''}
+        </span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <button onclick="jumpToMonth(${year},${parseInt(month)-1});closeModal('archiveModal');"
+          style="background:var(--blue);color:white;border:none;border-radius:7px;padding:4px 10px;font-family:\'Sarabun\',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">
+          ไปเดือนนี้ →
+        </button>
+        <span class="arch-arrow">${groupIdx===0?'▲':'▼'}</span>
+      </div>`;
+
+    // Content
+    const content=document.createElement('div');
+    content.style.display=groupIdx===0?'block':'none';
+
+    groupPosts.forEach(p=>{
+      const row=document.createElement('div');
+      row.className='archive-post-row';
+      row.onclick=()=>{closeModal('archiveModal');openView(p.id);};
+
+      const d=new Date(p.date+'T00:00:00');
+      const dateStr=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+      const statusColor={draft:'#7F8C8D',ready:'#F0A500',posted:'#27AE60'}[p.status]||'#7F8C8D';
+      const isCollab=p.collab&&p.collab!==p.doctor;
+      const typeEmoji={video:'🎬',photo:'📷',reel:'⚡',story:'📱',carousel:'🎠'}[p.type]||'📄';
+
+      const thumb=p.thumbData
+        ?`<img src="${p.thumbData}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
+        :`<div style="width:36px;height:36px;background:var(--blue-light);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${typeEmoji}</div>`;
+
+      row.innerHTML=`
+        ${thumb}
+        <div style="font-size:11px;color:var(--gray-dark);font-weight:600;min-width:32px;flex-shrink:0;">${dateStr}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title||'—'}</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:wrap;">
+            ${channelBadge(p.doctor,true)}
+            ${isCollab?`<span style="font-size:8px;color:#888;white-space:nowrap;">↗ ${CH_META[p.collab]?.label||p.collab}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          ${p.captionCheck==='done'?'<span style="font-size:9px;color:#27AE60;" title="ตรวจ caption แล้ว">✅</span>':''}
+          <div style="width:8px;height:8px;border-radius:50%;background:${statusColor};"></div>
+        </div>`;
+
+      content.appendChild(row);
+    });
+
+    // Toggle
+    header.addEventListener('click',e=>{
+      if(e.target.closest('button')) return;
+      const isOpen=content.style.display!=='none';
+      content.style.display=isOpen?'none':'block';
+      header.querySelector('.arch-arrow').textContent=isOpen?'▼':'▲';
+    });
+
+    section.appendChild(header);
+    section.appendChild(content);
+    list.appendChild(section);
+  });
+}
+
+function jumpToMonth(year,month){
+  cy=parseInt(year);
+  cm=parseInt(month);
+  render();
 }
 
 // =====================================================
@@ -2085,10 +2196,8 @@ function buildIGGridPrintPage(){
 document.addEventListener('DOMContentLoaded',async function(){
   applyChannelTheme(activeChannel);
   render();
-  // ซ่อน loading overlay
   const ov=document.getElementById('loadingOverlay');
   if(ov){ov.style.opacity='0';ov.style.pointerEvents='none';setTimeout(()=>{try{ov.remove()}catch(e){}},600);}
-  // โหลด Calendar
   await loadChannelData(activeChannel);
   const sel=document.getElementById('gridChannelSelect');
   if(sel) sel.value=activeChannel;

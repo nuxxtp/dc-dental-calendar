@@ -625,7 +625,7 @@ async function loadGridSlots(){
           if(t==='image'||t==='') return r.img?'image':'pending';
           return t||'image';
         })(),
-      })).filter(r=>r.id);
+      })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank'));
       if(sheetSlots.length===0 && gridSlots.length>0){
         await saveGridSlotsToSheet();
       } else {
@@ -657,7 +657,7 @@ async function saveGridSlotsToSheet(){
     const cleanSlots=gridSlots.map(s=>({
       id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
       caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
-      type:s.type==='pending'?'pending':s.type==='blank'?'blank':'image',
+      type:s.type==='pending'?'pending':s.type==='blank'?'blank':s.type==='text'?'pending':'image',
     }));
     const res=await fetch(SHEET_URL,{
       method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
@@ -1830,7 +1830,7 @@ function sbSaveEditCard(idx){
 
 function renderSandbox(){
   const grid=document.getElementById('sbGrid');if(!grid) return;
-  const realCount=sandboxSlots.filter(s=>s.type!=='blank').length;
+  const realCount=sandboxSlots.length;
   const countEl=document.getElementById('sbCount');if(countEl) countEl.textContent=sandboxSlots.length+' ช่อง';
   const confirmBtn=document.getElementById('sbConfirm');
   if(confirmBtn){confirmBtn.disabled=realCount===0;confirmBtn.style.opacity=realCount>0?'1':'0.5';}

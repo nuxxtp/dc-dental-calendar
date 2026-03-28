@@ -1673,30 +1673,37 @@ async function igSectionDrop(e){
 // GRID SANDBOX
 // =====================================================
 let sandboxSlots=[];
+// สีตาม content style สำหรับ text card
+const STYLE_CARD_COLORS={
+  review:'linear-gradient(135deg,#7B5EA7,#A78BCA)',
+  educated:'linear-gradient(135deg,#C0642A,#F4A57B)',
+  branding:'linear-gradient(135deg,#555,#999)',
+  sale:'linear-gradient(135deg,#1A6FB5,#7EC8E3)',
+  event:'linear-gradient(135deg,#1A7A3A,#88D498)',
+  ads:'linear-gradient(135deg,#A0284A,#F4B8D1)',
+  lifestyle:'linear-gradient(135deg,#0D3F6E,#1A6FB5)',
+  '':'linear-gradient(135deg,#4A4A6A,#8888AA)',
+};
+const STYLE_LABELS={review:'R · รีวิว',educated:'E · ให้ความรู้',branding:'B · แบรนด์',sale:'S · ขาย',event:'V · กิจกรรม',ads:'A · โฆษณา',lifestyle:'L · ชีวิต','':`✏️ ชื่อคอนเทนต์`};
+
 function openGridSandbox(){
   const overlay=document.createElement('div');
   overlay.id='gridSandboxOverlay';
   overlay.style.cssText='position:fixed;inset:0;background:rgba(13,63,110,0.6);backdrop-filter:blur(6px);z-index:400;display:flex;flex-direction:column;';
   overlay.innerHTML=`
-    <div style="background:var(--blue-dark);color:white;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div style="background:var(--blue-dark);color:white;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px;flex-wrap:wrap;">
       <div>
         <div style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;">🎨 ทดลองจัด Grid</div>
-        <div style="font-size:11px;opacity:0.7;margin-top:2px;">ลากรูปจากเครื่องมาวางได้เลย · ลากสลับตำแหน่งได้ · พอใจแล้วกด "ย้ายเข้า Grid"</div>
+        <div style="font-size:11px;opacity:0.7;margin-top:2px;">เพิ่มชื่อคอนเทนต์ได้เลย ยังไม่ต้องมีรูป · ลากสลับตำแหน่ง · พอใจแล้วกด "ย้ายเข้า Grid"</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <span id="sbCount" style="font-size:12px;opacity:0.8;">0 รูป</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span id="sbCount" style="font-size:12px;opacity:0.8;">0 ช่อง</span>
         <button id="sbConfirm" onclick="confirmSandbox()" style="background:#27AE60;color:white;border:none;border-radius:9px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;opacity:0.5;" disabled>✅ ย้ายเข้า Grid</button>
         <button onclick="closeSandbox()" style="background:rgba(255,255,255,0.15);color:white;border:none;border-radius:9px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;">✕ ปิด</button>
       </div>
     </div>
     <div id="sbDropZone" style="flex:1;overflow-y:auto;padding:20px;" ondragover="event.preventDefault();document.getElementById('sbDropZone').style.background='rgba(26,111,181,0.1)';" ondragleave="document.getElementById('sbDropZone').style.background='';" ondrop="handleSandboxDrop(event)">
-      <div id="sbGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:700px;margin:0 auto;">
-        <label id="sbAddBtn" style="aspect-ratio:4/5;background:rgba(255,255,255,0.1);border:2px dashed rgba(255,255,255,0.4);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:white;font-size:12px;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-          <input type="file" accept="image/*" multiple style="display:none;" onchange="handleSandboxFiles(this.files)">
-          <div style="font-size:32px;">+</div><div style="font-weight:600;">เพิ่มรูป / ลากวาง</div>
-          <div style="font-size:10px;opacity:0.6;">รองรับหลายรูปพร้อมกัน</div>
-        </label>
-      </div>
+      <div id="sbGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:700px;margin:0 auto;"></div>
     </div>`;
   document.body.appendChild(overlay);sandboxSlots=[];renderSandbox();
 }
@@ -1724,6 +1731,103 @@ async function handleSandboxDrop(e){
   if(files.length) await handleSandboxFiles(files);
 }
 
+// popup กรอกชื่อคอนเทนต์ใหม่ใน sandbox
+function openAddTextCard(){
+  const pop=document.createElement('div');
+  pop.style.cssText='position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);';
+  pop.innerHTML=`
+    <div style="background:white;border-radius:16px;padding:24px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="font-family:'Prompt',sans-serif;font-size:15px;font-weight:700;color:#0D3F6E;margin-bottom:14px;">✏️ เพิ่มชื่อคอนเทนต์</div>
+      <input id="sbTextInput" type="text" placeholder="เช่น เคสจัดฟัน คุณแพรวา" autofocus
+        style="width:100%;border:1.5px solid #D0DCE8;border-radius:9px;padding:10px 12px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;margin-bottom:10px;">
+      <div style="font-size:11px;color:#888;margin-bottom:6px;">Content Style (เลือกได้ — ค่อยเลือกทีหลังก็ได้)</div>
+      <div id="sbStylePicker" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+        ${['','review','educated','branding','sale','event','ads','lifestyle'].map(s=>`
+          <button data-style="${s}" onclick="sbPickStyle(this)"
+            style="border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;color:white;background:${STYLE_CARD_COLORS[s]||'#888'};opacity:${s===''?'1':'0.7'};transition:opacity 0.15s;">
+            ${s===''?'— ยังไม่ระบุ':STYLE_LABELS[s]}
+          </button>`).join('')}
+      </div>
+      <input type="hidden" id="sbSelectedStyle" value="">
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="this.closest('div[style]').remove()" style="background:#ECF0F1;border:none;border-radius:8px;padding:8px 16px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;">ยกเลิก</button>
+        <button onclick="sbConfirmTextCard()" style="background:#1A6FB5;color:white;border:none;border-radius:8px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">➕ เพิ่ม</button>
+      </div>
+    </div>`;
+  document.body.appendChild(pop);
+  // กด Enter = confirm
+  const input=pop.querySelector('#sbTextInput');
+  input.focus();
+  input.addEventListener('keydown',e=>{if(e.key==='Enter') sbConfirmTextCard();if(e.key==='Escape') pop.remove();});
+  pop.addEventListener('click',e=>{if(e.target===pop) pop.remove();});
+}
+
+function sbPickStyle(btn){
+  document.querySelectorAll('#sbStylePicker button').forEach(b=>b.style.opacity='0.55');
+  btn.style.opacity='1';btn.style.outline='2px solid white';
+  document.getElementById('sbSelectedStyle').value=btn.dataset.style;
+}
+
+function sbConfirmTextCard(){
+  const title=document.getElementById('sbTextInput').value.trim();
+  if(!title){document.getElementById('sbTextInput').focus();return;}
+  const style=document.getElementById('sbSelectedStyle').value||'';
+  sandboxSlots.push({id:'txt-'+Date.now(),type:'text',img:'',title,contentStyle:style});
+  // ลบ popup
+  const pop=document.getElementById('sbTextInput')?.closest('div[style*="position:fixed"]');
+  if(pop) pop.remove();
+  renderSandbox();
+}
+
+// แก้ไข text card ใน sandbox (เปลี่ยนชื่อ/style)
+function openEditTextCard(idx){
+  const slot=sandboxSlots[idx];if(!slot) return;
+  const pop=document.createElement('div');
+  pop.style.cssText='position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);';
+  pop.innerHTML=`
+    <div style="background:white;border-radius:16px;padding:24px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="font-family:'Prompt',sans-serif;font-size:15px;font-weight:700;color:#0D3F6E;margin-bottom:14px;">✏️ แก้ไขชื่อคอนเทนต์</div>
+      <input id="sbEditInput" type="text" value="${slot.title||''}"
+        style="width:100%;border:1.5px solid #D0DCE8;border-radius:9px;padding:10px 12px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;margin-bottom:10px;">
+      <div style="font-size:11px;color:#888;margin-bottom:6px;">Content Style</div>
+      <div id="sbEditStylePicker" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+        ${['','review','educated','branding','sale','event','ads','lifestyle'].map(s=>`
+          <button data-style="${s}" onclick="sbPickEditStyle(this)"
+            style="border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;color:white;background:${STYLE_CARD_COLORS[s]||'#888'};opacity:${s===(slot.contentStyle||'')?'1':'0.55'};outline:${s===(slot.contentStyle||'')?'2px solid #333':'none'};transition:opacity 0.15s;">
+            ${s===''?'— ยังไม่ระบุ':STYLE_LABELS[s]}
+          </button>`).join('')}
+      </div>
+      <input type="hidden" id="sbEditStyle" value="${slot.contentStyle||''}">
+      <div style="display:flex;gap:8px;justify-content:space-between;">
+        <button onclick="sandboxSlots.splice(${idx},1);renderSandbox();this.closest('div[style*=fixed]').remove();"
+          style="background:#E74C3C;color:white;border:none;border-radius:8px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer;">🗑 ลบ</button>
+        <div style="display:flex;gap:8px;">
+          <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#ECF0F1;border:none;border-radius:8px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;">ยกเลิก</button>
+          <button onclick="sbSaveEditCard(${idx})" style="background:#1A6FB5;color:white;border:none;border-radius:8px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">💾 บันทึก</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(pop);
+  pop.querySelector('#sbEditInput').focus();
+  pop.addEventListener('click',e=>{if(e.target===pop) pop.remove();});
+}
+
+function sbPickEditStyle(btn){
+  document.querySelectorAll('#sbEditStylePicker button').forEach(b=>{b.style.opacity='0.55';b.style.outline='none';});
+  btn.style.opacity='1';btn.style.outline='2px solid #333';
+  document.getElementById('sbEditStyle').value=btn.dataset.style;
+}
+
+function sbSaveEditCard(idx){
+  const title=document.getElementById('sbEditInput').value.trim();
+  if(!title) return;
+  sandboxSlots[idx].title=title;
+  sandboxSlots[idx].contentStyle=document.getElementById('sbEditStyle').value||'';
+  const pop=document.getElementById('sbEditInput')?.closest('div[style*="position:fixed"]');
+  if(pop) pop.remove();
+  renderSandbox();
+}
+
 function renderSandbox(){
   const grid=document.getElementById('sbGrid');if(!grid) return;
   const realCount=sandboxSlots.filter(s=>s.type!=='blank').length;
@@ -1731,12 +1835,14 @@ function renderSandbox(){
   const confirmBtn=document.getElementById('sbConfirm');
   if(confirmBtn){confirmBtn.disabled=realCount===0;confirmBtn.style.opacity=realCount>0?'1':'0.5';}
   grid.innerHTML='';
-  const sbN=sandboxSlots.length;const sbPosInRow=sbN%3;
-  let sbItems;
-  if(sbPosInRow===0){sbItems=[null,null,...sandboxSlots];}
-  else{sbItems=[...sandboxSlots];while(sbItems.length%3!==0) sbItems.push(null);}
+
+  // จัด layout reverse เหมือน IG (ใหม่อยู่บน)
+  const sbN=sandboxSlots.length;
+  let sbItems=[...sandboxSlots];
+  while(sbItems.length%3!==0) sbItems.push(null);
   const sbChunks=[];
   for(let i=0;i<sbItems.length;i+=3) sbChunks.push(sbItems.slice(i,i+3));
+
   sbChunks.forEach(chunk=>{
     [chunk[2],chunk[1],chunk[0]].forEach(slot=>{
       if(!slot){const empty=document.createElement('div');empty.style.cssText='aspect-ratio:4/5;';grid.appendChild(empty);return;}
@@ -1744,15 +1850,30 @@ function renderSandbox(){
       const cell=document.createElement('div');
       cell.style.cssText='position:relative;aspect-ratio:4/5;border-radius:8px;overflow:hidden;cursor:grab;transition:outline 0.1s;';
       cell.draggable=true;cell.dataset.idx=idx;
-      if(slot.type==='pending'){
+
+      if(slot.type==='text'){
+        // ── TEXT CARD ── สีตาม style
+        const grad=STYLE_CARD_COLORS[slot.contentStyle||'']||STYLE_CARD_COLORS[''];
+        cell.style.background=grad;
+        const styleLabel=slot.contentStyle?STYLE_LABELS[slot.contentStyle]:'';
+        cell.innerHTML=`
+          <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;gap:8px;pointer-events:none;">
+            ${styleLabel?`<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;background:rgba(0,0,0,0.2);padding:2px 8px;border-radius:10px;">${styleLabel}</div>`:''}
+            <div style="font-size:13px;font-weight:700;color:white;text-align:center;line-height:1.4;word-break:break-all;">${slot.title}</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.5);">กดเพื่อแก้ไข</div>
+          </div>`;
+        cell.addEventListener('click',()=>openEditTextCard(idx));
+      } else if(slot.type==='pending'){
         cell.style.background='linear-gradient(135deg,#8B6F3E,#C8956C)';
-        cell.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:white;"><div style="font-size:28px;">🖼️</div><div style="font-size:12px;font-weight:700;">รอปก</div></div>`;
+        cell.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:white;pointer-events:none;"><div style="font-size:28px;">🖼️</div><div style="font-size:12px;font-weight:700;">รอปก</div></div>`;
       } else if(slot.type==='blank'){
         cell.style.cssText='position:relative;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);';
-        cell.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:rgba(255,255,255,0.5);"><div style="font-size:22px;">▭</div><div style="font-size:11px;">คั่น</div></div>`;
+        cell.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:rgba(255,255,255,0.5);pointer-events:none;"><div style="font-size:22px;">▭</div><div style="font-size:11px;">คั่น</div></div>`;
       } else {
         const img=document.createElement('img');img.src=slot.img;img.style.cssText='width:100%;height:100%;object-fit:cover;pointer-events:none;';cell.appendChild(img);
       }
+
+      // ปุ่มลบ
       const del=document.createElement('button');
       del.innerHTML='✕';del.style.cssText='position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.65);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;display:none;z-index:2;';
       del.onclick=(e)=>{
@@ -1762,10 +1883,13 @@ function renderSandbox(){
         renderSandbox();
       };
       cell.appendChild(del);
+
+      // เลขลำดับ
       const num=document.createElement('div');num.textContent='#'+(idx+1);
-      num.style.cssText='position:absolute;top:4px;left:6px;font-size:10px;font-weight:700;color:white;text-shadow:0 1px 3px rgba(0,0,0,0.7);z-index:2;';
+      num.style.cssText='position:absolute;top:4px;left:6px;font-size:10px;font-weight:700;color:white;text-shadow:0 1px 3px rgba(0,0,0,0.7);z-index:2;pointer-events:none;';
       cell.appendChild(num);
-      cell.addEventListener('mouseenter',()=>{del.style.display='block';cell.style.outline='2px solid white';});
+
+      cell.addEventListener('mouseenter',()=>{del.style.display='block';if(slot.type!=='text')cell.style.outline='2px solid white';});
       cell.addEventListener('mouseleave',()=>{del.style.display='none';cell.style.outline='none';});
       cell.addEventListener('dragstart',e=>{e.dataTransfer.setData('sbIdx',idx);setTimeout(()=>{cell.style.opacity='0.35';},0);});
       cell.addEventListener('dragend',()=>{cell.style.opacity='1';cell.style.outline='none';});
@@ -1781,15 +1905,23 @@ function renderSandbox(){
       grid.appendChild(cell);
     });
   });
+
+  // Toolbar ปุ่มทั้งหมด
   const toolbar=document.createElement('div');
   toolbar.style.cssText='grid-column:1/-1;display:flex;gap:8px;padding:8px 0;flex-wrap:wrap;';
   toolbar.innerHTML=`
+    <button onclick="openAddTextCard()"
+      style="flex:1;min-width:120px;background:linear-gradient(135deg,#4A4A6A,#8888AA);border:none;border-radius:8px;padding:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+      ✏️ เพิ่มชื่อคอนเทนต์
+    </button>
     <label style="flex:1;min-width:100px;background:rgba(255,255,255,0.1);border:2px dashed rgba(255,255,255,0.35);border-radius:8px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:white;font-size:11px;font-weight:600;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
       <input type="file" accept="image/*" multiple style="display:none;" onchange="handleSandboxFiles(this.files)">
-      <span style="font-size:20px;">+</span>เพิ่มรูป
+      <span style="font-size:18px;">🖼️</span>เพิ่มรูป
     </label>
-    <button onclick="sandboxSlots.push({id:'pend-'+Date.now(),type:'pending',img:'',title:'รอปก'});renderSandbox();" style="flex:1;min-width:100px;background:linear-gradient(135deg,#8B6F3E,#C8956C);border:none;border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:600;cursor:pointer;">🖼️ รอปก</button>
-    <button onclick="sandboxSlots.push({id:'blank-'+Date.now(),type:'blank',img:'',title:''});renderSandbox();" style="flex:1;min-width:100px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer;">▭ หน้าเปล่า</button>`;
+    <button onclick="sandboxSlots.push({id:'pend-'+Date.now(),type:'pending',img:'',title:'รอปก'});renderSandbox();"
+      style="flex:1;min-width:90px;background:linear-gradient(135deg,#8B6F3E,#C8956C);border:none;border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:600;cursor:pointer;">รอปก</button>
+    <button onclick="sandboxSlots.push({id:'blank-'+Date.now(),type:'blank',img:'',title:''});renderSandbox();"
+      style="flex:1;min-width:90px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer;">▭ คั่น</button>`;
   grid.appendChild(toolbar);
 }
 
@@ -1799,12 +1931,58 @@ async function confirmSandbox(){
   if(remaining===0){showNoti('⚠️ Grid เต็ม 23 รูปแล้ว ลบรูปเก่าก่อน','#E74C3C');return;}
   const toAdd=sandboxSlots.slice(0,remaining);
   showNoti('⏳ กำลังย้าย '+toAdd.length+' ช่องเข้า Grid...','#1A6FB5');
-  const newSlots=toAdd.map(s=>({id:Date.now()+'-'+Math.random().toString(36).slice(2),img:s.img||'',title:s.title||'',type:s.type||'image',date:'',caption:'',hashtag:'',note:''}));
+
+  const newSlots=toAdd.map(s=>{
+    const newId=Date.now()+'-'+Math.random().toString(36).slice(2);
+    return {
+      id:newId,
+      img:s.img||'',
+      title:s.title||'',
+      // text card → pending (รอปก), รูปจริง → image, อื่นๆ คงเดิม
+      type:s.type==='text'?'pending':s.type||'image',
+      date:'',caption:'',hashtag:'',note:'',
+      contentStyle:s.contentStyle||'',
+    };
+  });
+
   gridSlots=[...newSlots,...gridSlots];
   const ok=await saveGridSlots();
-  closeSandbox();renderGrid();renderUnscheduled();
-  if(ok) showNoti('✅ ย้าย '+toAdd.length+' รูปเข้า Grid แล้ว!','#27AE60');
-  else showNoti('⚠️ ย้ายแล้วแต่บันทึก Sheet ไม่สำเร็จ','#E67E22');
+
+  // สร้าง draft ใน Calendar สำหรับ text card ทุกอัน
+  const textCards=toAdd.filter(s=>s.type==='text');
+  let calSaved=0;
+  for(let i=0;i<textCards.length;i++){
+    const s=textCards[i];
+    const matchSlot=newSlots[toAdd.indexOf(s)];
+    const calPost={
+      id:matchSlot.id,
+      title:s.title,
+      date:'', // ยังไม่มีวัน
+      time:'19:00',
+      platform:'both',
+      type:'video',
+      doctor:activeChannel,
+      collab:'',
+      contentStyle:s.contentStyle||'',
+      status:'draft',
+      thumbData:'',
+      caption:'',hashtag:'',note:'',captionCheck:'',
+    };
+    posts.push(calPost);
+    const res=await apiCall({action:'save',post:calPost},activeChannel);
+    if(res&&res.ok) calSaved++;
+  }
+
+  closeSandbox();renderGrid();renderUnscheduled();render();
+
+  if(ok){
+    const msg=textCards.length>0
+      ?`✅ ย้าย ${toAdd.length} ช่อง · สร้าง Draft ${calSaved} โพสต์ใน Calendar!`
+      :`✅ ย้าย ${toAdd.length} รูปเข้า Grid แล้ว!`;
+    showNoti(msg,'#27AE60');
+  } else {
+    showNoti('⚠️ ย้ายแล้วแต่บันทึก Sheet ไม่สำเร็จ','#E67E22');
+  }
 }
 
 // =====================================================

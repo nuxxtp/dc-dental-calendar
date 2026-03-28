@@ -622,7 +622,7 @@ async function loadGridSlots(){
         type:(()=>{
           const t=String(r.type||'');
           if(t==='pending'||t==='blank') return t;
-          if(t==='image'||t==='') return r.img?'image':'pending';
+          if(t==='image'||t==='') return r.img?'image':(String(r.id||'').includes('blank')?'blank':'pending');
           return t||'image';
         })(),
       })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank'));

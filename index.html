@@ -1938,8 +1938,8 @@ async function confirmSandbox(){
       id:newId,
       img:s.img||'',
       title:s.title||'',
-      // text card → pending (รอปก), รูปจริง → image, อื่นๆ คงเดิม
-      type:s.type==='text'?'pending':s.type||'image',
+      // คง type ตามที่เลือกใน sandbox: blank=blank, pending=pending, text→pending
+      type:(s.type==='blank'?'blank':s.type==='pending'?'pending':s.img?'image':'pending'),
       date:'',caption:'',hashtag:'',note:'',
       contentStyle:s.contentStyle||'',
     };
@@ -2155,8 +2155,9 @@ function printCalendar(){
 }
 
 function buildIGGridPrintPage(){
+  // แสดงทุก slot เหมือน Grid จริง — รวม pending/blank และ slot ที่ยังไม่มีวัน
   const allSlots=gridSlots.filter(s=>{
-    if(!s.date) return false;
+    if(!s.date) return true; // รวม slot ที่ยังไม่มีวันด้วย
     const d=new Date(s.date+'T00:00:00');
     return d.getFullYear()===cy&&d.getMonth()===cm;
   });

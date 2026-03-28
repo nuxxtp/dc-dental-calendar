@@ -1948,16 +1948,16 @@ async function confirmSandbox(){
   gridSlots=[...newSlots,...gridSlots];
   const ok=await saveGridSlots();
 
-  // สร้าง draft ใน Calendar สำหรับ text card ทุกอัน
-  const textCards=toAdd.filter(s=>s.type==='text');
+  // สร้าง draft ใน Calendar เฉพาะ text และ pending เท่านั้น — blank และช่องว่างไม่เข้า Calendar
+  const calCards=toAdd.filter(s=>s.type==='text'||s.type==='pending');
   let calSaved=0;
-  for(let i=0;i<textCards.length;i++){
-    const s=textCards[i];
+  for(let i=0;i<calCards.length;i++){
+    const s=calCards[i];
     const matchSlot=newSlots[toAdd.indexOf(s)];
     const calPost={
       id:matchSlot.id,
-      title:s.title,
-      date:'', // ยังไม่มีวัน
+      title:s.title||'โพสต์ใหม่',
+      date:'',
       time:'19:00',
       platform:'both',
       type:'video',
@@ -1965,7 +1965,7 @@ async function confirmSandbox(){
       collab:'',
       contentStyle:s.contentStyle||'',
       status:'draft',
-      thumbData:'',
+      thumbData:s.img||'',
       caption:'',hashtag:'',note:'',captionCheck:'',
     };
     posts.push(calPost);
@@ -1976,9 +1976,9 @@ async function confirmSandbox(){
   closeSandbox();renderGrid();renderUnscheduled();render();
 
   if(ok){
-    const msg=textCards.length>0
+    const msg=calSaved>0
       ?`✅ ย้าย ${toAdd.length} ช่อง · สร้าง Draft ${calSaved} โพสต์ใน Calendar!`
-      :`✅ ย้าย ${toAdd.length} รูปเข้า Grid แล้ว!`;
+      :`✅ ย้าย ${toAdd.length} ช่องเข้า Grid แล้ว!`;
     showNoti(msg,'#27AE60');
   } else {
     showNoti('⚠️ ย้ายแล้วแต่บันทึก Sheet ไม่สำเร็จ','#E67E22');

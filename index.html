@@ -1213,7 +1213,7 @@ function renderGrid(){
     return d.getFullYear()===cy&&d.getMonth()===cm;
   });
   const scheduledInMonth=monthSlots.filter(s=>s.date).length;
-  document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date).length+' รอจัดวัน';
+  document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date&&s.type!=='blank').length+' รอจัดวัน';
   const grid=document.getElementById('igGrid');grid.innerHTML='';
 
   if(monthSlots.length===0){
@@ -1401,7 +1401,7 @@ function toggleUnscheduled(){
 }
 
 function renderUnscheduled(){
-  const unscheduled=gridSlots.filter(s=>!s.date);
+  const unscheduled=gridSlots.filter(s=>!s.date&&s.type!=='blank');
   const panel=document.getElementById('unscheduledPanel');
   const list=document.getElementById('unscheduledList');
   const count=document.getElementById('unscheduledCount');

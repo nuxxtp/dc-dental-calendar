@@ -834,7 +834,7 @@ function render(){
 function postsInMonth(){
   return posts.filter(p=>{
     const d=new Date(p.date+'T00:00:00');
-    return d.getFullYear()===cy&&d.getMonth()===cm&&(!p.doctor||p.doctor===activeChannel);
+    return d.getFullYear()===cy&&d.getMonth()===cm&&(!p.doctor||p.doctor===activeChannel||p.collab===activeChannel);
   });
 }
 

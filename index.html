@@ -657,7 +657,7 @@ async function saveGridSlotsToSheet(){
     const cleanSlots=gridSlots.map(s=>({
       id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
       caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
-      type:s.type==='pending'?'pending':s.type==='blank'?'blank':s.type==='text'?'pending':'image',
+      type:s.type==='blank'?'blank':(s.img&&s.img.trim()!=='')?'image':'pending',
     }));
     const res=await fetch(SHEET_URL,{
       method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
@@ -1517,6 +1517,7 @@ async function openGridModal(editIdx){
     slot.title=document.getElementById('gmTitle').value.trim()||slot.title;
     slot.date=document.getElementById('gmDate').value;
     slot.img=uploadedUrl;
+    if(uploadedUrl) slot.type = 'image';
     slot.caption=document.getElementById('gmCaption').value;
     slot.hashtag=document.getElementById('gmHashtag').value;
     slot.note=document.getElementById('gmNote').value;

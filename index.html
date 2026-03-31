@@ -1207,13 +1207,11 @@ function renderGrid(){
   document.getElementById('igUsername').textContent=ch.username;
   const lbl=document.getElementById('igChannelLabel');
   if(lbl&&chMeta) lbl.textContent=chMeta.label;
-  const monthSlots = gridSlots.filter(s => {
-  const currentMonth = cy + '-' + String(cm + 1).padStart(2, '0');
-  if(s.type === 'blank') return (s.month || '') === currentMonth;
-  if(!s.date) return true;
-  const d = new Date(s.date + 'T00:00:00');
-  return d.getFullYear() === cy && d.getMonth() === cm;
-});
+  const monthSlots=gridSlots.filter(s=>{
+    if(!s.date) return true;
+    const d=new Date(s.date+'T00:00:00');
+    return d.getFullYear()===cy&&d.getMonth()===cm;
+  });
   const scheduledInMonth=monthSlots.filter(s=>s.date).length;
   document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date&&s.type!=='blank').length+' รอจัดวัน';
   const grid=document.getElementById('igGrid');grid.innerHTML='';
@@ -1923,7 +1921,7 @@ function renderSandbox(){
     </label>
     <button onclick="sandboxSlots.push({id:'pend-'+Date.now(),type:'pending',img:'',title:'รอปก'});renderSandbox();"
       style="flex:1;min-width:90px;background:linear-gradient(135deg,#8B6F3E,#C8956C);border:none;border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:600;cursor:pointer;">รอปก</button>
-    <button onclick="sandboxSlots.push({id:'blank-'+Date.now(), type:'blank', img:'', title:'', month: cy+'-'+String(cm+1).padStart(2,'0')});"
+    <button onclick="sandboxSlots.push({id:'blank-'+Date.now(),type:'blank',img:'',title:''});renderSandbox();"
       style="flex:1;min-width:90px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer;">▭ คั่น</button>`;
   grid.appendChild(toolbar);
 }

@@ -501,7 +501,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 </div>
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbyDDw1k83NgPHtmIO0w6S9GSgYL_5aphvEXvpgS8GwcyNmQ7zg9IR0BPcZOqKfKnsydog/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbw7BPUZWh-L-Rvs1qkGatBBKS0Wa1OdpDJONCVjOkLEChkzaV3cjb2XrYrPWxrhPZoaFw/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -619,16 +619,39 @@ async function loadGridSlots(){
         date:parseSheetDate(r.date),channel:String(r.channel||activeChannel),
         caption:String(r.caption||''),hashtag:String(r.hashtag||''),
         note:String(r.note||''),
+        sourceChannel:String(r.sourceChannel||''),
         type:(()=>{
           const t=String(r.type||'');
           if(t==='pending'||t==='blank') return t;
-          if(t==='image'||t==='') return r.img?'image':'pending';
+          if(t==='image'||t==='') return r.img?'image':(r.sourceChannel?'pending':'pending');
           return t||'image';
         })(),
-      })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank'));
+      })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank'||r.sourceChannel));
       if(sheetSlots.length===0 && gridSlots.length>0){
         await saveGridSlotsToSheet();
       } else {
+        // sync รูปจาก sourceChannel — ถ้า slot มี sourceChannel ให้ดึงรูปจาก Grid ของช่องนั้นมาแสดง
+        const slotsNeedSync=sheetSlots.filter(s=>s.sourceChannel&&!s.img);
+        if(slotsNeedSync.length>0){
+          // โหลด Grid ของทุก sourceChannel ที่ต้องการ
+          const srcChannels=[...new Set(slotsNeedSync.map(s=>s.sourceChannel))];
+          for(const srcCh of srcChannels){
+            try{
+              const srcRes=await fetch(SHEET_URL+'?t='+Date.now()+'&action=getGrid&sheet='+encodeURIComponent('IG Grid '+srcCh),
+                {method:'GET',redirect:'follow'});
+              const srcData=JSON.parse(await srcRes.text());
+              if(Array.isArray(srcData)){
+                srcData.forEach(srcSlot=>{
+                  const matchIdx=sheetSlots.findIndex(s=>s.id===String(srcSlot.id)&&s.sourceChannel===srcCh);
+                  if(matchIdx>=0&&srcSlot.img){
+                    sheetSlots[matchIdx].img=String(srcSlot.img);
+                    sheetSlots[matchIdx].title=sheetSlots[matchIdx].title||String(srcSlot.title||'');
+                  }
+                });
+              }
+            }catch(e){ console.warn('sync sourceChannel failed:',srcCh,e); }
+          }
+        }
         gridSlots=sheetSlots;
       }
     }
@@ -658,6 +681,7 @@ async function saveGridSlotsToSheet(){
       id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
       caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
       type:s.type==='pending'?'pending':s.type==='blank'?'blank':s.type==='text'?'pending':'image',
+      sourceChannel:s.sourceChannel||'', // เก็บช่องต้นทางสำหรับ collab slot
     }));
     const res=await fetch(SHEET_URL,{
       method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
@@ -1073,6 +1097,42 @@ async function savePost(){
   if(collabCh&&collabCh!==doctorCh){
     const collabPost=Object.assign({},post,{id:post.id,doctor:doctorCh,collab:collabCh});
     const ok2=await apiCall({action:'save',post:collabPost},collabCh);
+
+    // สร้าง Grid slot ในช่อง B (collab) โดยอ้างอิง id เดียวกัน + sourceChannel = ช่อง A
+    // ช่อง B จะโหลดรูปจากช่อง A อัตโนมัติตอน loadGridSlots
+    try{
+      const collabGridSlot={
+        id:post.id,
+        img:'', // ไม่ copy รูป — ดึงจาก sourceChannel แทน
+        title:post.title||'',
+        date:post.date||'',
+        channel:collabCh,
+        caption:post.caption||'',
+        hashtag:post.hashtag||'',
+        note:post.note||'',
+        type:'pending',
+        sourceChannel:doctorCh, // บอกว่าให้ดึงรูปจากช่อง A
+      };
+      // โหลด Grid ปัจจุบันของช่อง B ก่อน แล้ว upsert slot นี้เข้าไป
+      const bGridRes=await fetch(SHEET_URL+'?t='+Date.now()+'&action=getGrid&sheet='+encodeURIComponent('IG Grid '+collabCh),
+        {method:'GET',redirect:'follow'});
+      const bGridData=JSON.parse(await bGridRes.text());
+      let bSlots=Array.isArray(bGridData)?bGridData.map(r=>({
+        id:String(r.id||''),img:String(r.img||''),title:String(r.title||''),
+        date:r.date?parseSheetDate(r.date):'',channel:String(r.channel||collabCh),
+        caption:String(r.caption||''),hashtag:String(r.hashtag||''),note:String(r.note||''),
+        type:String(r.type||'pending'),sourceChannel:String(r.sourceChannel||''),
+      })).filter(r=>r.id):[];
+      // upsert — ถ้ามี id นี้อยู่แล้วให้ update, ถ้าไม่มีให้ unshift ขึ้นหัว
+      const existIdx=bSlots.findIndex(s=>s.id===post.id);
+      if(existIdx>=0) bSlots[existIdx]=collabGridSlot;
+      else bSlots=[collabGridSlot,...bSlots];
+      await fetch(SHEET_URL,{
+        method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'saveGrid',sheetName:'IG Grid '+collabCh,slots:bSlots}),
+      });
+    }catch(e){ console.warn('sync collab Grid slot failed:',e); }
+
     if(ok2&&ok2.ok) showNoti('✅ บันทึก + sync ไป '+(CHANNEL_META[collabCh]?.label||collabCh)+' อัตโนมัติ!','#27AE60');
     else showNoti('✅ บันทึกแล้ว แต่ sync ไม่สำเร็จ','#E67E22');
   } else {
@@ -1207,27 +1267,7 @@ function renderGrid(){
   document.getElementById('igUsername').textContent=ch.username;
   const lbl=document.getElementById('igChannelLabel');
   if(lbl&&chMeta) lbl.textContent=chMeta.label;
-  // รวม collab posts จากช่องอื่นที่ collab มาหาช่องนี้ — แปลงเป็น virtual slot เพื่อแสดงใน Grid
-  const collabVirtualSlots=posts
-    .filter(p=>p.collab===activeChannel&&p.doctor!==activeChannel&&p.date)
-    .map(p=>({
-      id:p.id,
-      img:p.thumbData||'',
-      title:p.title||'',
-      date:p.date,
-      type:p.thumbData?'image':'pending',
-      caption:p.caption||'',
-      hashtag:p.hashtag||'',
-      note:p.note||'',
-      isCollab:true,          // flag บอกว่ามาจาก collab
-      collabFrom:p.doctor,    // ช่องต้นทาง
-    }));
-
-  // รวม gridSlots ของช่องนี้ + collabVirtualSlots (ไม่ซ้ำ id)
-  const existingIds=new Set(gridSlots.map(s=>s.id));
-  const mergedSlots=[...gridSlots,...collabVirtualSlots.filter(s=>!existingIds.has(s.id))];
-
-  const monthSlots=mergedSlots.filter(s=>{
+  const monthSlots=gridSlots.filter(s=>{
     if(!s.date) return true;
     const d=new Date(s.date+'T00:00:00');
     return d.getFullYear()===cy&&d.getMonth()===cm;
@@ -1277,37 +1317,6 @@ function renderGrid(){
       const cell=document.createElement('div');
       cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;';
 
-      // ── COLLAB VIRTUAL SLOT ── แสดงแต่ลากไม่ได้
-      if(item&&item.isCollab){
-        const fromMeta=CH_META[item.collabFrom];
-        const fromLabel=fromMeta?fromMeta.label:item.collabFrom;
-        if(item.img){
-          const img=document.createElement('img');
-          img.src=item.img;img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;';
-          cell.appendChild(img);
-        } else {
-          cell.style.background='linear-gradient(135deg,#8B6F3E,#C8956C)';
-          cell.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none;"><div style="font-size:18px;">🖼️</div><div style="font-size:9px;font-weight:700;color:white;">รอปก</div></div>`;
-        }
-        // badge collab
-        const collabBadge=document.createElement('div');
-        collabBadge.style.cssText='position:absolute;top:4px;left:4px;right:4px;background:rgba(142,68,173,0.85);color:white;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-        collabBadge.textContent='↩ '+fromLabel;
-        cell.appendChild(collabBadge);
-        if(item.date){
-          const d=new Date(item.date+'T00:00:00');
-          const dateBadge=document.createElement('div');
-          dateBadge.style.cssText='position:absolute;bottom:4px;left:4px;right:4px;background:rgba(26,111,181,0.85);color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;pointer-events:none;z-index:3;text-align:center;';
-          dateBadge.textContent=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
-          cell.appendChild(dateBadge);
-        }
-        // คลิกดูรายละเอียด
-        cell.style.cursor='pointer';
-        cell.addEventListener('click',()=>openView(item.id));
-        grid.appendChild(cell);
-        return; // ข้ามโค้ด slot ปกติ
-      }
-
       if(item&&item.type==='pending'){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
         cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:grab;';
@@ -1353,6 +1362,15 @@ function renderGrid(){
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.55);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
         numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
+        // badge collab (ถ้ามี sourceChannel)
+        if(item.sourceChannel){
+          const srcMeta=CH_META[item.sourceChannel];
+          const srcLabel=srcMeta?srcMeta.label:item.sourceChannel;
+          const collabBadge=document.createElement('div');
+          collabBadge.style.cssText='position:absolute;top:4px;left:4px;right:4px;background:rgba(142,68,173,0.85);color:white;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+          collabBadge.textContent='↩ '+srcLabel;
+          cell.appendChild(collabBadge);
+        }
         if(item.date){
           const d=new Date(item.date+'T00:00:00');
           const dateBadge=document.createElement('div');

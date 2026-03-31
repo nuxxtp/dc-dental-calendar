@@ -501,7 +501,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 </div>
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbxezG7Q_uf1f1eVykBSg_HKCf2Fi7sbGhLePrHgxa6SNiqVu6oL2JwhKE70bfRDsx9Emw/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbyDDw1k83NgPHtmIO0w6S9GSgYL_5aphvEXvpgS8GwcyNmQ7zg9IR0BPcZOqKfKnsydog/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -622,7 +622,7 @@ async function loadGridSlots(){
         type:(()=>{
           const t=String(r.type||'');
           if(t==='pending'||t==='blank') return t;
-          if(t==='image'||t==='') return r.img?'image':(String(r.id||'').includes('blank')?'blank':'pending');
+          if(t==='image'||t==='') return r.img?'image':'pending';
           return t||'image';
         })(),
       })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank'));
@@ -1207,7 +1207,27 @@ function renderGrid(){
   document.getElementById('igUsername').textContent=ch.username;
   const lbl=document.getElementById('igChannelLabel');
   if(lbl&&chMeta) lbl.textContent=chMeta.label;
-  const monthSlots=gridSlots.filter(s=>{
+  // รวม collab posts จากช่องอื่นที่ collab มาหาช่องนี้ — แปลงเป็น virtual slot เพื่อแสดงใน Grid
+  const collabVirtualSlots=posts
+    .filter(p=>p.collab===activeChannel&&p.doctor!==activeChannel&&p.date)
+    .map(p=>({
+      id:p.id,
+      img:p.thumbData||'',
+      title:p.title||'',
+      date:p.date,
+      type:p.thumbData?'image':'pending',
+      caption:p.caption||'',
+      hashtag:p.hashtag||'',
+      note:p.note||'',
+      isCollab:true,          // flag บอกว่ามาจาก collab
+      collabFrom:p.doctor,    // ช่องต้นทาง
+    }));
+
+  // รวม gridSlots ของช่องนี้ + collabVirtualSlots (ไม่ซ้ำ id)
+  const existingIds=new Set(gridSlots.map(s=>s.id));
+  const mergedSlots=[...gridSlots,...collabVirtualSlots.filter(s=>!existingIds.has(s.id))];
+
+  const monthSlots=mergedSlots.filter(s=>{
     if(!s.date) return true;
     const d=new Date(s.date+'T00:00:00');
     return d.getFullYear()===cy&&d.getMonth()===cm;
@@ -1256,6 +1276,38 @@ function renderGrid(){
     [chunk[2],chunk[1],chunk[0]].forEach(item=>{
       const cell=document.createElement('div');
       cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;';
+
+      // ── COLLAB VIRTUAL SLOT ── แสดงแต่ลากไม่ได้
+      if(item&&item.isCollab){
+        const fromMeta=CH_META[item.collabFrom];
+        const fromLabel=fromMeta?fromMeta.label:item.collabFrom;
+        if(item.img){
+          const img=document.createElement('img');
+          img.src=item.img;img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;';
+          cell.appendChild(img);
+        } else {
+          cell.style.background='linear-gradient(135deg,#8B6F3E,#C8956C)';
+          cell.innerHTML=`<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none;"><div style="font-size:18px;">🖼️</div><div style="font-size:9px;font-weight:700;color:white;">รอปก</div></div>`;
+        }
+        // badge collab
+        const collabBadge=document.createElement('div');
+        collabBadge.style.cssText='position:absolute;top:4px;left:4px;right:4px;background:rgba(142,68,173,0.85);color:white;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+        collabBadge.textContent='↩ '+fromLabel;
+        cell.appendChild(collabBadge);
+        if(item.date){
+          const d=new Date(item.date+'T00:00:00');
+          const dateBadge=document.createElement('div');
+          dateBadge.style.cssText='position:absolute;bottom:4px;left:4px;right:4px;background:rgba(26,111,181,0.85);color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;pointer-events:none;z-index:3;text-align:center;';
+          dateBadge.textContent=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+          cell.appendChild(dateBadge);
+        }
+        // คลิกดูรายละเอียด
+        cell.style.cursor='pointer';
+        cell.addEventListener('click',()=>openView(item.id));
+        grid.appendChild(cell);
+        return; // ข้ามโค้ด slot ปกติ
+      }
+
       if(item&&item.type==='pending'){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
         cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:grab;';

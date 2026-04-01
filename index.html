@@ -479,14 +479,14 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 
 <!-- ── ARCHIVE MODAL (ใหม่) ── -->
 <div class="modal-overlay" id="archiveModal">
-  <div class="modal" style="max-width:620px;">
-    <div class="modal-header">
+  <div class="modal" style="max-width:620px;display:flex;flex-direction:column;max-height:88vh;">
+    <div class="modal-header" style="flex-shrink:0;">
       <h2>📁 Archive — ประวัติโพสต์ทั้งหมด</h2>
       <button class="modal-close" onclick="closeModal('archiveModal')">×</button>
     </div>
-    <div class="modal-body" style="padding-top:10px;">
+    <div class="modal-body" style="padding-top:10px;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
       <!-- Filter bar -->
-      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
         <span style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:.5px;">กรอง:</span>
         <button class="filter-btn active" id="archFilterAll" onclick="setArchiveFilter('all',this)">ทั้งหมด</button>
         <button class="filter-btn" onclick="setArchiveFilter('draft',this)">Draft</button>
@@ -495,7 +495,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <span id="archiveTotalBadge" style="margin-left:auto;font-size:12px;color:var(--gray-dark);font-weight:600;"></span>
       </div>
       <!-- Accordion list -->
-      <div id="archiveList" style="display:flex;flex-direction:column;gap:8px;max-height:62vh;overflow-y:auto;padding-right:4px;"></div>
+      <div id="archiveList" style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding-right:4px;flex:1;min-height:0;"></div>
     </div>
   </div>
 </div>

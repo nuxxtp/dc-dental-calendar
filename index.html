@@ -599,7 +599,6 @@ async function loadGridSlots(){
     const cached=localStorage.getItem(getGridStorageKey());
     if(cached){
       const parsed=JSON.parse(cached);
-      // กรอง cache เฉพาะ slot ของช่องนี้เท่านั้น กันปน cache ข้ามช่อง
       gridSlots=parsed.filter(s=>(s.img||s.type==='pending'||s.type==='blank')&&(!s.channel||s.channel===activeChannel));
     }
   }catch(e){ gridSlots=[]; }
@@ -626,7 +625,7 @@ async function loadGridSlots(){
           if(t==='image'||t==='') return r.img?'image':(String(r.id||'').includes('blank')?'blank':'pending');
           return t||'image';
         })(),
-      })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank'));
+      })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank')&&(!r.channel||r.channel===activeChannel||r.channel===''));
       if(sheetSlots.length===0 && gridSlots.length>0){
         await saveGridSlotsToSheet();
       } else {
@@ -713,8 +712,7 @@ async function switchChannel(ch){
   const sel=document.getElementById('gridChannelSelect');
   if(sel) sel.value=ch;
   applyChannelTheme(ch);
-  // clear gridSlots ก่อนเสมอตอนสลับช่อง กันข้อมูลค้างจากช่องเก่า
-  gridSlots=[];
+  gridSlots=[]; // clear ก่อนเสมอ กันข้อมูลค้างจากช่องเก่า
   await loadGridSlots();
   renderGrid();
   renderUnscheduled();

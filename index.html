@@ -501,7 +501,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 </div>
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbwDtz7FTV7XD-5SOIDOfQ_Ceh5IWu7IlqcFcAbRUp6HHvdiuzLDsbaZ7ndaroyfdFBLiQ/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbxUAUS5dSv8dxBeJ-Kg5SWi9bBnrw3esH2jhMhDXNlGuZzTb9h-gsTytYbuXU6RtjlZhA/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -1614,7 +1614,7 @@ function openBulkUpload(){
         const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
         const data=await res.json();
         if(data.secure_url){
-          newSlots.push({id:Date.now()+'-'+i,img:data.secure_url,title:selectedFiles[i].name.replace(/\.[^.]+$/,''),date:'',caption:'',hashtag:'',note:''});
+          newSlots.push({id:activeChannel+'-'+Date.now()+'-'+i,img:data.secure_url,title:selectedFiles[i].name.replace(/\.[^.]+$/,''),date:'',caption:'',hashtag:'',note:''});
           if(st){st.style.background='rgba(39,174,96,0.6)';st.textContent='✅';}done++;
         } else throw new Error();
       }catch(e){if(st){st.style.background='rgba(231,76,60,0.6)';st.textContent='❌';}failed++;}
@@ -1663,7 +1663,7 @@ async function igSectionDrop(e){
       const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);fd.append('folder','dc-dental-grid');
       const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
       const data=await res.json();
-      if(data.secure_url){gridSlots.unshift({id:Date.now()+'-'+uploaded,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,''),date:'',caption:'',hashtag:'',note:''});uploaded++;}
+      if(data.secure_url){gridSlots.unshift({id:activeChannel+'-'+Date.now()+'-'+uploaded,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,''),date:'',caption:'',hashtag:'',note:''});uploaded++;}
     }catch(err){console.error(err);}
   }
   await saveGridSlots();
@@ -1721,7 +1721,7 @@ async function handleSandboxFiles(files){
       const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);fd.append('folder','dc-dental-sandbox');
       const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
       const data=await res.json();
-      if(data.secure_url){sandboxSlots.push({id:Date.now()+'-sb-'+done,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,'')});done++;renderSandbox();}
+      if(data.secure_url){sandboxSlots.push({id:activeChannel+'-sb-'+Date.now()+'-'+done,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,'')});done++;renderSandbox();}
     }catch(e){console.error(e);}
   }
   showNoti('✅ อัปโหลด '+done+' รูปสำเร็จ!','#27AE60');
@@ -1774,7 +1774,7 @@ function sbConfirmTextCard(){
   const title=document.getElementById('sbTextInput').value.trim();
   if(!title){document.getElementById('sbTextInput').focus();return;}
   const style=document.getElementById('sbSelectedStyle').value||'';
-  sandboxSlots.push({id:'txt-'+Date.now(),type:'text',img:'',title,contentStyle:style});
+  sandboxSlots.push({id:activeChannel+'-txt-'+Date.now(),type:'text',img:'',title,contentStyle:style});
   // ลบ popup
   const pop=document.getElementById('sbTextInput')?.closest('div[style*="position:fixed"]');
   if(pop) pop.remove();
@@ -1881,7 +1881,7 @@ function renderSandbox(){
       del.onclick=(e)=>{
         e.stopPropagation();
         if(slot.type==='blank') sandboxSlots.splice(idx,1);
-        else sandboxSlots[idx]={id:'blank-'+Date.now(),type:'blank',img:'',title:''};
+        else sandboxSlots[idx]={id:activeChannel+'-blank-'+Date.now(),type:'blank',img:'',title:''};
         renderSandbox();
       };
       cell.appendChild(del);
@@ -1920,9 +1920,9 @@ function renderSandbox(){
       <input type="file" accept="image/*" multiple style="display:none;" onchange="handleSandboxFiles(this.files)">
       <span style="font-size:18px;">🖼️</span>เพิ่มรูป
     </label>
-    <button onclick="sandboxSlots.push({id:'pend-'+Date.now(),type:'pending',img:'',title:'รอปก'});renderSandbox();"
+    <button onclick="sandboxSlots.push({id:activeChannel+'-pend-'+Date.now(),type:'pending',img:'',title:'รอปก'});renderSandbox();"
       style="flex:1;min-width:90px;background:linear-gradient(135deg,#8B6F3E,#C8956C);border:none;border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:600;cursor:pointer;">รอปก</button>
-    <button onclick="sandboxSlots.push({id:'blank-'+Date.now(),type:'blank',img:'',title:''});renderSandbox();"
+    <button onclick="sandboxSlots.push({id:activeChannel+'-blank-'+Date.now(),type:'blank',img:'',title:''});renderSandbox();"
       style="flex:1;min-width:90px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer;">▭ คั่น</button>`;
   grid.appendChild(toolbar);
 }
@@ -1935,7 +1935,7 @@ async function confirmSandbox(){
   showNoti('⏳ กำลังย้าย '+toAdd.length+' ช่องเข้า Grid...','#1A6FB5');
 
   const newSlots=toAdd.map(s=>{
-    const newId=Date.now()+'-'+Math.random().toString(36).slice(2);
+    const newId=activeChannel+'-'+Date.now()+'-'+Math.random().toString(36).slice(2);
     return {
       id:newId,
       img:s.img||'',

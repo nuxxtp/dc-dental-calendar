@@ -599,7 +599,8 @@ async function loadGridSlots(){
     const cached=localStorage.getItem(getGridStorageKey());
     if(cached){
       const parsed=JSON.parse(cached);
-      gridSlots=parsed.filter(s=>s.img||s.type==='pending'||s.type==='blank');
+      // กรอง cache เฉพาะ slot ของช่องนี้เท่านั้น กันปน cache ข้ามช่อง
+      gridSlots=parsed.filter(s=>(s.img||s.type==='pending'||s.type==='blank')&&(!s.channel||s.channel===activeChannel));
     }
   }catch(e){ gridSlots=[]; }
 
@@ -712,6 +713,8 @@ async function switchChannel(ch){
   const sel=document.getElementById('gridChannelSelect');
   if(sel) sel.value=ch;
   applyChannelTheme(ch);
+  // clear gridSlots ก่อนเสมอตอนสลับช่อง กันข้อมูลค้างจากช่องเก่า
+  gridSlots=[];
   await loadGridSlots();
   renderGrid();
   renderUnscheduled();

@@ -631,6 +631,17 @@ async function loadGridSlots(){
         await saveGridSlotsToSheet();
       } else {
         gridSlots=sheetSlots;
+        // auto-fill createdMonth ให้ blank/pending ที่ยังไม่มีค่าใน Sheet
+        const nowMonth=cy+'-'+String(cm+1).padStart(2,'0');
+        let needsSave=false;
+        gridSlots=gridSlots.map(s=>{
+          if((s.type==='blank'||s.type==='pending')&&!s.createdMonth){
+            needsSave=true;
+            return {...s,createdMonth:nowMonth};
+          }
+          return s;
+        });
+        if(needsSave) saveGridSlotsToSheet(); // save กลับ Sheet เลย ไม่ต้อง await
       }
     }
   }catch(e){
@@ -641,7 +652,14 @@ async function loadGridSlots(){
 }
 
 async function saveGridSlots(){
-  gridSlots=gridSlots.filter(s=>s.img||s.type==='pending'||s.type==='blank');
+  // auto-fill createdMonth ให้ blank/pending ที่ยังไม่มีค่า
+  const nowMonth=cy+'-'+String(cm+1).padStart(2,'0');
+  gridSlots=gridSlots.filter(s=>s.img||s.type==='pending'||s.type==='blank').map(s=>{
+    if((s.type==='blank'||s.type==='pending')&&!s.createdMonth){
+      return {...s,createdMonth:nowMonth};
+    }
+    return s;
+  });
   showGridLoading(true);
   const result=await saveGridSlotsToSheet();
   showGridLoading(false);
@@ -1213,8 +1231,8 @@ function renderGrid(){
   const monthSlots=gridSlots.filter(s=>{
     if(!s.date){
       if(s.type==='blank'||s.type==='pending'){
-        if(!s.createdMonth) return false;
-        const [y,m]=s.createdMonth.split('-').map(Number);
+        const cm2=s.createdMonth||(cy+'-'+String(cm+1).padStart(2,'0'));
+        const [y,m]=cm2.split('-').map(Number);
         return y===cy&&(m-1)===cm;
       }
       return true;

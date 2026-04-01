@@ -619,6 +619,7 @@ async function loadGridSlots(){
         date:parseSheetDate(r.date),channel:String(r.channel||activeChannel),
         caption:String(r.caption||''),hashtag:String(r.hashtag||''),
         note:String(r.note||''),
+        createdMonth:String(r.createdMonth||''),
         type:(()=>{
           const t=String(r.type||'');
           if(t==='pending'||t==='blank') return t;
@@ -658,6 +659,7 @@ async function saveGridSlotsToSheet(){
       id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
       caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
       type:s.type==='blank'?'blank':(s.img&&s.img.trim()!=='')?'image':'pending',
+      createdMonth:s.createdMonth||'',
     }));
     const res=await fetch(SHEET_URL,{
       method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
@@ -1209,7 +1211,14 @@ function renderGrid(){
   const lbl=document.getElementById('igChannelLabel');
   if(lbl&&chMeta) lbl.textContent=chMeta.label;
   const monthSlots=gridSlots.filter(s=>{
-    if(!s.date) return true;
+    if(!s.date){
+      if(s.type==='blank'||s.type==='pending'){
+        if(!s.createdMonth) return false;
+        const [y,m]=s.createdMonth.split('-').map(Number);
+        return y===cy&&(m-1)===cm;
+      }
+      return true;
+    }
     const d=new Date(s.date+'T00:00:00');
     return d.getFullYear()===cy&&d.getMonth()===cm;
   });
@@ -1934,6 +1943,7 @@ async function confirmSandbox(){
   const toAdd=sandboxSlots.slice(0,remaining);
   showNoti('⏳ กำลังย้าย '+toAdd.length+' ช่องเข้า Grid...','#1A6FB5');
 
+  const createdMonth=cy+'-'+String(cm+1).padStart(2,'0');
   const newSlots=toAdd.map(s=>{
     const newId=activeChannel+'-'+Date.now()+'-'+Math.random().toString(36).slice(2);
     return {
@@ -1944,6 +1954,7 @@ async function confirmSandbox(){
       type:(s.type==='blank'?'blank':s.type==='pending'?'pending':s.img?'image':'pending'),
       date:'',caption:'',hashtag:'',note:'',
       contentStyle:s.contentStyle||'',
+      createdMonth:createdMonth,
     };
   });
 

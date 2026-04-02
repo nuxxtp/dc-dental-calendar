@@ -393,6 +393,43 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="ads">A — โฆษณา</option>
           <option value="lifestyle">L — ชีวิตประจำวัน</option>
         </select></div>
+      <div class="form-grid">
+        <div class="form-row"><label>Funnel</label>
+          <select id="fFunnel">
+            <option value="">— ไม่ระบุ —</option>
+            <option value="tofu">🔝 TOFU — สร้างการรับรู้</option>
+            <option value="mofu">🎯 MOFU — สร้างความสนใจ</option>
+            <option value="bofu">💰 BOFU — กระตุ้นตัดสินใจ</option>
+          </select></div>
+        <div class="form-row"><label>Mood</label>
+          <select id="fMood">
+            <option value="">— ไม่ระบุ —</option>
+            <option value="trust">🤝 Trust — น่าเชื่อถือ</option>
+            <option value="warm">🤗 Warm — อบอุ่น เป็นกันเอง</option>
+            <option value="inspire">✨ Inspire — สร้างแรงบันดาลใจ</option>
+            <option value="fun">😄 Fun — สนุก เบาสมอง</option>
+            <option value="urgent">⚡ Urgent — กระตุ้น ด่วน</option>
+            <option value="educate">📚 Educate — ให้ความรู้</option>
+            <option value="empathy">💙 Empathy — เข้าใจความกังวล</option>
+          </select></div>
+      </div>
+      <div class="form-row"><label>Strategy</label>
+        <select id="fStrategy">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="viral">🔥 Viral Content</option>
+          <option value="interactive">💬 Interactive Content</option>
+          <option value="emotional">❤️ Emotional Content</option>
+          <option value="educational">📖 Educational Content</option>
+          <option value="datadriven">📊 Data Driven Content</option>
+          <option value="exclusive">🔒 Exclusive Inside Content</option>
+          <option value="shock">😱 Shock Value Content</option>
+          <option value="socialproof">⭐ Social Proof Content</option>
+          <option value="stepbystep">📋 Step-by-step Content</option>
+          <option value="controversial">🔥 Controversial Content</option>
+          <option value="vs">⚔️ VS Content</option>
+          <option value="newtech">🚀 New Technology Content</option>
+          <option value="inspiration">💡 Inspiration Content</option>
+        </select></div>
       <div class="form-row"><label>ช่องที่จะลง</label>
         <select id="fDoctor" onchange="updateChannelPreview('fDoctor','fDoctorPreview')">
           <option value="">— ไม่ระบุ —</option>
@@ -464,6 +501,9 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <div class="view-field" id="vCollabWrap"><div class="vfl">collab จาก</div><div id="vCollab"></div></div>
       </div>
       <div class="view-field"><div class="badge-row" id="vBadges"></div></div>
+      <div class="view-field" id="vSFMWrap" style="display:none;">
+        <div class="badge-row" id="vSFMBadges"></div>
+      </div>
       <div class="view-field"><div id="vCaptionCheck"></div></div>
       <div class="view-field" id="vCaptionWrap"><div class="vfl">Caption</div>
         <div class="vfv" id="vCaption" style="background:var(--bg);padding:10px;border-radius:8px;font-size:12px"></div></div>
@@ -767,6 +807,7 @@ async function loadChannelData(ch){
       time:(()=>{const t=String(r.time||'');if(!t) return '19:00';if(t.includes('T')){const d=new Date(t);return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');}return t;})(),
       platform:String(r.platform||'both'),type:String(r.type||'video'),
       doctor:String(r.doctor||ch),collab:String(r.collab||''),contentStyle:String(r.contentStyle||''),
+      strategy:String(r.strategy||''),funnel:String(r.funnel||''),mood:String(r.mood||''),
       status:String(r.status||'draft'),thumbData:String(r.thumbData||''),
       caption:String(r.caption||''),hashtag:String(r.hashtag||''),note:String(r.note||''),captionCheck:String(r.captionCheck||'')
     })).filter(r=>r.id&&r.title);
@@ -1019,6 +1060,9 @@ function openAdd(dateStr){
   updateChannelPreview('fDoctor','fDoctorPreview');
   document.getElementById('fCollab').value='';
   document.getElementById('fContentStyle').value='';
+  document.getElementById('fStrategy').value='';
+  document.getElementById('fFunnel').value='';
+  document.getElementById('fMood').value='';
   document.getElementById('fCaptionCheck').value='';
   document.getElementById('fDoctorPreview').innerHTML='';
   document.getElementById('fCollabPreview').innerHTML='';
@@ -1046,6 +1090,9 @@ function openEdit(id){
   document.getElementById('fDoctor').value=p.doctor||'';
   document.getElementById('fCollab').value=p.collab||'';
   document.getElementById('fContentStyle').value=p.contentStyle||'';
+  document.getElementById('fStrategy').value=p.strategy||'';
+  document.getElementById('fFunnel').value=p.funnel||'';
+  document.getElementById('fMood').value=p.mood||'';
   document.getElementById('fCaptionCheck').value=p.captionCheck||'';
   updateChannelPreview('fDoctor','fDoctorPreview');
   updateChannelPreview('fCollab','fCollabPreview');
@@ -1074,6 +1121,9 @@ async function savePost(){
     type:document.getElementById('fType').value,
     doctor:doctorCh,collab:collabCh,
     contentStyle:document.getElementById('fContentStyle').value,
+    strategy:document.getElementById('fStrategy').value,
+    funnel:document.getElementById('fFunnel').value,
+    mood:document.getElementById('fMood').value,
     captionCheck:document.getElementById('fCaptionCheck').value,
     status:document.getElementById('fStatus').value,
     thumbData:document.getElementById('fThumbData').value,
@@ -1149,6 +1199,18 @@ function openView(id){
     <span class="vbadge" style="background:${{fb:'#E7F0FF',ig:'#FDE7F3',both:'#E8F4FD'}[p.platform]};color:${{fb:'#1877F2',ig:'#C13584',both:'var(--blue)'}[p.platform]}">${PTEXT[p.platform]||'FB+IG'}</span>
     <span class="vbadge" style="background:#FEF0D9;color:var(--orange)">${TTEXT[p.type]||'คอนเทนต์'}</span>
     <span class="vbadge" style="background:${{draft:'#ECF0F1',ready:'#FEF9E7',posted:'#D5F5E3'}[p.status]};color:${SCOLOR[p.status]}">${STEXT[p.status]}</span>`;
+  // แสดง Strategy / Funnel / Mood
+  const SFM_STRATEGY={'viral':'🔥 Viral','interactive':'💬 Interactive','emotional':'❤️ Emotional','educational':'📖 Educational','datadriven':'📊 Data Driven','exclusive':'🔒 Exclusive Inside','shock':'😱 Shock Value','socialproof':'⭐ Social Proof','stepbystep':'📋 Step-by-step','controversial':'🔥 Controversial','vs':'⚔️ VS','newtech':'🚀 New Technology','inspiration':'💡 Inspiration'};
+  const SFM_FUNNEL={'tofu':['🔝 TOFU','#E8F4FD','#1A6FB5'],'mofu':['🎯 MOFU','#FEF9E7','#F0A500'],'bofu':['💰 BOFU','#D5F5E3','#27AE60']};
+  const SFM_MOOD={'trust':['🤝 Trust','#E8F4FD','#1A6FB5'],'warm':['🤗 Warm','#FEF0D9','#E67E22'],'inspire':['✨ Inspire','#F3E5F5','#8E44AD'],'fun':['😄 Fun','#FEF9E7','#F0A500'],'urgent':['⚡ Urgent','#FDECEA','#E74C3C'],'educate':['📚 Educate','#E8F8F0','#27AE60'],'empathy':['💙 Empathy','#FDE7F3','#C13584']};
+  const sfmWrap=document.getElementById('vSFMWrap');
+  const sfmBadges=document.getElementById('vSFMBadges');
+  let sfmHtml='';
+  if(p.strategy&&SFM_STRATEGY[p.strategy]) sfmHtml+=`<span class="vbadge" style="background:#F4F7FB;color:#444;border:1px solid #D0DCE8;">${SFM_STRATEGY[p.strategy]}</span>`;
+  if(p.funnel&&SFM_FUNNEL[p.funnel]){const[l,bg,fg]=SFM_FUNNEL[p.funnel];sfmHtml+=`<span class="vbadge" style="background:${bg};color:${fg};">${l}</span>`;}
+  if(p.mood&&SFM_MOOD[p.mood]){const[l,bg,fg]=SFM_MOOD[p.mood];sfmHtml+=`<span class="vbadge" style="background:${bg};color:${fg};">${l}</span>`;}
+  if(sfmHtml){sfmBadges.innerHTML=sfmHtml;sfmWrap.style.display='block';}
+  else sfmWrap.style.display='none';
   const cw=document.getElementById('vCaptionWrap');
   document.getElementById('vCaption').textContent=p.caption||'';cw.style.display=p.caption?'block':'none';
   const hw=document.getElementById('vHashtagWrap');

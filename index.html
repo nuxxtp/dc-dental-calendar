@@ -303,6 +303,83 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     <button class="filter-btn" onclick="setFilter('video',this)">วิดีโอ</button>
     <button class="filter-btn" onclick="setFilter('photo',this)">รูป</button>
   </div>
+
+  <!-- Advanced Multi-Filter Dropdown -->
+  <div id="advFilterWrap" style="position:relative;">
+    <button id="advFilterBtn" onclick="toggleAdvFilter()" style="display:flex;align-items:center;gap:5px;background:white;border:1.5px solid #D0DCE8;border-radius:20px;padding:3px 12px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#7F8C8D;transition:all 0.2s;white-space:nowrap;">
+      <span>🎯 กรองเพิ่ม</span>
+      <span id="advFilterBadge" style="display:none;background:#1A6FB5;color:white;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;min-width:16px;text-align:center;">0</span>
+      <span id="advFilterArrow" style="font-size:10px;transition:transform 0.2s;">▼</span>
+    </button>
+    <div id="advFilterPanel" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:white;border:1.5px solid #D0DCE8;border-radius:14px;box-shadow:0 8px 28px rgba(26,111,181,0.15);z-index:150;width:320px;overflow:hidden;">
+      <div style="padding:10px 14px 6px;border-bottom:1px solid #EDF2F7;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:12px;font-weight:700;color:#0D3F6E;">🎯 กรองขั้นสูง</span>
+        <button onclick="clearAdvFilter()" style="font-size:11px;color:#E74C3C;background:none;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:700;padding:0;">✕ ล้างทั้งหมด</button>
+      </div>
+      <div style="padding:10px 14px;max-height:340px;overflow-y:auto;">
+
+        <!-- Funnel -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Funnel</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <button class="adv-chip" data-group="funnel" data-val="tofu" onclick="toggleAdvChip(this)" style="background:#E8F4FD;color:#1A6FB5;border:1.5px solid #B8D4EF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🔝 TOFU</button>
+            <button class="adv-chip" data-group="funnel" data-val="mofu" onclick="toggleAdvChip(this)" style="background:#FEF9E7;color:#F0A500;border:1.5px solid #FAE3A0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🎯 MOFU</button>
+            <button class="adv-chip" data-group="funnel" data-val="bofu" onclick="toggleAdvChip(this)" style="background:#D5F5E3;color:#27AE60;border:1.5px solid #A9DFBF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">💰 BOFU</button>
+          </div>
+        </div>
+
+        <!-- Mood -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Mood</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <button class="adv-chip" data-group="mood" data-val="trust" onclick="toggleAdvChip(this)" style="background:#E8F4FD;color:#1A6FB5;border:1.5px solid #B8D4EF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🤝 Trust</button>
+            <button class="adv-chip" data-group="mood" data-val="warm" onclick="toggleAdvChip(this)" style="background:#FEF0D9;color:#E67E22;border:1.5px solid #FAD7A0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🤗 Warm</button>
+            <button class="adv-chip" data-group="mood" data-val="inspire" onclick="toggleAdvChip(this)" style="background:#F3E5F5;color:#8E44AD;border:1.5px solid #D7BDE2;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">✨ Inspire</button>
+            <button class="adv-chip" data-group="mood" data-val="fun" onclick="toggleAdvChip(this)" style="background:#FEF9E7;color:#F0A500;border:1.5px solid #FAE3A0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">😄 Fun</button>
+            <button class="adv-chip" data-group="mood" data-val="urgent" onclick="toggleAdvChip(this)" style="background:#FDECEA;color:#E74C3C;border:1.5px solid #F5B7B1;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">⚡ Urgent</button>
+            <button class="adv-chip" data-group="mood" data-val="educate" onclick="toggleAdvChip(this)" style="background:#E8F8F0;color:#27AE60;border:1.5px solid #A9DFBF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">📚 Educate</button>
+            <button class="adv-chip" data-group="mood" data-val="empathy" onclick="toggleAdvChip(this)" style="background:#FDE7F3;color:#C13584;border:1.5px solid #F1A8D0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">💙 Empathy</button>
+          </div>
+        </div>
+
+        <!-- Content Style -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Content Style</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <button class="adv-chip" data-group="style" data-val="review" onclick="toggleAdvChip(this)" style="background:#F3E5F5;color:#8E44AD;border:1.5px solid #D7BDE2;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">R รีวิว</button>
+            <button class="adv-chip" data-group="style" data-val="educated" onclick="toggleAdvChip(this)" style="background:#FEF0D9;color:#E67E22;border:1.5px solid #FAD7A0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">E ให้ความรู้</button>
+            <button class="adv-chip" data-group="style" data-val="branding" onclick="toggleAdvChip(this)" style="background:#F2F3F4;color:#555;border:1.5px solid #CCC;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">B แบรนด์</button>
+            <button class="adv-chip" data-group="style" data-val="sale" onclick="toggleAdvChip(this)" style="background:#E8F4FD;color:#1A6FB5;border:1.5px solid #B8D4EF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">S ขาย</button>
+            <button class="adv-chip" data-group="style" data-val="event" onclick="toggleAdvChip(this)" style="background:#E8F8F0;color:#27AE60;border:1.5px solid #A9DFBF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">V กิจกรรม</button>
+            <button class="adv-chip" data-group="style" data-val="ads" onclick="toggleAdvChip(this)" style="background:#FDECEA;color:#E74C3C;border:1.5px solid #F5B7B1;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">A โฆษณา</button>
+            <button class="adv-chip" data-group="style" data-val="lifestyle" onclick="toggleAdvChip(this)" style="background:#EAF4FB;color:#2E86C1;border:1.5px solid #AED6F1;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">L ชีวิต</button>
+          </div>
+        </div>
+
+        <!-- Strategy -->
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Strategy</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <button class="adv-chip" data-group="strategy" data-val="viral" onclick="toggleAdvChip(this)" style="background:#FDECEA;color:#E74C3C;border:1.5px solid #F5B7B1;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🔥 Viral</button>
+            <button class="adv-chip" data-group="strategy" data-val="interactive" onclick="toggleAdvChip(this)" style="background:#EAF4FB;color:#2E86C1;border:1.5px solid #AED6F1;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">💬 Interactive</button>
+            <button class="adv-chip" data-group="strategy" data-val="emotional" onclick="toggleAdvChip(this)" style="background:#FDECEA;color:#C0392B;border:1.5px solid #F5B7B1;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">❤️ Emotional</button>
+            <button class="adv-chip" data-group="strategy" data-val="educational" onclick="toggleAdvChip(this)" style="background:#E8F8F0;color:#27AE60;border:1.5px solid #A9DFBF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">📖 Educational</button>
+            <button class="adv-chip" data-group="strategy" data-val="datadriven" onclick="toggleAdvChip(this)" style="background:#F2F3F4;color:#555;border:1.5px solid #CCC;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">📊 Data Driven</button>
+            <button class="adv-chip" data-group="strategy" data-val="exclusive" onclick="toggleAdvChip(this)" style="background:#F2F3F4;color:#555;border:1.5px solid #CCC;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🔒 Exclusive</button>
+            <button class="adv-chip" data-group="strategy" data-val="shock" onclick="toggleAdvChip(this)" style="background:#FEF0D9;color:#E67E22;border:1.5px solid #FAD7A0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">😱 Shock</button>
+            <button class="adv-chip" data-group="strategy" data-val="socialproof" onclick="toggleAdvChip(this)" style="background:#FEF9E7;color:#F0A500;border:1.5px solid #FAE3A0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">⭐ Social Proof</button>
+            <button class="adv-chip" data-group="strategy" data-val="stepbystep" onclick="toggleAdvChip(this)" style="background:#E8F4FD;color:#1A6FB5;border:1.5px solid #B8D4EF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">📋 Step-by-step</button>
+            <button class="adv-chip" data-group="strategy" data-val="controversial" onclick="toggleAdvChip(this)" style="background:#FDECEA;color:#E74C3C;border:1.5px solid #F5B7B1;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🔥 Controversial</button>
+            <button class="adv-chip" data-group="strategy" data-val="vs" onclick="toggleAdvChip(this)" style="background:#F3E5F5;color:#8E44AD;border:1.5px solid #D7BDE2;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">⚔️ VS</button>
+            <button class="adv-chip" data-group="strategy" data-val="newtech" onclick="toggleAdvChip(this)" style="background:#E8F8F0;color:#27AE60;border:1.5px solid #A9DFBF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🚀 New Tech</button>
+            <button class="adv-chip" data-group="strategy" data-val="inspiration" onclick="toggleAdvChip(this)" style="background:#FEF9E7;color:#F0A500;border:1.5px solid #FAE3A0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">💡 Inspiration</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <button id="btnToggleUnsched" onclick="toggleUnscheduled()" style="background:white;border:1.5px solid #D0DCE8;border-radius:20px;padding:3px 12px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#7F8C8D;transition:all 0.2s;display:none;">📋 รอจัดวัน <span id="unschedBadge" style="background:#E74C3C;color:white;border-radius:8px;padding:0 5px;font-size:10px;margin-left:2px;">0</span></button>
 </div>
 
@@ -542,7 +619,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 </div>
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbyl7QPxFtrTvZJJLVsp6dzduNMF_uL5vLHV1NzUW9iWbFEF5ohjG0iGb8LEG_QSOXQv8Q/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwOXt2354mQ82hBii6EVbrueEFSxoGuMRxK2KuqMspjgy1vQZUMIdxi3VdNyWp7flqw4Q/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -557,6 +634,66 @@ const SCOLOR={'draft':'#7F8C8D','ready':'#F0A500','posted':'#27AE60'};
 
 let cy=new Date().getFullYear(),cm=new Date().getMonth();
 let posts=[],filter='all',viewingId=null,activeChannel='dc-dental';
+// Advanced multi-filter state
+let advFilter={funnel:[],mood:[],style:[],strategy:[]};
+
+function toggleAdvFilter(){
+  const panel=document.getElementById('advFilterPanel');
+  const arrow=document.getElementById('advFilterArrow');
+  const isOpen=panel.style.display!=='none';
+  panel.style.display=isOpen?'none':'block';
+  arrow.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
+  if(!isOpen){
+    // ปิด dropdown เมื่อคลิกนอก
+    setTimeout(()=>{
+      document.addEventListener('click',closeAdvFilterOutside,{once:true});
+    },0);
+  }
+}
+
+function closeAdvFilterOutside(e){
+  const wrap=document.getElementById('advFilterWrap');
+  if(wrap&&!wrap.contains(e.target)){
+    document.getElementById('advFilterPanel').style.display='none';
+    document.getElementById('advFilterArrow').style.transform='rotate(0deg)';
+  }
+}
+
+function toggleAdvChip(btn){
+  const group=btn.dataset.group;
+  const val=btn.dataset.val;
+  const isActive=btn.dataset.active==='1';
+  if(isActive){
+    btn.dataset.active='0';
+    btn.style.opacity='1';
+    btn.style.boxShadow='none';
+    btn.style.transform='scale(1)';
+    advFilter[group]=advFilter[group].filter(v=>v!==val);
+  } else {
+    btn.dataset.active='1';
+    btn.style.opacity='1';
+    btn.style.boxShadow='0 0 0 2.5px currentColor';
+    btn.style.transform='scale(1.05)';
+    advFilter[group].push(val);
+  }
+  updateAdvFilterBadge();
+  renderCal();
+}
+
+function updateAdvFilterBadge(){
+  const total=advFilter.funnel.length+advFilter.mood.length+advFilter.style.length+advFilter.strategy.length;
+  const badge=document.getElementById('advFilterBadge');
+  const btn=document.getElementById('advFilterBtn');
+  if(badge){badge.textContent=total;badge.style.display=total>0?'inline-block':'none';}
+  if(btn){btn.style.borderColor=total>0?'var(--blue)':'#D0DCE8';btn.style.color=total>0?'var(--blue)':'#7F8C8D';btn.style.fontWeight=total>0?'700':'400';}
+}
+
+function clearAdvFilter(){
+  advFilter={funnel:[],mood:[],style:[],strategy:[]};
+  document.querySelectorAll('.adv-chip').forEach(b=>{b.dataset.active='0';b.style.boxShadow='none';b.style.transform='scale(1)';});
+  updateAdvFilterBadge();
+  renderCal();
+}
 
 const CHANNEL_THEMES={
   'dc-dental':{bg:'#FDF6F0',bgLight:'#F5E8DE',primary:'#8B6F5E',primaryDark:'#6B5040',primaryLight:'#F5E8DE',accent:'#C8956C',headerGrad:'135deg, #6B5040 0%, #8B6F5E 100%'},
@@ -754,7 +891,88 @@ function applyChannelTheme(ch){
   if(igLogo&&CHANNEL_LOGOS[ch]) igLogo.src=CHANNEL_LOGOS[ch];
 }
 
+function showChannelLoading(ch){
+  let ov=document.getElementById('channelSwitchOverlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='channelSwitchOverlay';
+    document.body.appendChild(ov);
+  }
+  const theme=CHANNEL_THEMES[ch]||CHANNEL_THEMES['dc-dental'];
+  const logo=CHANNEL_LOGOS[ch]||'';
+  const meta=CHANNEL_META[ch]||{label:ch,emoji:'📱'};
+  ov.style.cssText='position:fixed;inset:0;z-index:8000;pointer-events:all;';
+  ov.innerHTML=`
+    <!-- Progress bar ด้านบน -->
+    <div id="chProgBar" style="position:absolute;top:0;left:0;height:3px;width:0%;background:${theme.primary};transition:width 0.4s ease;z-index:2;border-radius:0 2px 2px 0;box-shadow:0 0 8px ${theme.primary}88;"></div>
+
+    <!-- พื้นหลัง blur ครึ่งล่าง -->
+    <div style="position:absolute;inset:0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(0,0,0,0.18);"></div>
+
+    <!-- Card กลางจอ -->
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);
+      background:white;border-radius:20px;padding:28px 36px 24px;
+      box-shadow:0 16px 48px rgba(0,0,0,0.18);
+      display:flex;flex-direction:column;align-items:center;gap:0;
+      min-width:220px;animation:chSwIn 0.2s ease forwards;">
+      <div style="width:64px;height:64px;border-radius:50%;overflow:hidden;border:2.5px solid ${theme.primaryLight};background:${theme.bgLight};display:flex;align-items:center;justify-content:center;margin-bottom:14px;flex-shrink:0;">
+        ${logo?`<img src="${logo}" style="width:88%;height:88%;object-fit:contain;">`:`<span style="font-size:26px;">${meta.emoji}</span>`}
+      </div>
+      <div style="font-family:'Prompt',sans-serif;font-size:15px;font-weight:700;color:${theme.primaryDark};margin-bottom:3px;white-space:nowrap;">${meta.label}</div>
+      <div style="font-family:'Sarabun',sans-serif;font-size:12px;color:#999;margin-bottom:18px;">กำลังโหลดข้อมูล...</div>
+      <!-- Mini progress bar ใน card -->
+      <div style="width:140px;height:4px;background:${theme.primaryLight};border-radius:4px;overflow:hidden;">
+        <div id="chProgBarInner" style="height:100%;width:0%;background:${theme.primary};border-radius:4px;transition:width 0.4s ease;"></div>
+      </div>
+    </div>
+    <style>@keyframes chSwIn{from{opacity:0;transform:translate(-50%,-58%);}to{opacity:1;transform:translate(-50%,-54%);}}</style>`;
+  // Animate progress bar
+  requestAnimationFrame(()=>{
+    const bar=document.getElementById('chProgBar');
+    const inner=document.getElementById('chProgBarInner');
+    if(bar) bar.style.width='30%';
+    if(inner) inner.style.width='30%';
+    setTimeout(()=>{
+      if(bar) bar.style.width='65%';
+      if(inner) inner.style.width='65%';
+    },400);
+    setTimeout(()=>{
+      if(bar) bar.style.width='85%';
+      if(inner) inner.style.width='85%';
+    },900);
+  });
+}
+
+function hideChannelLoading(){
+  const ov=document.getElementById('channelSwitchOverlay');
+  if(!ov) return;
+  // วิ่งถึง 100% ก่อน fade out
+  const bar=document.getElementById('chProgBar');
+  const inner=document.getElementById('chProgBarInner');
+  if(bar){bar.style.transition='width 0.2s ease';bar.style.width='100%';}
+  if(inner){inner.style.transition='width 0.2s ease';inner.style.width='100%';}
+  setTimeout(()=>{
+    ov.style.transition='opacity 0.25s ease';
+    ov.style.opacity='0';
+    setTimeout(()=>{ try{ov.remove();}catch(e){} },260);
+  },220);
+}
+
 async function switchChannel(ch){
+  // ป้องกัน race condition — ถ้ากำลังโหลดช่องเดิมอยู่ให้ยกเลิกก่อน
+  if(window._switchToken) window._switchToken.cancelled=true;
+  const token={cancelled:false};
+  window._switchToken=token;
+
+  // แสดง loading overlay กลางจอ
+  showChannelLoading(ch);
+
+  // ล็อคปุ่มทุกช่องระหว่างโหลด
+  document.querySelectorAll('.ch-tab').forEach(btn=>{
+    btn.style.pointerEvents='none';
+    btn.style.opacity=btn.dataset.ch===ch?'1':'0.45';
+  });
+
   activeChannel=ch;
   document.querySelectorAll('.ch-tab').forEach(btn=>{
     const isActive=btn.dataset.ch===ch;
@@ -762,9 +980,11 @@ async function switchChannel(ch){
     btn.style.borderBottom=isActive?'3px solid white':'3px solid transparent';
     btn.style.color=isActive?'white':'rgba(255,255,255,0.65)';
   });
+
   const meta=CHANNEL_META[ch];
   const badge=document.getElementById('headerChannelBadge');
   if(badge&&meta) badge.textContent=meta.emoji+' '+meta.label;
+
   const igLabel=document.getElementById('igChannelLabel');
   const igUser=document.getElementById('igUsername');
   const gridMeta=GRID_CHANNEL_META[ch];
@@ -773,19 +993,36 @@ async function switchChannel(ch){
   const sel=document.getElementById('gridChannelSelect');
   if(sel) sel.value=ch;
   applyChannelTheme(ch);
-  gridSlots=[]; // clear ก่อนเสมอ กันข้อมูลค้างจากช่องเก่า
+  gridSlots=[];
+  posts=[];
+  render();
+
   await loadGridSlots();
+  if(token.cancelled){ hideChannelLoading(); return; }
+
   renderGrid();
   renderUnscheduled();
-  loadChannelData(ch);
+  await loadChannelData(ch);
+  if(token.cancelled){ hideChannelLoading(); return; }
+
+  // โหลดเสร็จ — ปลดล็อคปุ่มและซ่อน overlay
+  document.querySelectorAll('.ch-tab').forEach(btn=>{
+    btn.style.pointerEvents='';
+    btn.style.opacity='';
+  });
+  hideChannelLoading();
+  window._switchToken=null;
 }
 
 async function loadChannelData(ch){
   const cacheKey='dcCache_'+ch;
   const cached=localStorage.getItem(cacheKey);
   if(cached){
-    try{ posts=JSON.parse(cached); render(); }catch(e){}
-  } else { posts=[];render(); }
+    try{
+      // แสดง cache ก่อนเฉพาะถ้าช่องยังตรงกันอยู่
+      if(ch===activeChannel){ posts=JSON.parse(cached); render(); }
+    }catch(e){}
+  } else { if(ch===activeChannel){posts=[];render();} }
   showLoading(true);
   try{
     const controller=new AbortController();
@@ -794,6 +1031,8 @@ async function loadChannelData(ch){
     const res=await fetch(SHEET_URL+'?t='+Date.now()+'&sheet='+encodeURIComponent(sheetName),
       {method:'GET',redirect:'follow',signal:controller.signal});
     clearTimeout(fetchTimer);
+    // ถ้าระหว่างรอ fetch ผู้ใช้เปลี่ยนช่องไปแล้ว → ทิ้งผลลัพธ์นี้เลย
+    if(ch!==activeChannel){ showLoading(false); return; }
     const data=JSON.parse(await res.text());
     const allData=data.map(r=>({
       id:String(r.id||''),title:String(r.title||''),
@@ -814,9 +1053,11 @@ async function loadChannelData(ch){
       status:String(r.status||'draft'),thumbData:String(r.thumbData||''),
       caption:String(r.caption||''),hashtag:String(r.hashtag||''),note:String(r.note||''),captionCheck:String(r.captionCheck||'')
     })).filter(r=>r.id&&r.title);
+    // check อีกรอบหลัง parse (fetch ใช้เวลา)
+    if(ch!==activeChannel){ showLoading(false); return; }
     posts=allData.filter(r=>!r.doctor||r.doctor===ch||r.collab===ch);
     try{
-      const cacheData=posts.map(p=>({id:p.id,title:p.title,date:p.date,platform:p.platform,type:p.type,doctor:p.doctor,collab:p.collab,contentStyle:p.contentStyle,captionCheck:p.captionCheck||'',status:p.status}));
+      const cacheData=posts.map(p=>({id:p.id,title:p.title,date:p.date,platform:p.platform,type:p.type,doctor:p.doctor,collab:p.collab,contentStyle:p.contentStyle,captionCheck:p.captionCheck||'',status:p.status,funnel:p.funnel||'',mood:p.mood||'',strategy:p.strategy||''}));
       localStorage.setItem(cacheKey,JSON.stringify(cacheData));
     }catch(e){}
     render();
@@ -902,11 +1143,19 @@ function postsInMonth(){
 }
 
 function applyFilter(arr){
-  if(filter==='all') return arr;
-  if(['draft','ready','posted'].includes(filter)) return arr.filter(p=>p.status===filter);
-  if(filter==='video') return arr.filter(p=>p.type==='video'||p.type==='reel');
-  if(filter==='photo') return arr.filter(p=>p.type==='photo'||p.type==='carousel'||p.type==='story');
-  return arr;
+  // Basic filter
+  let result=arr;
+  if(filter!=='all'){
+    if(['draft','ready','posted'].includes(filter)) result=result.filter(p=>p.status===filter);
+    else if(filter==='video') result=result.filter(p=>p.type==='video'||p.type==='reel');
+    else if(filter==='photo') result=result.filter(p=>p.type==='photo'||p.type==='carousel'||p.type==='story');
+  }
+  // Advanced filter — AND between groups, OR within group
+  if(advFilter.funnel.length>0) result=result.filter(p=>advFilter.funnel.includes(p.funnel));
+  if(advFilter.mood.length>0) result=result.filter(p=>advFilter.mood.includes(p.mood));
+  if(advFilter.style.length>0) result=result.filter(p=>advFilter.style.includes(p.contentStyle));
+  if(advFilter.strategy.length>0) result=result.filter(p=>advFilter.strategy.includes(p.strategy));
+  return result;
 }
 
 function renderCal(){
@@ -2494,9 +2743,10 @@ function jumpToMonth(year,month){
 document.addEventListener('DOMContentLoaded',async function(){
   applyChannelTheme(activeChannel);
   render();
+  // รอโหลดข้อมูลจริงก่อน แล้วค่อยซ่อน overlay
+  await loadChannelData(activeChannel);
   const ov=document.getElementById('loadingOverlay');
   if(ov){ov.style.opacity='0';ov.style.pointerEvents='none';setTimeout(()=>{try{ov.remove()}catch(e){}},600);}
-  await loadChannelData(activeChannel);
   const sel=document.getElementById('gridChannelSelect');
   if(sel) sel.value=activeChannel;
 });

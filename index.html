@@ -31,7 +31,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
 .btn-add:hover{background:#d4920a;transform:translateY(-1px);}
 .stats-bar{background:white;padding:12px 28px;display:flex;gap:20px;align-items:center;
-  border-bottom:1px solid #E0EAF4;flex-wrap:wrap;}
+  border-bottom:1px solid #E0EAF4;flex-wrap:wrap;position:relative;overflow:visible;z-index:50;}
 .stat-item{display:flex;align-items:center;gap:7px;}
 .stat-dot{width:9px;height:9px;border-radius:50%;}
 .stat-label{font-size:12px;color:var(--gray-dark);}
@@ -311,7 +311,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <span id="advFilterBadge" style="display:none;background:#1A6FB5;color:white;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;min-width:16px;text-align:center;">0</span>
       <span id="advFilterArrow" style="font-size:10px;transition:transform 0.2s;">▼</span>
     </button>
-    <div id="advFilterPanel" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:white;border:1.5px solid #D0DCE8;border-radius:14px;box-shadow:0 8px 28px rgba(26,111,181,0.15);z-index:150;width:320px;overflow:hidden;">
+    <div id="advFilterPanel" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:white;border:1.5px solid #D0DCE8;border-radius:14px;box-shadow:0 8px 28px rgba(26,111,181,0.15);z-index:500;width:320px;overflow:hidden;">
       <div style="padding:10px 14px 6px;border-bottom:1px solid #EDF2F7;display:flex;align-items:center;justify-content:space-between;">
         <span style="font-size:12px;font-weight:700;color:#0D3F6E;">🎯 กรองขั้นสูง</span>
         <button onclick="clearAdvFilter()" style="font-size:11px;color:#E74C3C;background:none;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:700;padding:0;">✕ ล้างทั้งหมด</button>

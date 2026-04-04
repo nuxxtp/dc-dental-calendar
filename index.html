@@ -1305,6 +1305,8 @@ function closeMonthPicker(){
     setTimeout(()=>{try{ov.remove();}catch(e){}},160);
   }
 }
+
+function render(){
   document.getElementById('monthLabel').textContent=MONTHS[cm]+' '+(cy+543);
   const mp=postsInMonth();
   document.getElementById('cDraft').textContent=mp.filter(p=>p.status==='draft').length;

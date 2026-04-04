@@ -25,7 +25,11 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .month-nav button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
   color:white;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:17px;transition:background 0.2s;}
 .month-nav button:hover{background:rgba(255,255,255,0.28);}
-.month-label{font-family:'Prompt',sans-serif;font-size:15px;font-weight:600;min-width:155px;text-align:center;}
+.month-label{font-family:'Prompt',sans-serif;font-size:15px;font-weight:600;min-width:155px;text-align:center;
+  cursor:pointer;border-radius:8px;padding:5px 10px;transition:background 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:5px;}
+.month-label:hover{background:rgba(255,255,255,0.15);}
+.month-label::after{content:'▾';font-size:11px;opacity:0.7;}
 .btn-add{background:var(--accent);color:white;border:none;border-radius:10px;
   padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;
   cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
@@ -275,7 +279,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     <div id="calendarControls" style="display:flex;align-items:center;gap:10px">
       <div class="month-nav">
         <button onclick="changeMonth(-1)">‹</button>
-        <span class="month-label" id="monthLabel"></span>
+        <span class="month-label" id="monthLabel" onclick="openMonthPicker()"></span>
         <button onclick="changeMonth(1)">›</button>
       </div>
       <!-- ปุ่ม Archive เพิ่มใหม่ -->
@@ -1192,7 +1196,115 @@ function updateChannelPreview(selectId,previewId){
   document.getElementById(previewId).innerHTML=val?channelBadge(val):'';
 }
 
-function render(){
+function openMonthPicker(){
+  const old=document.getElementById('monthPickerOverlay');
+  if(old){old.remove();return;}
+  const theme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
+  let pickerYear=cy;
+
+  const ov=document.createElement('div');
+  ov.id='monthPickerOverlay';
+
+  function buildPickerHTML(){
+    const monthBtns=MONTHS.map((m,i)=>{
+      const isCurrent=pickerYear===cy&&i===cm;
+      const isToday=pickerYear===new Date().getFullYear()&&i===new Date().getMonth();
+      // นับโพสต์ในเดือนนั้น
+      const count=posts.filter(p=>{
+        const d=new Date(p.date+'T00:00:00');
+        return d.getFullYear()===pickerYear&&d.getMonth()===i;
+      }).length;
+      return `<button
+        onclick="selectMonth(${pickerYear},${i})"
+        style="position:relative;padding:10px 6px 8px;border-radius:10px;border:2px solid ${isCurrent?theme.primary:'#E4EDF5'};
+        background:${isCurrent?theme.primaryLight:'white'};
+        color:${isCurrent?theme.primaryDark:'#333'};
+        font-family:'Sarabun',sans-serif;font-size:13px;font-weight:${isCurrent?'700':'500'};
+        cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:3px;"
+        onmouseover="this.style.borderColor='${theme.primary}';this.style.background='${theme.primaryLight}'"
+        onmouseout="this.style.borderColor='${isCurrent?theme.primary:'#E4EDF5'}';this.style.background='${isCurrent?theme.primaryLight:'white'}'">
+        <span>${m.slice(0,3)}</span>
+        ${count>0?`<span style="font-size:9px;font-weight:700;background:${isCurrent?theme.primary:'#E4EDF5'};color:${isCurrent?'white':theme.primaryDark};border-radius:8px;padding:0 5px;min-width:16px;text-align:center;">${count}</span>`:'<span style="height:14px;"></span>'}
+        ${isToday&&!isCurrent?`<span style="position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:${theme.accent||theme.primary};"></span>`:''}
+      </button>`;
+    }).join('');
+    return `
+      <div id="monthPickerBox" style="background:white;border-radius:16px;
+        box-shadow:0 12px 40px rgba(0,0,0,0.18);width:300px;overflow:hidden;
+        animation:mpFadeIn 0.18s ease;">
+        <!-- header ปีพร้อม nav -->
+        <div style="background:${theme.primaryDark};padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+          <button onclick="pickerChangeYear(-1)" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:7px;padding:4px 10px;font-size:16px;cursor:pointer;">‹</button>
+          <span style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;color:white;">${pickerYear+543}</span>
+          <button onclick="pickerChangeYear(1)" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:7px;padding:4px 10px;font-size:16px;cursor:pointer;">›</button>
+        </div>
+        <!-- grid 12 เดือน -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px;">
+          ${monthBtns}
+        </div>
+        <!-- ปุ่มกลับเดือนปัจจุบัน -->
+        <div style="padding:0 12px 12px;text-align:center;">
+          <button onclick="selectMonth(${new Date().getFullYear()},${new Date().getMonth()})"
+            style="background:${theme.primaryLight};color:${theme.primaryDark};border:1.5px solid ${theme.primary}44;
+            border-radius:8px;padding:6px 20px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">
+            📅 กลับเดือนนี้
+          </button>
+        </div>
+      </div>
+      <style>@keyframes mpFadeIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}</style>`;
+  }
+
+  // วาง overlay
+  ov.style.cssText='position:fixed;inset:0;z-index:5000;';
+  ov.innerHTML=`<div id="monthPickerBackdrop" style="position:absolute;inset:0;" onclick="closeMonthPicker()"></div>`;
+  document.body.appendChild(ov);
+
+  // หา position ของ monthLabel แล้วแปะ picker ใต้มัน
+  function positionPicker(){
+    const lbl=document.getElementById('monthLabel');
+    const rect=lbl?lbl.getBoundingClientRect():null;
+    const box=document.createElement('div');
+    box.id='monthPickerContainer';
+    box.style.cssText='position:absolute;z-index:1;';
+    box.innerHTML=buildPickerHTML();
+    ov.appendChild(box);
+    if(rect){
+      const bw=300,bh=280;
+      let left=rect.left+rect.width/2-bw/2;
+      let top=rect.bottom+6;
+      if(left+bw>window.innerWidth-8) left=window.innerWidth-bw-8;
+      if(left<8) left=8;
+      if(top+bh>window.innerHeight-8) top=rect.top-bh-6;
+      box.style.left=left+'px';
+      box.style.top=top+'px';
+    } else {
+      box.style.top='50%';box.style.left='50%';
+      box.style.transform='translate(-50%,-50%)';
+    }
+  }
+  positionPicker();
+
+  // expose functions สำหรับ inline onclick
+  window.pickerChangeYear=function(delta){
+    pickerYear+=delta;
+    const c=document.getElementById('monthPickerContainer');
+    if(c){c.innerHTML=buildPickerHTML();}
+  };
+  window.selectMonth=function(year,month){
+    cy=year;cm=month;
+    render();
+    closeMonthPicker();
+  };
+}
+
+function closeMonthPicker(){
+  const ov=document.getElementById('monthPickerOverlay');
+  if(ov){
+    const box=document.getElementById('monthPickerBox');
+    if(box){box.style.transition='opacity 0.15s,transform 0.15s';box.style.opacity='0';box.style.transform='translateY(-6px)';}
+    setTimeout(()=>{try{ov.remove();}catch(e){}},160);
+  }
+}
   document.getElementById('monthLabel').textContent=MONTHS[cm]+' '+(cy+543);
   const mp=postsInMonth();
   document.getElementById('cDraft').textContent=mp.filter(p=>p.status==='draft').length;

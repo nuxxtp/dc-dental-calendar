@@ -261,6 +261,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   <button class="ch-tab" data-ch="implant" onclick="switchChannel('implant')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/612995449_17844614772670316_7195624432906695769_n_ednung.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> implant review</span></button>
   <button class="ch-tab" data-ch="dr-north" onclick="switchChannel('dr-north')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> dr.north</span></button>
   <button class="ch-tab" data-ch="dr-daran" onclick="switchChannel('dr-daran')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/574179784_17845527528599344_23126879378071020_n_xphheg.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> dr.daran</span></button>
+  <button class="ch-tab" data-ch="north-tiktok" onclick="switchChannel('north-tiktok')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg" style="width:18px;height:18px;object-fit:cover;border-radius:3px;vertical-align:middle;"> 🎵 TikTok</span></button>
   <div style="flex:1"></div>
 </div>
 
@@ -325,6 +326,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
             <button class="adv-chip" data-group="funnel" data-val="tofu" onclick="toggleAdvChip(this)" style="background:#E8F4FD;color:#1A6FB5;border:1.5px solid #B8D4EF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🔝 TOF</button>
             <button class="adv-chip" data-group="funnel" data-val="mofu" onclick="toggleAdvChip(this)" style="background:#FEF9E7;color:#F0A500;border:1.5px solid #FAE3A0;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🎯 MOF</button>
             <button class="adv-chip" data-group="funnel" data-val="bofu" onclick="toggleAdvChip(this)" style="background:#D5F5E3;color:#27AE60;border:1.5px solid #A9DFBF;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">💰 BOF</button>
+            <button class="adv-chip" data-group="funnel" data-val="retarget" onclick="toggleAdvChip(this)" style="background:#F3E5F5;color:#8E44AD;border:1.5px solid #D7BDE2;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.15s;">🎯 Retarget</button>
           </div>
         </div>
 
@@ -474,9 +476,10 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <div class="form-row"><label>Funnel</label>
           <select id="fFunnel">
             <option value="">— ไม่ระบุ —</option>
-            <option value="tofu">🔝 TOFU — สร้างการรับรู้</option>
-            <option value="mofu">🎯 MOFU — สร้างความสนใจ</option>
-            <option value="bofu">💰 BOFU — กระตุ้นตัดสินใจ</option>
+            <option value="tofu">🔝 TOF — สร้างการรับรู้</option>
+            <option value="mofu">🎯 MOF — สร้างความสนใจ</option>
+            <option value="bofu">💰 BOF — กระตุ้นตัดสินใจ</option>
+            <option value="retarget">🔁 Retarget — ดึงกลับ คนที่รู้จักแล้ว</option>
           </select></div>
         <div class="form-row"><label>Mood</label>
           <select id="fMood">
@@ -516,6 +519,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="implant">implant review</option>
           <option value="dr-north">dr.north.judfun</option>
           <option value="dr-daran">dr.daran.dc</option>
+          <option value="north-tiktok">🎵 dr.north TikTok</option>
         </select>
         <div id="fDoctorPreview" style="margin-top:6px;min-height:20px"></div></div>
       <div class="form-row"><label>คอลแลปไปที่</label>
@@ -527,6 +531,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="implant">implant review</option>
           <option value="dr-north">dr.north.judfun</option>
           <option value="dr-daran">dr.daran.dc</option>
+          <option value="north-tiktok">🎵 dr.north TikTok</option>
         </select>
         <div id="fCollabPreview" style="margin-top:6px;min-height:20px"></div></div>
       <div class="form-row"><label>Status</label>
@@ -601,7 +606,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbyU4zI8mpgmwNF86OioGdbor3Ablmn8h3zTh3NHrL2NYx7B6NpkKY0y1UZMnOnykYOd6Q/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwOXt2354mQ82hBii6EVbrueEFSxoGuMRxK2KuqMspjgy1vQZUMIdxi3VdNyWp7flqw4Q/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -762,6 +767,7 @@ const CHANNEL_THEMES={
   'implant':{bg:'#F2F3F4',bgLight:'#E5E7E9',primary:'#5D6D7E',primaryDark:'#2C3E50',primaryLight:'#E5E7E9',accent:'#5D6D7E',headerGrad:'135deg, #2C3E50 0%, #5D6D7E 100%'},
   'dr-north':{bg:'#FEF5EC',bgLight:'#FDEBD0',primary:'#E67E22',primaryDark:'#A04000',primaryLight:'#FDEBD0',accent:'#E67E22',headerGrad:'135deg, #A04000 0%, #E67E22 100%'},
   'dr-daran':{bg:'#EAFAF1',bgLight:'#D5F5E3',primary:'#27AE60',primaryDark:'#1A6B3A',primaryLight:'#D5F5E3',accent:'#27AE60',headerGrad:'135deg, #1A6B3A 0%, #27AE60 100%'},
+  'north-tiktok':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#EE1D52',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
 };
 const CHANNEL_LOGOS={
   'dc-dental':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/logo_all_lowwbp.jpg',
@@ -770,6 +776,7 @@ const CHANNEL_LOGOS={
   'implant':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/612995449_17844614772670316_7195624432906695769_n_ednung.jpg',
   'dr-north':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg',
   'dr-daran':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/574179784_17845527528599344_23126879378071020_n_xphheg.jpg',
+  'north-tiktok':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg',
 };
 const CHANNEL_META={
   'dc-dental':{label:'DC Dental Clinic',emoji:'🦷',sheetName:'DC Dental Content Calendar',color:'#1A6FB5'},
@@ -778,6 +785,7 @@ const CHANNEL_META={
   'implant':{label:'implant review',emoji:'🔩',sheetName:'implant review Calendar',color:'#3D3D3D'},
   'dr-north':{label:'dr.north.judfun',emoji:'👨‍⚕️',sheetName:'dr.north Calendar',color:'#E67E22'},
   'dr-daran':{label:'dr.daran.dc',emoji:'👩‍⚕️',sheetName:'dr.daran Calendar',color:'#27AE60'},
+  'north-tiktok':{label:'dr.north TikTok',emoji:'🎵',sheetName:'north tiktok Calendar',color:'#010101',noGrid:true},
 };
 const GRID_CHANNEL_META={
   'dc-dental':{label:'DC Dental Clinic',username:'@dc_dentalclinic'},
@@ -786,6 +794,7 @@ const GRID_CHANNEL_META={
   'implant':{label:'implant review',username:'@implant_review'},
   'dr-north':{label:'dr.north.judfun',username:'@dr.north.judfun'},
   'dr-daran':{label:'dr.daran.dc',username:'@dr.daran.dc'},
+  'north-tiktok':{label:'dr.north TikTok',username:'@drnorth.tiktok'},
 };
 const CH_META={
   'dc-dental':{label:'DC Dental Clinic',bg:'#FFFFFF',fg:'#1A6FB5',border:'#1A6FB5'},
@@ -794,6 +803,7 @@ const CH_META={
   'implant':{label:'implant review',bg:'#3D3D3D',fg:'#FFFFFF',border:'#3D3D3D'},
   'dr-north':{label:'dr.north.judfun',bg:'#E67E22',fg:'#FFFFFF',border:'#E67E22'},
   'dr-daran':{label:'dr.daran.dc',bg:'#27AE60',fg:'#FFFFFF',border:'#27AE60'},
+  'north-tiktok':{label:'dr.north TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
 };
 
 // =====================================================
@@ -949,6 +959,15 @@ function applyChannelTheme(ch){
   });
   const igLogo=document.getElementById('igProfileLogo');
   if(igLogo&&CHANNEL_LOGOS[ch]) igLogo.src=CHANNEL_LOGOS[ch];
+  // ซ่อนปุ่ม IG Grid สำหรับช่องที่ noGrid:true
+  const noGrid=CHANNEL_META[ch]?.noGrid===true;
+  const tabGridBtn=document.getElementById('tabGridBtn');
+  if(tabGridBtn) tabGridBtn.style.display=noGrid?'none':'';
+  // ถ้าตอนนี้กำลังดู grid อยู่แล้วสลับมาช่อง noGrid → บังคับกลับ calendar
+  if(noGrid){
+    const igSection=document.getElementById('igGridSection');
+    if(igSection&&igSection.style.display!=='none') switchTab('calendar');
+  }
 }
 
 function showChannelLoading(ch){
@@ -1623,7 +1642,7 @@ function openView(id){
     <span class="vbadge" style="background:${{draft:'#ECF0F1',ready:'#FEF9E7',posted:'#D5F5E3'}[p.status]};color:${SCOLOR[p.status]}">${STEXT[p.status]}</span>`;
   // แสดง Strategy / Funnel / Mood
   const SFM_STRATEGY={'viral':'🔥 Viral','interactive':'💬 Interactive','emotional':'❤️ Emotional','educational':'📖 Educational','datadriven':'📊 Data Driven','exclusive':'🔒 Exclusive Inside','shock':'😱 Shock Value','socialproof':'⭐ Social Proof','stepbystep':'📋 Step-by-step','controversial':'🔥 Controversial','vs':'⚔️ VS','newtech':'🚀 New Technology','inspiration':'💡 Inspiration'};
-  const SFM_FUNNEL={'tofu':['🔝 TOFU','#E8F4FD','#1A6FB5'],'mofu':['🎯 MOFU','#FEF9E7','#F0A500'],'bofu':['💰 BOFU','#D5F5E3','#27AE60']};
+  const SFM_FUNNEL={'tofu':['🔝 TOF','#E8F4FD','#1A6FB5'],'mofu':['🎯 MOF','#FEF9E7','#F0A500'],'bofu':['💰 BOF','#D5F5E3','#27AE60'],'retarget':['🔁 Retarget','#F3E5F5','#8E44AD']};
   const SFM_MOOD={'trust':['🤝 Trust','#E8F4FD','#1A6FB5'],'warm':['🤗 Warm','#FEF0D9','#E67E22'],'inspire':['✨ Inspire','#F3E5F5','#8E44AD'],'fun':['😄 Fun','#FEF9E7','#F0A500'],'urgent':['⚡ Urgent','#FDECEA','#E74C3C'],'educate':['📚 Educate','#E8F8F0','#27AE60'],'empathy':['💙 Empathy','#FDE7F3','#C13584']};
   const sfmWrap=document.getElementById('vSFMWrap');
   const sfmBox=document.getElementById('vSFMBox');
@@ -2508,7 +2527,7 @@ async function confirmSandbox(){
 function buildSummaryTable(posts){
   if(!posts||posts.length===0) return '';
   const STYLE_META={review:{letter:'R',label:'รีวิว',color:'#A78BCA'},educated:{letter:'E',label:'ให้ความรู้',color:'#F4A57B'},branding:{letter:'B',label:'ตัวตนของแบรนด์',color:'#A0A0A0'},sale:{letter:'S',label:'ขาย',color:'#7EC8E3'},event:{letter:'V',label:'กิจกรรม',color:'#88D498'},ads:{letter:'A',label:'โฆษณา',color:'#F4B8D1'},lifestyle:{letter:'L',label:'ชีวิตประจำวัน',color:'#1A6FB5'}};
-  const FUNNEL_SUM={'tofu':['TOFU','#DBEAFE','#1A6FB5'],'mofu':['MOFU','#FEF9C3','#B45309'],'bofu':['BOFU','#DCFCE7','#16A34A']};
+  const FUNNEL_SUM={'tofu':['TOF','#DBEAFE','#1A6FB5'],'mofu':['MOF','#FEF9C3','#B45309'],'bofu':['BOF','#DCFCE7','#16A34A'],'retarget':['Retarget','#EDE9FE','#7C3AED']};
   const MOOD_SUM={'trust':['Trust','#DBEAFE','#1A6FB5'],'warm':['Warm','#FED7AA','#C2410C'],'inspire':['Inspire','#EDE9FE','#7C3AED'],'fun':['Fun','#FEF9C3','#B45309'],'urgent':['Urgent','#FEE2E2','#DC2626'],'educate':['Educate','#DCFCE7','#16A34A'],'empathy':['Empathy','#FCE7F3','#BE185D']};
   const STRATEGY_SUM={'viral':'Viral','interactive':'Interactive','emotional':'Emotional','educational':'Educational','datadriven':'Data Driven','exclusive':'Exclusive','shock':'Shock','socialproof':'Social Proof','stepbystep':'Step-by-step','controversial':'Controversial','vs':'VS','newtech':'New Tech','inspiration':'Inspiration'};
   const sorted=[...posts].sort((a,b)=>a.date.localeCompare(b.date));
@@ -2605,7 +2624,7 @@ function printCalendar(){
   if(mp.length===0){section.innerHTML='';window.print();return;}
   const STYLE_META={review:{letter:'R',label:'รีวิว',color:'#A78BCA'},educated:{letter:'E',label:'ให้ความรู้',color:'#F4A57B'},branding:{letter:'B',label:'ตัวตนของแบรนด์',color:'#A0A0A0'},sale:{letter:'S',label:'ขาย',color:'#7EC8E3'},event:{letter:'V',label:'กิจกรรม',color:'#88D498'},ads:{letter:'A',label:'โฆษณา',color:'#F4B8D1'},lifestyle:{letter:'L',label:'ชีวิตประจำวัน',color:'#1A6FB5'}};
   const SFM_STRATEGY_P={'viral':'🔥 Viral Content','interactive':'💬 Interactive','emotional':'❤️ Emotional','educational':'📖 Educational','datadriven':'📊 Data Driven','exclusive':'🔒 Exclusive Inside','shock':'😱 Shock Value','socialproof':'⭐ Social Proof','stepbystep':'📋 Step-by-step','controversial':'🔥 Controversial','vs':'⚔️ VS Content','newtech':'🚀 New Technology','inspiration':'💡 Inspiration'};
-  const SFM_FUNNEL_P={'tofu':['🔝 TOFU — สร้างการรับรู้','#E8F4FD','#1A6FB5'],'mofu':['🎯 MOFU — สร้างความสนใจ','#FEF9E7','#F0A500'],'bofu':['💰 BOFU — กระตุ้นตัดสินใจ','#D5F5E3','#27AE60']};
+  const SFM_FUNNEL_P={'tofu':['🔝 TOF — สร้างการรับรู้','#E8F4FD','#1A6FB5'],'mofu':['🎯 MOF — สร้างความสนใจ','#FEF9E7','#F0A500'],'bofu':['💰 BOF — กระตุ้นตัดสินใจ','#D5F5E3','#27AE60'],'retarget':['🔁 Retarget — ดึงกลับ','#F3E5F5','#8E44AD']};
   const SFM_MOOD_P={'trust':['🤝 Trust — น่าเชื่อถือ','#E8F4FD','#1A6FB5'],'warm':['🤗 Warm — อบอุ่น','#FEF0D9','#E67E22'],'inspire':['✨ Inspire — สร้างแรงบันดาลใจ','#F3E5F5','#8E44AD'],'fun':['😄 Fun — สนุก','#FEF9E7','#F0A500'],'urgent':['⚡ Urgent — กระตุ้น','#FDECEA','#E74C3C'],'educate':['📚 Educate — ให้ความรู้','#E8F8F0','#27AE60'],'empathy':['💙 Empathy — เข้าใจ','#FDE7F3','#C13584']};
   const TYPE_LABEL={video:'คลิปวิดีโอ',photo:'รูปภาพ',reel:'Reels',story:'Story',carousel:'Carousel'};
   let out='';

@@ -281,6 +281,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <span class="month-label" id="monthLabel" onclick="openMonthPicker()"></span>
         <button onclick="changeMonth(1)">›</button>
       </div>
+      <button class="btn-export" onclick="openOverview()">📊 ภาพรวม</button>
       <button class="btn-export" onclick="printCalendar()">🖨️ พิมพ์/Share</button>
       <button class="btn-add" onclick="openAdd()">＋ เพิ่มโพสต์</button>
     </div>
@@ -2605,6 +2606,321 @@ function printIGGrid(){
     });
     setTimeout(doPrint,8000);
   };
+}
+
+// =====================================================
+// OVERVIEW — ภาพรวมทุกช่อง
+// =====================================================
+async function openOverview(){
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>📊 Content Overview — DC Dental</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Sarabun',sans-serif;background:#F4F7FB;color:#1A1A2E;min-height:100vh;}
+    .ov-header{background:linear-gradient(135deg,#0D3F6E 0%,#1A6FB5 100%);color:white;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;}
+    .ov-title{font-family:'Prompt',sans-serif;font-size:20px;font-weight:700;}
+    .ov-subtitle{font-size:13px;opacity:0.75;margin-top:2px;}
+    .ov-filters{background:white;padding:12px 28px;border-bottom:1px solid #E0EAF4;display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:61px;z-index:99;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+    .ov-filter-label{font-size:11px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:.5px;}
+    select.ov-sel{border:1.5px solid #D0DCE8;border-radius:20px;padding:4px 10px;font-family:'Sarabun',sans-serif;font-size:12px;color:#333;cursor:pointer;outline:none;background:white;}
+    select.ov-sel:focus{border-color:#1A6FB5;}
+    .ov-stats{background:white;padding:10px 28px;border-bottom:1px solid #E0EAF4;display:flex;gap:20px;flex-wrap:wrap;align-items:center;}
+    .ov-stat{display:flex;align-items:center;gap:6px;font-size:13px;}
+    .ov-stat-dot{width:8px;height:8px;border-radius:50%;}
+    .ov-stat-num{font-weight:700;}
+    .ov-body{padding:20px 28px 60px;}
+    .ov-month-section{margin-bottom:28px;}
+    .ov-month-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #E4EDF5;cursor:pointer;user-select:none;}
+    .ov-month-title{font-family:'Prompt',sans-serif;font-size:17px;font-weight:700;color:#0D3F6E;}
+    .ov-month-meta{font-size:12px;color:#7F8C8D;}
+    .ov-month-toggle{margin-left:auto;font-size:12px;color:#1A6FB5;font-weight:700;}
+    .ov-ch-group{margin-bottom:6px;}
+    .ov-ch-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 0 4px 6px;color:#555;border-left:3px solid #ccc;}
+    .ov-posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-top:6px;}
+    .ov-card{background:white;border-radius:10px;border:1.5px solid #E4EDF5;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
+    .ov-card:hover{box-shadow:0 4px 16px rgba(26,111,181,.12);border-color:#1A6FB5;}
+    .ov-card-thumb{width:44px;height:44px;border-radius:7px;flex-shrink:0;object-fit:cover;background:#E8F4FD;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;}
+    .ov-card-thumb img{width:100%;height:100%;object-fit:cover;}
+    .ov-card-body{flex:1;min-width:0;}
+    .ov-card-title{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
+    .ov-card-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+    .ov-tag{font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;}
+    .ov-date{font-size:10px;color:#7F8C8D;margin-top:3px;}
+    .ov-empty{text-align:center;padding:40px;color:#aaa;font-size:14px;}
+    .ov-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;}
+    .ov-loading-dots{display:flex;gap:8px;}
+    .ov-loading-dot{width:10px;height:10px;border-radius:50%;background:#1A6FB5;animation:ldB 1.2s infinite ease-in-out;}
+    @keyframes ldB{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1.1);opacity:1}}
+    .ch-badge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:9px;font-weight:700;}
+    .progress-bar{height:5px;border-radius:3px;background:#E4EDF5;margin-top:6px;overflow:hidden;}
+    .progress-fill{height:100%;border-radius:3px;transition:width .3s;}
+    @media(max-width:640px){
+      .ov-header{padding:12px 16px;}
+      .ov-filters{padding:10px 14px;top:57px;}
+      .ov-stats{padding:8px 14px;}
+      .ov-body{padding:14px 14px 60px;}
+      .ov-posts-grid{grid-template-columns:1fr;}
+    }
+  </style>
+  </head><body>
+  <div class="ov-header">
+    <div><div class="ov-title">📊 ภาพรวมคอนเทนต์ทั้งหมด</div><div class="ov-subtitle" id="ovSubtitle">กำลังโหลดข้อมูล...</div></div>
+    <div style="font-size:12px;opacity:.7;">DC Dental Clinic — Chanthaburi</div>
+  </div>
+  <div class="ov-filters">
+    <span class="ov-filter-label">กรอง:</span>
+    <select class="ov-sel" id="fCh" onchange="applyOvFilter()">
+      <option value="">ทุกช่อง</option>
+      <option value="dc-dental">DC Dental</option>
+      <option value="dc-aligner">DC Aligner</option>
+      <option value="junfun">judfunreview</option>
+      <option value="implant">implant review</option>
+      <option value="dr-north">dr.north</option>
+      <option value="dr-daran">dr.daran</option>
+      <option value="north-tiktok">🎵 TikTok</option>
+    </select>
+    <select class="ov-sel" id="fStatus" onchange="applyOvFilter()">
+      <option value="">ทุก Status</option>
+      <option value="draft">📝 Draft</option>
+      <option value="ready">✅ Ready</option>
+      <option value="posted">🟢 Posted</option>
+    </select>
+    <select class="ov-sel" id="fFunnel" onchange="applyOvFilter()">
+      <option value="">ทุก Funnel</option>
+      <option value="tofu">🔝 TOF</option>
+      <option value="mofu">🎯 MOF</option>
+      <option value="bofu">💰 BOF</option>
+      <option value="retarget">🔁 Retarget</option>
+    </select>
+    <select class="ov-sel" id="fStyle" onchange="applyOvFilter()">
+      <option value="">ทุก Style</option>
+      <option value="review">R รีวิว</option>
+      <option value="educated">E ให้ความรู้</option>
+      <option value="branding">B แบรนด์</option>
+      <option value="sale">S ขาย</option>
+      <option value="event">V กิจกรรม</option>
+      <option value="ads">A โฆษณา</option>
+      <option value="lifestyle">L ชีวิต</option>
+    </select>
+    <select class="ov-sel" id="fStrategy" onchange="applyOvFilter()">
+      <option value="">ทุก Strategy</option>
+      <option value="viral">🔥 Viral</option>
+      <option value="interactive">💬 Interactive</option>
+      <option value="emotional">❤️ Emotional</option>
+      <option value="educational">📖 Educational</option>
+      <option value="datadriven">📊 Data Driven</option>
+      <option value="exclusive">🔒 Exclusive</option>
+      <option value="shock">😱 Shock</option>
+      <option value="socialproof">⭐ Social Proof</option>
+      <option value="stepbystep">📋 Step-by-step</option>
+      <option value="controversial">🔥 Controversial</option>
+      <option value="vs">⚔️ VS</option>
+      <option value="newtech">🚀 New Tech</option>
+      <option value="inspiration">💡 Inspiration</option>
+    </select>
+    <select class="ov-sel" id="fMonth" onchange="applyOvFilter()">
+      <option value="">ทุกเดือน</option>
+    </select>
+    <button onclick="clearOvFilters()" style="background:none;border:1.5px solid #E74C3C;color:#E74C3C;border-radius:20px;padding:4px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;font-weight:700;">✕ ล้าง</button>
+  </div>
+  <div class="ov-stats" id="ovStats" style="display:none;">
+    <div class="ov-stat"><div class="ov-stat-dot" style="background:#7F8C8D"></div><span>Draft</span><span class="ov-stat-num" id="ovDraft">0</span></div>
+    <div class="ov-stat"><div class="ov-stat-dot" style="background:#F0A500"></div><span>Ready</span><span class="ov-stat-num" id="ovReady">0</span></div>
+    <div class="ov-stat"><div class="ov-stat-dot" style="background:#27AE60"></div><span>Posted</span><span class="ov-stat-num" id="ovPosted">0</span></div>
+    <div class="ov-stat" style="border-left:1px solid #E0EAF4;padding-left:16px;"><span>รวมทั้งหมด</span><span class="ov-stat-num" id="ovTotal">0</span><span>โพสต์</span></div>
+  </div>
+  <div class="ov-body" id="ovBody">
+    <div class="ov-loading">
+      <div class="ov-loading-dots">
+        <div class="ov-loading-dot" style="animation-delay:0s"></div>
+        <div class="ov-loading-dot" style="animation-delay:.2s"></div>
+        <div class="ov-loading-dot" style="animation-delay:.4s"></div>
+      </div>
+      <div style="font-size:14px;color:#7F8C8D;">กำลังโหลดข้อมูลทุกช่อง...</div>
+    </div>
+  </div>
+  <script>
+  const SHEET_URL='${SHEET_URL}';
+  const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const CH_INFO={
+    'dc-dental':{label:'DC Dental',color:'#1A6FB5',bg:'#E8F4FD',fg:'#1A6FB5'},
+    'dc-aligner':{label:'DC Aligner',color:'#1A6FB5',bg:'#1A6FB5',fg:'white'},
+    'junfun':{label:'judfunreview',color:'#B8876A',bg:'#B8876A',fg:'white'},
+    'implant':{label:'implant review',color:'#3D3D3D',bg:'#3D3D3D',fg:'white'},
+    'dr-north':{label:'dr.north',color:'#E67E22',bg:'#E67E22',fg:'white'},
+    'dr-daran':{label:'dr.daran',color:'#27AE60',bg:'#27AE60',fg:'white'},
+    'north-tiktok':{label:'🎵 TikTok',color:'#010101',bg:'#010101',fg:'white'},
+  };
+  const CHANNEL_SHEETS={
+    'dc-dental':'DC Dental Content Calendar',
+    'dc-aligner':'DC Aligner Content Calendar',
+    'junfun':'judfunreview Content Calendar',
+    'implant':'implant review Calendar',
+    'dr-north':'dr.north Calendar',
+    'dr-daran':'dr.daran Calendar',
+    'north-tiktok':'dr.north.judfun tiktok Calendar',
+  };
+  const FUNNEL_LABEL={'tofu':'🔝 TOF','mofu':'🎯 MOF','bofu':'💰 BOF','retarget':'🔁 Retarget'};
+  const FUNNEL_COLOR={'tofu':'#E8F4FD','mofu':'#FEF9E7','bofu':'#D5F5E3','retarget':'#F3E5F5'};
+  const FUNNEL_FG={'tofu':'#1A6FB5','mofu':'#F0A500','bofu':'#27AE60','retarget':'#8E44AD'};
+  const STYLE_LABEL={'review':'R รีวิว','educated':'E ให้ความรู้','branding':'B แบรนด์','sale':'S ขาย','event':'V กิจกรรม','ads':'A โฆษณา','lifestyle':'L ชีวิต'};
+  const STYLE_COLOR={'review':'#F3E5F5','educated':'#FEF0D9','branding':'#F2F3F4','sale':'#E8F4FD','event':'#E8F8F0','ads':'#FDECEA','lifestyle':'#EAF4FB'};
+  const STYLE_FG={'review':'#8E44AD','educated':'#E67E22','branding':'#555','sale':'#1A6FB5','event':'#27AE60','ads':'#E74C3C','lifestyle':'#2E86C1'};
+  const STATUS_COLOR={'draft':'#ECF0F1','ready':'#FEF9E7','posted':'#D5F5E3'};
+  const STATUS_FG={'draft':'#7F8C8D','ready':'#F0A500','posted':'#27AE60'};
+  const STATUS_LABEL={'draft':'📝 Draft','ready':'✅ Ready','posted':'🟢 Posted'};
+  const TYPE_EMOJI={'video':'🎬','photo':'📷','reel':'⚡','story':'📱','carousel':'🎠'};
+
+  let allPosts=[];
+  let filteredPosts=[];
+
+  async function fetchChannel(ch){
+    try{
+      const sheetName=CHANNEL_SHEETS[ch];
+      const res=await fetch(SHEET_URL+'?t='+Date.now()+'&sheet='+encodeURIComponent(sheetName),{method:'GET',redirect:'follow'});
+      const data=JSON.parse(await res.text());
+      return (Array.isArray(data)?data:[]).map(r=>({...r,_channel:ch})).filter(r=>r.id&&r.title);
+    }catch(e){return [];}
+  }
+
+  async function loadAll(){
+    const channels=Object.keys(CHANNEL_SHEETS);
+    const results=await Promise.all(channels.map(ch=>fetchChannel(ch)));
+    allPosts=results.flat();
+    // สร้างตัวเลือกเดือน
+    const monthSet=new Set();
+    allPosts.forEach(p=>{if(p.date) monthSet.add(p.date.slice(0,7));});
+    const monthSel=document.getElementById('fMonth');
+    [...monthSet].sort((a,b)=>b.localeCompare(a)).forEach(key=>{
+      const [y,m]=key.split('-');
+      const opt=document.createElement('option');
+      opt.value=key;
+      opt.textContent=MONTHS[parseInt(m)-1]+' '+(parseInt(y)+543);
+      monthSel.appendChild(opt);
+    });
+    document.getElementById('ovSubtitle').textContent='ทั้งหมด '+allPosts.length+' โพสต์ จาก 7 ช่อง';
+    document.getElementById('ovStats').style.display='flex';
+    applyOvFilter();
+  }
+
+  function applyOvFilter(){
+    const fCh=document.getElementById('fCh').value;
+    const fStatus=document.getElementById('fStatus').value;
+    const fFunnel=document.getElementById('fFunnel').value;
+    const fStyle=document.getElementById('fStyle').value;
+    const fStrategy=document.getElementById('fStrategy').value;
+    const fMonth=document.getElementById('fMonth').value;
+    filteredPosts=allPosts.filter(p=>{
+      if(fCh&&p._channel!==fCh) return false;
+      if(fStatus&&p.status!==fStatus) return false;
+      if(fFunnel&&p.funnel!==fFunnel) return false;
+      if(fStyle&&p.contentStyle!==fStyle) return false;
+      if(fStrategy&&p.strategy!==fStrategy) return false;
+      if(fMonth&&(!p.date||!p.date.startsWith(fMonth))) return false;
+      return true;
+    });
+    updateStats();
+    renderOverview();
+  }
+
+  function clearOvFilters(){
+    ['fCh','fStatus','fFunnel','fStyle','fStrategy','fMonth'].forEach(id=>{document.getElementById(id).value='';});
+    applyOvFilter();
+  }
+
+  function updateStats(){
+    document.getElementById('ovDraft').textContent=filteredPosts.filter(p=>p.status==='draft').length;
+    document.getElementById('ovReady').textContent=filteredPosts.filter(p=>p.status==='ready').length;
+    document.getElementById('ovPosted').textContent=filteredPosts.filter(p=>p.status==='posted').length;
+    document.getElementById('ovTotal').textContent=filteredPosts.length;
+  }
+
+  function renderOverview(){
+    const body=document.getElementById('ovBody');
+    if(filteredPosts.length===0){body.innerHTML='<div class="ov-empty">🔍 ไม่พบโพสต์ที่ตรงเงื่อนไข</div>';return;}
+    // จัดกลุ่มตามเดือน
+    const groups={};
+    filteredPosts.forEach(p=>{
+      const key=p.date?p.date.slice(0,7):'no-date';
+      if(!groups[key]) groups[key]=[];
+      groups[key].push(p);
+    });
+    const sortedKeys=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+    body.innerHTML='';
+    sortedKeys.forEach((key,gi)=>{
+      const posts=groups[key].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+      const [y,m]=key!=='no-date'?key.split('-'):['',''];
+      const monthLabel=key!=='no-date'?MONTHS[parseInt(m)-1]+' '+(parseInt(y)+543):'ยังไม่ระบุวัน';
+      const nPosted=posts.filter(p=>p.status==='posted').length;
+      const pct=posts.length>0?Math.round(nPosted/posts.length*100):0;
+      // จัดกลุ่มย่อยตามช่อง
+      const byCh={};
+      posts.forEach(p=>{if(!byCh[p._channel]) byCh[p._channel]=[];byCh[p._channel].push(p);});
+
+      const sec=document.createElement('div');
+      sec.className='ov-month-section';
+      sec.innerHTML=\`
+        <div class="ov-month-header" onclick="toggleOvSection(this)">
+          <div>
+            <div class="ov-month-title">\${monthLabel}</div>
+            <div class="ov-month-meta">\${posts.length} โพสต์ &nbsp;·&nbsp; Posted \${nPosted}/\${posts.length} (\${pct}%)</div>
+            <div class="progress-bar" style="width:180px;margin-top:4px;"><div class="progress-fill" style="width:\${pct}%;background:#27AE60;"></div></div>
+          </div>
+          <div class="ov-month-toggle">▲ ซ่อน</div>
+        </div>
+        <div class="ov-month-content">\`;
+
+      Object.entries(byCh).forEach(([ch,chPosts])=>{
+        const info=CH_INFO[ch]||{label:ch,bg:'#888',fg:'white'};
+        const chDiv=document.createElement('div');
+        chDiv.className='ov-ch-group';
+        chDiv.style.borderLeftColor=info.color;
+        chDiv.innerHTML=\`<div class="ov-ch-label" style="border-left-color:\${info.color};color:\${info.color};"><span style="background:\${info.bg};color:\${info.fg};border-radius:5px;padding:1px 7px;font-size:9px;">\${info.label}</span><span style="color:#aaa;">\${chPosts.length} โพสต์</span></div>\`;
+        const grid=document.createElement('div');
+        grid.className='ov-posts-grid';
+        chPosts.forEach(p=>{
+          const d=p.date?new Date(p.date+'T00:00:00'):null;
+          const dateStr=d?\`\${String(d.getDate()).padStart(2,'0')}/\${String(d.getMonth()+1).padStart(2,'0')}/\${d.getFullYear()}\':\'-';
+          const thumb=p.thumbData
+            ?\`<img src="\${p.thumbData}" style="width:100%;height:100%;object-fit:cover;">\`
+            :\`<span>\${TYPE_EMOJI[p.type]||'📄'}</span>\`;
+          const card=document.createElement('div');
+          card.className='ov-card';
+          card.innerHTML=\`
+            <div class="ov-card-thumb">\${thumb}</div>
+            <div class="ov-card-body">
+              <div class="ov-card-title" title="\${p.title||''}">\${p.title||'—'}</div>
+              <div class="ov-card-meta">
+                \${p.status?\`<span class="ov-tag" style="background:\${STATUS_COLOR[p.status]||'#eee'};color:\${STATUS_FG[p.status]||'#333'}">\${STATUS_LABEL[p.status]||p.status}</span>\`:''}
+                \${p.funnel&&FUNNEL_LABEL[p.funnel]?\`<span class="ov-tag" style="background:\${FUNNEL_COLOR[p.funnel]};color:\${FUNNEL_FG[p.funnel]}">\${FUNNEL_LABEL[p.funnel]}</span>\`:''}
+                \${p.contentStyle&&STYLE_LABEL[p.contentStyle]?\`<span class="ov-tag" style="background:\${STYLE_COLOR[p.contentStyle]};color:\${STYLE_FG[p.contentStyle]}">\${STYLE_LABEL[p.contentStyle]}</span>\`:''}
+              </div>
+              <div class="ov-date">\${dateStr}</div>
+            </div>\`;
+          grid.appendChild(card);
+        });
+        chDiv.appendChild(grid);
+        sec.querySelector('.ov-month-content').appendChild(chDiv);
+      });
+      sec.querySelector('.ov-month-content').insertAdjacentHTML('beforeend','</div>');
+      body.appendChild(sec);
+    });
+  }
+
+  function toggleOvSection(header){
+    const content=header.nextElementSibling;
+    const toggle=header.querySelector('.ov-month-toggle');
+    const isOpen=content.style.display!=='none';
+    content.style.display=isOpen?'none':'block';
+    toggle.textContent=isOpen?'▼ แสดง':'▲ ซ่อน';
+  }
+
+  loadAll();
+  </script>
+  </body></html>`);
+  win.document.close();
 }
 
 function printCalendar(){

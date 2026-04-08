@@ -281,6 +281,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <span class="month-label" id="monthLabel" onclick="openMonthPicker()"></span>
         <button onclick="changeMonth(1)">›</button>
       </div>
+      <button class="btn-export" onclick="openOverview()">📊 ภาพรวม</button>
       <button class="btn-export" onclick="printCalendar()">🖨️ พิมพ์/Share</button>
       <button class="btn-add" onclick="openAdd()">＋ เพิ่มโพสต์</button>
     </div>
@@ -2605,6 +2606,177 @@ function printIGGrid(){
     });
     setTimeout(doPrint,8000);
   };
+}
+
+// =====================================================
+// OVERVIEW — ภาพรวมทุกช่อง
+// =====================================================
+function openOverview(){
+  const chMeta=CHANNEL_META[activeChannel]||{label:activeChannel,emoji:'📱'};
+  const chTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
+  const chLogo=CHANNEL_LOGOS[activeChannel]||'';
+
+  // ใช้ posts[] ที่โหลดไว้แล้ว — ไม่ต้อง fetch ใหม่
+  const allPosts=[...posts].filter(p=>p.date).sort((a,b)=>b.date.localeCompare(a.date));
+
+  const FL={'tofu':['🔝 TOF','#E8F4FD','#1A6FB5'],'mofu':['🎯 MOF','#FEF9E7','#F0A500'],'bofu':['💰 BOF','#D5F5E3','#27AE60'],'retarget':['🔁 Retarget','#F3E5F5','#8E44AD']};
+  const SYL={'review':['R รีวิว','#F3E5F5','#8E44AD'],'educated':['E ให้ความรู้','#FEF0D9','#E67E22'],'branding':['B แบรนด์','#F2F3F4','#555'],'sale':['S ขาย','#E8F4FD','#1A6FB5'],'event':['V กิจกรรม','#E8F8F0','#27AE60'],'ads':['A โฆษณา','#FDECEA','#E74C3C'],'lifestyle':['L ชีวิต','#EAF4FB','#2E86C1']};
+  const STCOL={'draft':'#ECF0F1','ready':'#FEF9E7','posted':'#D5F5E3'};
+  const STFG={'draft':'#7F8C8D','ready':'#F0A500','posted':'#27AE60'};
+  const STLB={'draft':'📝 Draft','ready':'✅ Ready','posted':'🟢 Posted'};
+  const TE={'video':'🎬','photo':'📷','reel':'⚡','story':'📱','carousel':'🎠'};
+  const STRAT={'viral':'🔥 Viral','interactive':'💬 Interactive','emotional':'❤️ Emotional','educational':'📖 Educational','datadriven':'📊 Data Driven','exclusive':'🔒 Exclusive','shock':'😱 Shock','socialproof':'⭐ Social Proof','stepbystep':'📋 Step-by-step','controversial':'🔥 Controversial','vs':'⚔️ VS','newtech':'🚀 New Tech','inspiration':'💡 Inspiration'};
+
+  // จัดกลุ่มตามเดือน
+  const grp={};
+  allPosts.forEach(p=>{const k=p.date.slice(0,7);if(!grp[k])grp[k]=[];grp[k].push(p);});
+  const sortedKeys=Object.keys(grp).sort((a,b)=>b.localeCompare(a));
+
+  // สร้าง month options
+  const monthOpts=sortedKeys.map(k=>{
+    const [y,m]=k.split('-');
+    return '<option value="'+k+'">'+MONTHS[parseInt(m)-1]+' '+(parseInt(y)+543)+'</option>';
+  }).join('');
+
+  // สร้าง cards HTML
+  function buildCards(ps){
+    return ps.map(p=>{
+      const d=new Date(p.date+'T00:00:00');
+      const ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+      const th=p.thumbData?'<img src="'+p.thumbData+'" style="width:100%;height:100%;object-fit:cover;">':(TE[p.type]||'📄');
+      let tags='';
+      if(p.status&&STLB[p.status]) tags+='<span class="ov-tag" style="background:'+STCOL[p.status]+';color:'+STFG[p.status]+'">'+STLB[p.status]+'</span>';
+      if(p.funnel&&FL[p.funnel]) tags+='<span class="ov-tag" style="background:'+FL[p.funnel][1]+';color:'+FL[p.funnel][2]+'">'+FL[p.funnel][0]+'</span>';
+      if(p.contentStyle&&SYL[p.contentStyle]) tags+='<span class="ov-tag" style="background:'+SYL[p.contentStyle][1]+';color:'+SYL[p.contentStyle][2]+'">'+SYL[p.contentStyle][0]+'</span>';
+      if(p.strategy&&STRAT[p.strategy]) tags+='<span class="ov-tag" style="background:#F4F7FB;color:#444;border:1px solid #D0DCE8;">'+STRAT[p.strategy]+'</span>';
+      return '<div class="ov-card" data-status="'+p.status+'" data-funnel="'+(p.funnel||'')+'" data-style="'+(p.contentStyle||'')+'" data-strategy="'+(p.strategy||'')+'" data-month="'+p.date.slice(0,7)+'">'
+        +'<div class="ov-thumb">'+th+'</div>'
+        +'<div class="ov-card-body">'
+        +'<div class="ov-card-title" title="'+(p.title||'')+'">'+(p.title||'—')+'</div>'
+        +'<div class="ov-card-meta">'+tags+'</div>'
+        +'<div class="ov-date">'+ds+'</div>'
+        +'</div></div>';
+    }).join('');
+  }
+
+  // สร้าง month sections
+  let sectionsHtml='';
+  sortedKeys.forEach(k=>{
+    const ps=grp[k];
+    const [y,m]=k.split('-');
+    const ml=MONTHS[parseInt(m)-1]+' '+(parseInt(y)+543);
+    const np=ps.filter(p=>p.status==='posted').length;
+    const pct=ps.length?Math.round(np/ps.length*100):0;
+    sectionsHtml+='<div class="ov-month-section" data-month="'+k+'">'
+      +'<div class="ov-month-header" onclick="toggleSec(this)">'
+      +'<div><div class="ov-month-title">'+ml+'</div>'
+      +'<div class="ov-month-meta">'+ps.length+' โพสต์ &nbsp;·&nbsp; Posted '+np+'/'+ps.length+' ('+pct+'%)</div>'
+      +'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+chTheme.primary+';"></div></div></div>'
+      +'<div class="ov-month-toggle">▲ ซ่อน</div></div>'
+      +'<div class="ov-month-content"><div class="ov-posts-grid">'+buildCards(ps)+'</div></div>'
+      +'</div>';
+  });
+
+  const nDraft=allPosts.filter(p=>p.status==='draft').length;
+  const nReady=allPosts.filter(p=>p.status==='ready').length;
+  const nPosted=allPosts.filter(p=>p.status==='posted').length;
+
+  const html='<!DOCTYPE html><html lang="th"><head>'
+    +'<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    +'<title>'+chMeta.emoji+' '+chMeta.label+' — ภาพรวม</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:\'Sarabun\',sans-serif;background:#F4F7FB;color:#1A1A2E;min-height:100vh;}'
+    +'.ov-header{background:linear-gradient('+chTheme.headerGrad+');color:white;padding:16px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.2);}'
+    +'.ov-logo{width:42px;height:42px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,0.35);flex-shrink:0;background:white;}'
+    +'.ov-logo img{width:100%;height:100%;object-fit:cover;}'
+    +'.ov-title{font-family:\'Prompt\',sans-serif;font-size:18px;font-weight:700;}'
+    +'.ov-subtitle{font-size:12px;opacity:0.75;margin-top:2px;}'
+    +'.ov-filters{background:white;padding:10px 28px;border-bottom:1px solid #E0EAF4;display:flex;gap:8px;flex-wrap:wrap;align-items:center;position:sticky;top:68px;z-index:99;box-shadow:0 2px 8px rgba(0,0,0,0.06);}'
+    +'.ov-filter-label{font-size:11px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:.5px;}'
+    +'select.ov-sel{border:1.5px solid #D0DCE8;border-radius:20px;padding:4px 10px;font-family:\'Sarabun\',sans-serif;font-size:12px;color:#333;cursor:pointer;outline:none;background:white;}'
+    +'select.ov-sel:focus{border-color:'+chTheme.primary+';}'
+    +'.ov-stats{background:white;padding:8px 28px;border-bottom:1px solid #E0EAF4;display:flex;gap:20px;flex-wrap:wrap;align-items:center;}'
+    +'.ov-stat{display:flex;align-items:center;gap:6px;font-size:13px;}'
+    +'.ov-stat-dot{width:8px;height:8px;border-radius:50%;}'
+    +'.ov-stat-num{font-weight:700;margin:0 2px;}'
+    +'.ov-body{padding:20px 28px 60px;}'
+    +'.ov-month-section{margin-bottom:24px;}'
+    +'.ov-month-section.hidden{display:none;}'
+    +'.ov-month-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid '+chTheme.primaryLight+';cursor:pointer;user-select:none;}'
+    +'.ov-month-title{font-family:\'Prompt\',sans-serif;font-size:16px;font-weight:700;color:'+chTheme.primaryDark+';}'
+    +'.ov-month-meta{font-size:12px;color:#7F8C8D;margin-top:2px;}'
+    +'.ov-month-toggle{font-size:12px;color:'+chTheme.primary+';font-weight:700;flex-shrink:0;}'
+    +'.ov-posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;}'
+    +'.ov-card{background:white;border-radius:10px;border:1.5px solid #E4EDF5;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;transition:box-shadow .15s,border-color .15s;}'
+    +'.ov-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);border-color:'+chTheme.primary+';}'
+    +'.ov-card.filtered-out{display:none;}'
+    +'.ov-thumb{width:44px;height:44px;border-radius:7px;flex-shrink:0;background:'+chTheme.bgLight+';display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;}'
+    +'.ov-thumb img{width:100%;height:100%;object-fit:cover;}'
+    +'.ov-card-body{flex:1;min-width:0;}'
+    +'.ov-card-title{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}'
+    +'.ov-card-meta{display:flex;gap:4px;flex-wrap:wrap;}'
+    +'.ov-tag{font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;}'
+    +'.ov-date{font-size:10px;color:#7F8C8D;margin-top:3px;}'
+    +'.ov-empty{text-align:center;padding:40px;color:#aaa;font-size:14px;}'
+    +'.progress-bar{height:4px;border-radius:3px;background:'+chTheme.primaryLight+';margin-top:4px;width:160px;overflow:hidden;}'
+    +'.progress-fill{height:100%;border-radius:3px;}'
+    +'@media(max-width:640px){.ov-header,.ov-filters,.ov-stats,.ov-body{padding-left:14px;padding-right:14px;}.ov-filters{top:64px;}.ov-posts-grid{grid-template-columns:1fr;}}'
+    +'</style></head><body>'
+    +'<div class="ov-header">'
+    +'<div class="ov-logo">'+(chLogo?'<img src="'+chLogo+'">':(chMeta.emoji||'📱'))+'</div>'
+    +'<div><div class="ov-title">'+chMeta.emoji+' '+chMeta.label+'</div>'
+    +'<div class="ov-subtitle">ภาพรวมคอนเทนต์ทั้งหมด · '+allPosts.length+' โพสต์</div></div></div>'
+    +'<div class="ov-filters"><span class="ov-filter-label">กรอง:</span>'
+    +'<select class="ov-sel" id="fSt" onchange="applyF()"><option value="">ทุก Status</option><option value="draft">📝 Draft</option><option value="ready">✅ Ready</option><option value="posted">🟢 Posted</option></select>'
+    +'<select class="ov-sel" id="fFn" onchange="applyF()"><option value="">ทุก Funnel</option><option value="tofu">🔝 TOF</option><option value="mofu">🎯 MOF</option><option value="bofu">💰 BOF</option><option value="retarget">🔁 Retarget</option></select>'
+    +'<select class="ov-sel" id="fSy" onchange="applyF()"><option value="">ทุก Style</option><option value="review">R รีวิว</option><option value="educated">E ให้ความรู้</option><option value="branding">B แบรนด์</option><option value="sale">S ขาย</option><option value="event">V กิจกรรม</option><option value="ads">A โฆษณา</option><option value="lifestyle">L ชีวิต</option></select>'
+    +'<select class="ov-sel" id="fStr" onchange="applyF()"><option value="">ทุก Strategy</option><option value="viral">🔥 Viral</option><option value="interactive">💬 Interactive</option><option value="emotional">❤️ Emotional</option><option value="educational">📖 Educational</option><option value="datadriven">📊 Data Driven</option><option value="exclusive">🔒 Exclusive</option><option value="shock">😱 Shock</option><option value="socialproof">⭐ Social Proof</option><option value="stepbystep">📋 Step-by-step</option><option value="controversial">🔥 Controversial</option><option value="vs">⚔️ VS</option><option value="newtech">🚀 New Tech</option><option value="inspiration">💡 Inspiration</option></select>'
+    +'<select class="ov-sel" id="fMo" onchange="applyF()"><option value="">ทุกเดือน</option>'+monthOpts+'</select>'
+    +'<button onclick="clearF()" style="background:none;border:1.5px solid #E74C3C;color:#E74C3C;border-radius:20px;padding:4px 12px;font-size:11px;font-family:\'Sarabun\',sans-serif;cursor:pointer;font-weight:700;">✕ ล้าง</button>'
+    +'<span id="cntLabel" style="margin-left:auto;font-size:12px;color:#7F8C8D;font-weight:600;"></span></div>'
+    +'<div class="ov-stats">'
+    +'<div class="ov-stat"><div class="ov-stat-dot" style="background:#7F8C8D"></div><span>Draft</span><span class="ov-stat-num">'+nDraft+'</span></div>'
+    +'<div class="ov-stat"><div class="ov-stat-dot" style="background:#F0A500"></div><span>Ready</span><span class="ov-stat-num">'+nReady+'</span></div>'
+    +'<div class="ov-stat"><div class="ov-stat-dot" style="background:#27AE60"></div><span>Posted</span><span class="ov-stat-num">'+nPosted+'</span></div>'
+    +'<div class="ov-stat" style="border-left:1px solid #E0EAF4;padding-left:16px;"><span>รวมทั้งหมด</span><span class="ov-stat-num">'+allPosts.length+'</span><span>โพสต์</span></div></div>'
+    +'<div class="ov-body" id="ovBody">'+(sectionsHtml||'<div class="ov-empty">ยังไม่มีโพสต์ในช่องนี้</div>')+'</div>'
+    +'<script>'
+    +'function applyF(){'
+    +'const st=document.getElementById("fSt").value;'
+    +'const fn=document.getElementById("fFn").value;'
+    +'const sy=document.getElementById("fSy").value;'
+    +'const str=document.getElementById("fStr").value;'
+    +'const mo=document.getElementById("fMo").value;'
+    +'let visible=0;'
+    +'document.querySelectorAll(".ov-month-section").forEach(sec=>{'
+    +'const k=sec.dataset.month;'
+    +'if(mo&&k!==mo){sec.classList.add("hidden");return;}'
+    +'sec.classList.remove("hidden");'
+    +'let sv=0;'
+    +'sec.querySelectorAll(".ov-card").forEach(card=>{'
+    +'const ok=(!st||card.dataset.status===st)&&(!fn||card.dataset.funnel===fn)&&(!sy||card.dataset.style===sy)&&(!str||card.dataset.strategy===str);'
+    +'card.classList.toggle("filtered-out",!ok);'
+    +'if(ok)sv++;});'
+    +'sec.classList.toggle("hidden",sv===0);'
+    +'visible+=sv;});'
+    +'const lbl=document.getElementById("cntLabel");'
+    +'if(lbl)lbl.textContent=visible+" โพสต์";}'
+    +'function clearF(){["fSt","fFn","fSy","fStr","fMo"].forEach(id=>document.getElementById(id).value="");applyF();}'
+    +'function toggleSec(hdr){'
+    +'const cnt=hdr.nextElementSibling;'
+    +'const t=hdr.querySelector(".ov-month-toggle");'
+    +'const open=cnt.style.display!=="none";'
+    +'cnt.style.display=open?"none":"block";'
+    +'t.textContent=open?"▼ แสดง":"▲ ซ่อน";}'
+    +'applyF();'
+    +'<\/script></body></html>';
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(url),120000);
 }
 
 function printCalendar(){

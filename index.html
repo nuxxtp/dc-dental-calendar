@@ -130,22 +130,21 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   #channelTabBar .ch-tab{padding:8px 10px;font-size:11px;}
   header{padding:8px 12px;gap:6px;flex-wrap:wrap;flex-direction:column;align-items:stretch;}
   #headerChannelBadge{font-size:12px;}
-  /* แถว 1: logo+ชื่อ อยู่ซ้าย */
   .header-left-group{flex-shrink:0;align-self:flex-start;}
-  /* แถว 2: ทุกอย่างใน header-right จัดเป็น 2 แถวย่อย */
   .header-right{display:flex;flex-direction:column;gap:6px;width:100%;}
-  /* แถว 2a: tab switcher ชิดซ้าย */
   #tabSwitcher{align-self:flex-start;}
   #tabCalBtn{padding:6px 12px;font-size:11px;}
   #tabGridBtn{padding:6px 12px;font-size:11px;}
-  /* แถว 2b: calendarControls — month nav ชิดซ้าย ปุ่มชิดขวา */
+  /* แถว month nav + ปุ่มภาพรวม */
   #calendarControls{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap;width:100%;}
   .month-nav{flex-shrink:0;}
   .month-label{font-size:13px;font-weight:700;min-width:auto;padding:4px 8px;}
   .month-nav button{padding:4px 10px;font-size:15px;}
-  /* ปุ่มขวา */
-  .btn-add{padding:6px 12px;font-size:11px;white-space:nowrap;}
-  .btn-export{padding:6px 10px;font-size:11px;white-space:nowrap;}
+  /* ซ่อนปุ่มพิมพ์และเพิ่มโพสต์บน mobile */
+  #btnPrint{display:none !important;}
+  #btnAddPost{display:none !important;}
+  /* ปุ่มภาพรวมให้เห็นชัด */
+  #btnOverview{padding:6px 12px;font-size:11px;white-space:nowrap;flex-shrink:0;}
   #gridControls{width:100%;justify-content:flex-start;}
   .stats-bar{padding:8px 12px;gap:10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
   .stats-bar::-webkit-scrollbar{display:none;}
@@ -281,9 +280,9 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <span class="month-label" id="monthLabel" onclick="openMonthPicker()"></span>
         <button onclick="changeMonth(1)">›</button>
       </div>
-      <button class="btn-export" onclick="openOverview()">📊 ภาพรวม</button>
-      <button class="btn-export" onclick="printCalendar()">🖨️ พิมพ์/Share</button>
-      <button class="btn-add" onclick="openAdd()">＋ เพิ่มโพสต์</button>
+      <button id="btnOverview" class="btn-export" onclick="openOverview()">📊 ภาพรวม</button>
+      <button id="btnPrint" class="btn-export" onclick="printCalendar()">🖨️ พิมพ์/Share</button>
+      <button id="btnAddPost" class="btn-add" onclick="openAdd()">＋ เพิ่มโพสต์</button>
     </div>
     <div id="gridControls" style="display:none;align-items:center;gap:10px">
       <input type="hidden" id="gridChannelSelect" value="dc-dental">
@@ -607,7 +606,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbzcSbAhLZruQo-bNZonoMn8sPaAzSGu8THpLf0psPawtLuapvrQP05o1Es1bnil94eoMg/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwOXt2354mQ82hBii6EVbrueEFSxoGuMRxK2KuqMspjgy1vQZUMIdxi3VdNyWp7flqw4Q/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -2638,9 +2637,12 @@ function openOverview(){
     return '<option value="'+k+'">'+MONTHS[parseInt(m)-1]+' '+(parseInt(y)+543)+'</option>';
   }).join('');
 
+  // embed ข้อมูลโพสต์ทั้งหมดเพื่อใช้ใน popup
+  const postsJson=JSON.stringify(allPosts).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
+
   // สร้าง cards HTML
   function buildCards(ps){
-    return ps.map(p=>{
+    return ps.map((p,i)=>{
       const d=new Date(p.date+'T00:00:00');
       const ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
       const th=p.thumbData?'<img src="'+p.thumbData+'" style="width:100%;height:100%;object-fit:cover;">':(TE[p.type]||'📄');
@@ -2649,7 +2651,8 @@ function openOverview(){
       if(p.funnel&&FL[p.funnel]) tags+='<span class="ov-tag" style="background:'+FL[p.funnel][1]+';color:'+FL[p.funnel][2]+'">'+FL[p.funnel][0]+'</span>';
       if(p.contentStyle&&SYL[p.contentStyle]) tags+='<span class="ov-tag" style="background:'+SYL[p.contentStyle][1]+';color:'+SYL[p.contentStyle][2]+'">'+SYL[p.contentStyle][0]+'</span>';
       if(p.strategy&&STRAT[p.strategy]) tags+='<span class="ov-tag" style="background:#F4F7FB;color:#444;border:1px solid #D0DCE8;">'+STRAT[p.strategy]+'</span>';
-      return '<div class="ov-card" data-status="'+p.status+'" data-funnel="'+(p.funnel||'')+'" data-style="'+(p.contentStyle||'')+'" data-strategy="'+(p.strategy||'')+'" data-month="'+p.date.slice(0,7)+'">'
+      const pid=p.id?p.id.replace(/['"]/g,''):'';
+      return '<div class="ov-card" data-id="'+pid+'" data-status="'+p.status+'" data-funnel="'+(p.funnel||'')+'" data-style="'+(p.contentStyle||'')+'" data-strategy="'+(p.strategy||'')+'" data-month="'+p.date.slice(0,7)+'" onclick="showDetail(this.dataset.id)">'
         +'<div class="ov-thumb">'+th+'</div>'
         +'<div class="ov-card-body">'
         +'<div class="ov-card-title" title="'+(p.title||'')+'">'+(p.title||'—')+'</div>'
@@ -2723,6 +2726,22 @@ function openOverview(){
     +'.progress-bar{height:4px;border-radius:3px;background:'+chTheme.primaryLight+';margin-top:4px;width:160px;overflow:hidden;}'
     +'.progress-fill{height:100%;border-radius:3px;}'
     +'@media(max-width:640px){.ov-header,.ov-filters,.ov-stats,.ov-body{padding-left:14px;padding-right:14px;}.ov-filters{top:64px;}.ov-posts-grid{grid-template-columns:1fr;}}'
+    +'.detail-overlay{display:none;position:fixed;inset:0;background:rgba(13,63,110,0.45);backdrop-filter:blur(4px);z-index:200;align-items:flex-end;justify-content:center;padding:0;}'
+    +'.detail-overlay.open{display:flex;}'
+    +'.detail-modal{background:white;border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:0;animation:slideUp 0.25s ease;}'
+    +'@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}'
+    +'.detail-handle{display:flex;justify-content:center;padding:10px 0 4px;}'
+    +'.detail-handle-bar{width:36px;height:4px;border-radius:4px;background:#D0DCE8;}'
+    +'.detail-header{padding:12px 20px;border-bottom:1px solid #EDF2F7;display:flex;align-items:center;justify-content:space-between;}'
+    +'.detail-title{font-family:\'Prompt\',sans-serif;font-size:15px;font-weight:700;color:#0D3F6E;}'
+    +'.detail-close{background:none;border:none;font-size:22px;cursor:pointer;color:#7F8C8D;line-height:1;}'
+    +'.detail-body{padding:16px 20px 32px;}'
+    +'.d-thumb{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:14px;display:block;}'
+    +'.d-field{margin-bottom:12px;}'
+    +'.d-label{font-size:10px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}'
+    +'.d-value{font-size:13px;color:#1A1A2E;line-height:1.6;white-space:pre-wrap;}'
+    +'.d-tags{display:flex;gap:6px;flex-wrap:wrap;}'
+    +'.d-tag{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;}'
     +'</style></head><body>'
     +'<div class="ov-header">'
     +'<div class="ov-logo">'+(chLogo?'<img src="'+chLogo+'">':(chMeta.emoji||'📱'))+'</div>'
@@ -2742,6 +2761,41 @@ function openOverview(){
     +'<div class="ov-stat"><div class="ov-stat-dot" style="background:#27AE60"></div><span>Posted</span><span class="ov-stat-num">'+nPosted+'</span></div>'
     +'<div class="ov-stat" style="border-left:1px solid #E0EAF4;padding-left:16px;"><span>รวมทั้งหมด</span><span class="ov-stat-num">'+allPosts.length+'</span><span>โพสต์</span></div></div>'
     +'<div class="ov-body" id="ovBody">'+(sectionsHtml||'<div class="ov-empty">ยังไม่มีโพสต์ในช่องนี้</div>')+'</div>'
+    +'<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">'
+    +'<div class="detail-modal">'
+    +'<div class="detail-handle"><div class="detail-handle-bar"></div></div>'
+    +'<div class="detail-header"><span class="detail-title">📋 รายละเอียดโพสต์</span><button class="detail-close" onclick="closeDetail()">×</button></div>'
+    +'<div class="detail-body" id="detailBody"></div>'
+    +'</div></div>'
+    +'<script>const POSTS='+postsJson+';'
+    +'const FL2='+JSON.stringify(FL)+';'
+    +'const SYL2='+JSON.stringify(SYL)+';'
+    +'const STRAT2='+JSON.stringify(STRAT)+';'
+    +'const STCOL2='+JSON.stringify(STCOL)+';'
+    +'const STFG2='+JSON.stringify(STFG)+';'
+    +'const STLB2='+JSON.stringify(STLB)+';'
+    +'const MONTHS2='+JSON.stringify(MONTHS)+';'
+    +'function showDetail(id){'
+    +'const p=POSTS.find(x=>String(x.id)===String(id));if(!p)return;'
+    +'const d=p.date?new Date(p.date+"T00:00:00"):null;'
+    +'const ds=d?(String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear()+" "+MONTHS2[d.getMonth()]+" "+(d.getFullYear()+543)):"-";'
+    +'let html="";'
+    +'if(p.thumbData) html+="<img class=\\"d-thumb\\" src=\\""+p.thumbData+"\\">";'
+    +'html+="<div class=\\"d-field\\"><div class=\\"d-label\\">ชื่อโพสต์</div><div class=\\"d-value\\" style=\\"font-size:15px;font-weight:700;\\">"+p.title+"</div></div>";'
+    +'html+="<div class=\\"d-field\\"><div class=\\"d-label\\">วันที่</div><div class=\\"d-value\\">"+ds+(p.time?" เวลา "+p.time:"")+"</div></div>";'
+    +'let tags="";'
+    +'if(p.status&&STLB2[p.status]) tags+="<span class=\\"d-tag\\" style=\\"background:"+STCOL2[p.status]+";color:"+STFG2[p.status]+"\\">" +STLB2[p.status]+"</span>";'
+    +'if(p.funnel&&FL2[p.funnel]) tags+="<span class=\\"d-tag\\" style=\\"background:"+FL2[p.funnel][1]+";color:"+FL2[p.funnel][2]+"\\">" +FL2[p.funnel][0]+"</span>";'
+    +'if(p.contentStyle&&SYL2[p.contentStyle]) tags+="<span class=\\"d-tag\\" style=\\"background:"+SYL2[p.contentStyle][1]+";color:"+SYL2[p.contentStyle][2]+"\\">" +SYL2[p.contentStyle][0]+"</span>";'
+    +'if(p.strategy&&STRAT2[p.strategy]) tags+="<span class=\\"d-tag\\" style=\\"background:#F4F7FB;color:#444;border:1px solid #D0DCE8\\">" +STRAT2[p.strategy]+"</span>";'
+    +'if(tags) html+="<div class=\\"d-field\\"><div class=\\"d-tags\\">"+tags+"</div></div>";'
+    +'if(p.caption) html+="<div class=\\"d-field\\"><div class=\\"d-label\\">Caption</div><div class=\\"d-value\\" style=\\"background:#F4F7FB;padding:10px;border-radius:8px;font-size:12px;\\">"+p.caption+"</div></div>";'
+    +'if(p.hashtag) html+="<div class=\\"d-field\\"><div class=\\"d-label\\">Hashtag</div><div class=\\"d-value\\" style=\\"color:#1A6FB5;font-size:12px;\\">"+p.hashtag+"</div></div>";'
+    +'if(p.note) html+="<div class=\\"d-field\\"><div class=\\"d-label\\">หมายเหตุ</div><div class=\\"d-value\\" style=\\"font-size:12px;\\">"+p.note+"</div></div>";'
+    +'document.getElementById("detailBody").innerHTML=html;'
+    +'document.getElementById("detailOverlay").classList.add("open");}'
+    +'function closeDetail(){document.getElementById("detailOverlay").classList.remove("open");}'
+    +'<\/script>'
     +'<script>'
     +'function applyF(){'
     +'const st=document.getElementById("fSt").value;'

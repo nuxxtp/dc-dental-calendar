@@ -904,7 +904,7 @@ async function loadGridSlots(){
   showGridLoading(false);
 }
 
-async function saveGridSlots(){
+async function saveGridSlots(showLoading=false){
   // auto-fill createdMonth ให้ blank/pending ที่ยังไม่มีค่า
   const nowMonth=cy+'-'+String(cm+1).padStart(2,'0');
   gridSlots=gridSlots.filter(s=>s.img||s.type==='pending'||s.type==='blank').map(s=>{
@@ -913,14 +913,14 @@ async function saveGridSlots(){
     }
     return s;
   });
-  showGridLoading(true);
+  saveToLocalCache(); // บันทึก local ทันที ไม่ต้องรอ Sheet
+  if(showLoading) showGridLoading(true);
   const result=await saveGridSlotsToSheet();
-  showGridLoading(false);
+  if(showLoading) showGridLoading(false);
   if(!result||!result.ok){
-    showNoti('❌ บันทึก Grid ไม่สำเร็จ กรุณาลองใหม่','#E74C3C');
+    showNoti('⚠️ บันทึกไป Sheet ไม่สำเร็จ (local saved)','#E67E22');
     return false;
   }
-  saveToLocalCache();
   return true;
 }
 
@@ -1416,7 +1416,7 @@ function renderCal(){
         if(slotIdx>=0){
           gridSlots[slotIdx].date=ds;
           showNoti('📅 จัดวันแล้ว! กำลัง sync...','#1A6FB5');
-          const ok=await saveGridSlots();
+          const ok=await saveGridSlots(true);
           if(ok){
             const res=await syncSlotToCalendar(gridSlots[slotIdx]);
             if(res&&res.ok) showNoti('✅ sync Calendar สำเร็จ','#27AE60');
@@ -1810,7 +1810,7 @@ async function deleteSelectedGridSlots(){
   gridSelected.clear();
   updateSelectedCount();
   showNoti('🗑️ ลบ '+indices.length+' รูปแล้ว','#E74C3C');
-  await saveGridSlots();
+  await saveGridSlots(true);
   render();
   renderGrid();
   renderUnscheduled();
@@ -1897,7 +1897,7 @@ function renderGrid(){
           e.preventDefault();e.stopPropagation();cell.style.outline='none';
           if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
           const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
-          dragSrcIdx=null;await saveGridSlots();renderGrid();
+          dragSrcIdx=null;renderGrid();saveGridSlots();
         });
       } else if(item&&item.type==='blank'){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
@@ -1932,7 +1932,7 @@ function renderGrid(){
           e.preventDefault();e.stopPropagation();cell.style.outline='none';
           if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
           const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
-          dragSrcIdx=null;await saveGridSlots();renderGrid();
+          dragSrcIdx=null;renderGrid();saveGridSlots();
         });
       } else if(item&&item.img){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
@@ -1985,7 +1985,7 @@ function renderGrid(){
             e.preventDefault();e.stopPropagation();cell.style.outline='none';
             if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
             const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
-            dragSrcIdx=null;await saveGridSlots();renderGrid();
+            dragSrcIdx=null;renderGrid();saveGridSlots();
           });
         }
       } else {
@@ -2013,7 +2013,7 @@ async function deleteGridSlot(idx){
     apiCall({action:'delete',id:delId});render();
   }
   gridSlots.splice(idx,1);
-  await saveGridSlots();
+  await saveGridSlots(true);
   renderGrid();renderUnscheduled();
 }
 
@@ -2179,7 +2179,7 @@ async function openGridModal(editIdx){
     slot.note=document.getElementById('gmNote').value;
     gridSlots[editIdx]=slot;
     showNoti('⏳ กำลังบันทึก...','#1A6FB5');
-    const ok=await saveGridSlots();
+    const ok=await saveGridSlots(true);
     if(!ok){btn.disabled=false;btn.textContent='💾 บันทึก';return;}
     if(slot.date){
       const res=await syncSlotToCalendar(slot);
@@ -2276,7 +2276,7 @@ function openBulkUpload(){
     }
     [...newSlots].reverse().forEach(s=>gridSlots.unshift(s));
     showNoti('⏳ กำลังบันทึกลง Server...','#1A6FB5');
-    const ok=await saveGridSlots();
+    const ok=await saveGridSlots(true);
     renderGrid();renderUnscheduled();
     document.getElementById('bmStatus').innerHTML=ok
       ?`<span style="color:#27AE60;font-weight:700;">✅ สำเร็จ ${done} รูป${failed>0?' / ❌ ล้มเหลว '+failed+' รูป':''}</span><br><span style="color:#888;font-size:11px;">ตั้งวันที่ได้ใน Grid เพื่อให้ขึ้น Calendar</span>`
@@ -2321,7 +2321,7 @@ async function igSectionDrop(e){
       if(data.secure_url){gridSlots.unshift({id:activeChannel+'-'+Date.now()+'-'+uploaded,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,''),date:'',caption:'',hashtag:'',note:''});uploaded++;}
     }catch(err){console.error(err);}
   }
-  await saveGridSlots();
+  await saveGridSlots(true);
   renderGrid();
   showNoti('✅ อัปโหลด '+uploaded+' รูปสำเร็จ!','#27AE60');
 }
@@ -2605,7 +2605,7 @@ async function confirmSandbox(){
   });
 
   gridSlots=[...newSlots,...gridSlots];
-  const ok=await saveGridSlots();
+  const ok=await saveGridSlots(true);
 
   // สร้าง draft ใน Calendar เฉพาะ text และ pending เท่านั้น — blank และช่องว่างไม่เข้า Calendar
   const calCards=toAdd.filter(s=>s.type==='text'||s.type==='pending');

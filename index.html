@@ -2934,10 +2934,14 @@ function openOverview(){
 
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.target='_blank';a.rel='noopener';
-  document.body.appendChild(a);a.click();
-  setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},120000);
+  const w=window.open(url,'_blank');
+  if(!w){
+    // fallback สำหรับบาง browser ที่บล็อก window.open
+    const a=document.createElement('a');
+    a.href=url;a.target='_blank';a.rel='noopener';
+    document.body.appendChild(a);a.click();
+  }
+  setTimeout(()=>{URL.revokeObjectURL(url);},120000);
 }
 
 function printCalendar(){

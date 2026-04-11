@@ -1906,6 +1906,24 @@ function renderGrid(){
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.3);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
         numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
+        // ปุ่มลบ — hover (desktop) หรือ tap (mobile)
+        const blankOverlay=document.createElement('div');
+        blankOverlay.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,0);transition:background 0.2s;display:flex;align-items:center;justify-content:center;';
+        const btnDelBlank=document.createElement('button');
+        btnDelBlank.textContent='🗑';
+        btnDelBlank.style.cssText='background:rgba(231,76,60,0.92);border:none;border-radius:6px;color:white;font-size:13px;padding:6px 10px;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:4;font-weight:700;';
+        btnDelBlank.onclick=e=>{e.stopPropagation();deleteGridSlot(realIdx);};
+        blankOverlay.appendChild(btnDelBlank);cell.appendChild(blankOverlay);
+        cell.addEventListener('mouseenter',()=>{blankOverlay.style.background='rgba(0,0,0,0.3)';btnDelBlank.style.opacity='1';});
+        cell.addEventListener('mouseleave',()=>{blankOverlay.style.background='rgba(0,0,0,0)';btnDelBlank.style.opacity='0';});
+        let blankTapped=false;
+        cell.addEventListener('touchstart',e=>{
+          if(e.target===btnDelBlank||e.target.closest('button')===btnDelBlank) return;
+          e.preventDefault();
+          blankTapped=!blankTapped;
+          blankOverlay.style.background=blankTapped?'rgba(0,0,0,0.3)':'rgba(0,0,0,0)';
+          btnDelBlank.style.opacity=blankTapped?'1':'0';
+        },{passive:false});
         cell.addEventListener('dragstart',e=>{dragSrcIdx=realIdx;setTimeout(()=>cell.style.opacity='0.4',0);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('type','grid');});
         cell.addEventListener('dragend',()=>{cell.style.opacity='1';document.querySelectorAll('#igGrid > div').forEach(c=>c.style.outline='none');});
         cell.addEventListener('dragover',e=>{e.preventDefault();cell.style.outline='2px solid #aaa';return false;});

@@ -286,10 +286,20 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     </div>
     <div id="gridControls" style="display:none;align-items:center;gap:10px">
       <input type="hidden" id="gridChannelSelect" value="dc-dental">
-      <button onclick="openGridSandbox()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">🎨 ทดลองจัด</button>
-      <button id="btnGridSelect" onclick="toggleGridSelectMode()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">☑️ เลือก</button>
-      <button id="btnGridDeleteSelected" onclick="deleteSelectedGridSlots()" style="display:none;background:#E74C3C;border:none;color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">🗑 ลบที่เลือก (<span id="selectedCount">0</span>)</button>
-      <button id="btnGridSelectAll" onclick="selectAllGridSlots()" style="display:none;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">เลือกทั้งหมด</button>
+      <!-- Normal mode -->
+      <div id="gridNormalBtns" style="display:flex;align-items:center;gap:8px;">
+        <button onclick="openGridSandbox()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">🎨 ทดลองจัด</button>
+        <button id="btnGridSelect" onclick="toggleGridSelectMode()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">☑️ เลือก</button>
+        <button id="btnGridDeleteSelected" onclick="deleteSelectedGridSlots()" style="display:none;background:#E74C3C;border:none;color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">🗑 ลบที่เลือก (<span id="selectedCount">0</span>)</button>
+        <button id="btnGridSelectAll" onclick="selectAllGridSlots()" style="display:none;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">เลือกทั้งหมด</button>
+        <button id="btnGridEdit" onclick="enterGridEditMode()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;">✏️ แก้ไขลำดับ</button>
+      </div>
+      <!-- Edit mode -->
+      <div id="gridEditBtns" style="display:none;align-items:center;gap:8px;">
+        <div id="gridDirtyBadge" style="display:none;background:rgba(240,165,0,0.25);border:1px solid rgba(240,165,0,0.6);color:#FFD770;border-radius:8px;padding:4px 10px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;">● มีการเปลี่ยนแปลง</div>
+        <button onclick="cancelGridEditMode()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">✕ ยกเลิก</button>
+        <button onclick="saveGridEditMode()" style="background:#27AE60;border:none;color:white;border-radius:10px;padding:7px 18px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(39,174,96,0.4);">💾 บันทึก</button>
+      </div>
     </div>
   </div>
 </header>
@@ -816,6 +826,8 @@ let gridSlots=[];
 let dragSrcIdx=null;
 let gridSelectMode=false;
 let gridSelected=new Set();
+let gridEditMode=false;
+let gridSnapshot=[];
 
 function getGridStorageKey(){ return 'igGridSlots_'+activeChannel; }
 function getGridSheetName(ch){ return 'IG Grid '+(ch||activeChannel); }
@@ -903,6 +915,50 @@ async function loadGridSlots(){
   saveToLocalCache();
   showGridLoading(false);
 }
+
+// =====================================================
+// GRID EDIT MODE
+// =====================================================
+function markGridDirty(){
+  const badge=document.getElementById('gridDirtyBadge');
+  if(badge) badge.style.display='flex';
+}
+
+function enterGridEditMode(){
+  gridEditMode=true;
+  gridSnapshot=JSON.parse(JSON.stringify(gridSlots)); // deep copy
+  document.getElementById('gridNormalBtns').style.display='none';
+  document.getElementById('gridEditBtns').style.display='flex';
+  renderGrid();
+}
+
+function cancelGridEditMode(){
+  gridEditMode=false;
+  gridSlots=JSON.parse(JSON.stringify(gridSnapshot)); // restore
+  document.getElementById('gridNormalBtns').style.display='flex';
+  document.getElementById('gridEditBtns').style.display='none';
+  const badge=document.getElementById('gridDirtyBadge');
+  if(badge) badge.style.display='none';
+  renderGrid();
+}
+
+async function saveGridEditMode(){
+  const btn=document.querySelector('#gridEditBtns button:last-child');
+  if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
+  const ok=await saveGridSlots(true);
+  if(btn){btn.textContent='💾 บันทึก';btn.disabled=false;}
+  if(ok){
+    gridEditMode=false;
+    gridSnapshot=[];
+    document.getElementById('gridNormalBtns').style.display='flex';
+    document.getElementById('gridEditBtns').style.display='none';
+    const badge=document.getElementById('gridDirtyBadge');
+    if(badge) badge.style.display='none';
+    showNoti('✅ บันทึกลำดับ Grid สำเร็จ','#27AE60');
+    renderGrid();
+  }
+}
+
 
 async function saveGridSlots(showLoading=false){
   // auto-fill createdMonth ให้ blank/pending ที่ยังไม่มีค่า
@@ -1882,8 +1938,8 @@ function renderGrid(){
       cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;';
       if(item&&item.type==='pending'){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
-        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:grab;';
-        cell.draggable=true;
+        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:'+(gridEditMode?'grab':'default')+';';
+        cell.draggable=gridEditMode;
         cell.innerHTML=`<div style="font-size:22px;pointer-events:none;">🖼️</div><div style="font-size:10px;font-weight:700;color:white;pointer-events:none;">รอปก</div>`;
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.45);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
@@ -1897,12 +1953,12 @@ function renderGrid(){
           e.preventDefault();e.stopPropagation();cell.style.outline='none';
           if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
           const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
-          dragSrcIdx=null;renderGrid();saveGridSlots();
+          dragSrcIdx=null;markGridDirty();renderGrid();
         });
       } else if(item&&item.type==='blank'){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
-        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:rgba(200,200,200,0.25);border:1.5px dashed rgba(150,150,150,0.4);cursor:grab;';
-        cell.draggable=true;
+        cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;background:rgba(200,200,200,0.25);border:1.5px dashed rgba(150,150,150,0.4);cursor:'+(gridEditMode?'grab':'default')+';';
+        cell.draggable=gridEditMode;
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.3);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
         numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
@@ -1932,12 +1988,12 @@ function renderGrid(){
           e.preventDefault();e.stopPropagation();cell.style.outline='none';
           if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
           const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
-          dragSrcIdx=null;renderGrid();saveGridSlots();
-        });
+          dragSrcIdx=null;markGridDirty();renderGrid();
+      });
       } else if(item&&item.img){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
         cell.dataset.idx=realIdx;
-        cell.style.cursor='grab';cell.draggable=!gridSelectMode;
+        cell.style.cursor=gridEditMode?'grab':'default';cell.draggable=gridEditMode&&!gridSelectMode;
         const img=document.createElement('img');
         img.src=item.img;img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;';
         cell.appendChild(img);
@@ -1985,7 +2041,7 @@ function renderGrid(){
             e.preventDefault();e.stopPropagation();cell.style.outline='none';
             if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
             const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
-            dragSrcIdx=null;renderGrid();saveGridSlots();
+            dragSrcIdx=null;markGridDirty();renderGrid();
           });
         }
       } else {

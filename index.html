@@ -287,6 +287,9 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     <div id="gridControls" style="display:none;align-items:center;gap:10px">
       <input type="hidden" id="gridChannelSelect" value="dc-dental">
       <button onclick="openGridSandbox()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">🎨 ทดลองจัด</button>
+      <button id="btnGridSelect" onclick="toggleGridSelectMode()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">☑️ เลือก</button>
+      <button id="btnGridDeleteSelected" onclick="deleteSelectedGridSlots()" style="display:none;background:#E74C3C;border:none;color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">🗑 ลบที่เลือก (<span id="selectedCount">0</span>)</button>
+      <button id="btnGridSelectAll" onclick="selectAllGridSlots()" style="display:none;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">เลือกทั้งหมด</button>
     </div>
   </div>
 </header>
@@ -811,6 +814,8 @@ const CH_META={
 // =====================================================
 let gridSlots=[];
 let dragSrcIdx=null;
+let gridSelectMode=false;
+let gridSelected=new Set();
 
 function getGridStorageKey(){ return 'igGridSlots_'+activeChannel; }
 function getGridSheetName(ch){ return 'IG Grid '+(ch||activeChannel); }
@@ -1727,6 +1732,92 @@ async function switchTab(tab){
 // =====================================================
 // IG GRID RENDER & ACTIONS
 // =====================================================
+function toggleGridSelectMode(){
+  gridSelectMode=!gridSelectMode;
+  gridSelected.clear();
+  const btn=document.getElementById('btnGridSelect');
+  const btnDel=document.getElementById('btnGridDeleteSelected');
+  const btnAll=document.getElementById('btnGridSelectAll');
+  if(gridSelectMode){
+    btn.textContent='✕ ยกเลิก';
+    btn.style.background='rgba(231,76,60,0.3)';
+    btn.style.borderColor='rgba(231,76,60,0.6)';
+    if(btnDel) btnDel.style.display='flex';
+    if(btnAll) btnAll.style.display='flex';
+  } else {
+    btn.textContent='☑️ เลือก';
+    btn.style.background='rgba(255,255,255,0.15)';
+    btn.style.borderColor='rgba(255,255,255,0.3)';
+    if(btnDel) btnDel.style.display='none';
+    if(btnAll) btnAll.style.display='none';
+  }
+  updateSelectedCount();
+  renderGrid();
+}
+
+function toggleGridSlotSelect(idx){
+  if(!gridSelectMode) return;
+  if(gridSelected.has(idx)) gridSelected.delete(idx);
+  else gridSelected.add(idx);
+  updateSelectedCount();
+  // update visual ของ cell นั้น
+  const cells=document.querySelectorAll('#igGrid > div[data-idx]');
+  cells.forEach(c=>{
+    const i=parseInt(c.dataset.idx);
+    if(i===idx){
+      const isSelected=gridSelected.has(idx);
+      c.style.outline=isSelected?'3px solid #E74C3C':'none';
+      const check=c.querySelector('.grid-check');
+      if(check) check.style.opacity=isSelected?'1':'0';
+    }
+  });
+}
+
+function selectAllGridSlots(){
+  const realSlots=gridSlots.filter(s=>s.type!=='blank');
+  if(gridSelected.size===realSlots.length){
+    gridSelected.clear();
+  } else {
+    gridSlots.forEach((s,i)=>{if(s.type!=='blank') gridSelected.add(i);});
+  }
+  updateSelectedCount();
+  renderGrid();
+}
+
+function updateSelectedCount(){
+  const cnt=document.getElementById('selectedCount');
+  if(cnt) cnt.textContent=gridSelected.size;
+  const btnDel=document.getElementById('btnGridDeleteSelected');
+  if(btnDel) btnDel.style.opacity=gridSelected.size>0?'1':'0.5';
+}
+
+async function deleteSelectedGridSlots(){
+  if(gridSelected.size===0){showNoti('ยังไม่ได้เลือกรูปเลยครับ','#E67E22');return;}
+  if(!confirm('ลบ '+gridSelected.size+' รูปที่เลือก?\n(ถ้าผูกกับ Calendar แล้วจะลบออกด้วย)')) return;
+  // เรียงจากมากไปน้อยกัน index เลื่อน
+  const indices=[...gridSelected].sort((a,b)=>b-a);
+  for(const idx of indices){
+    const slot=gridSlots[idx];
+    if(!slot) continue;
+    const calIdx=posts.findIndex(p=>p.id===slot.id);
+    if(calIdx>=0){
+      const delId=posts[calIdx].id;
+      posts.splice(calIdx,1);
+      apiCall({action:'delete',id:delId});
+    }
+    gridSlots.splice(idx,1);
+  }
+  gridSelected.clear();
+  updateSelectedCount();
+  showNoti('🗑️ ลบ '+indices.length+' รูปแล้ว','#E74C3C');
+  await saveGridSlots();
+  render();
+  renderGrid();
+  renderUnscheduled();
+  // ออกจาก select mode
+  toggleGridSelectMode();
+}
+
 function renderGrid(){
   const ch=GRID_CHANNEL_META[activeChannel]||GRID_CHANNEL_META['dc-dental'];
   const chMeta=CHANNEL_META[activeChannel];
@@ -1827,7 +1918,8 @@ function renderGrid(){
         });
       } else if(item&&item.img){
         const realIdx=gridSlots.findIndex(s=>s.id===item.id);
-        cell.style.cursor='grab';cell.draggable=true;
+        cell.dataset.idx=realIdx;
+        cell.style.cursor='grab';cell.draggable=!gridSelectMode;
         const img=document.createElement('img');
         img.src=item.img;img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;';
         cell.appendChild(img);
@@ -1844,27 +1936,40 @@ function renderGrid(){
           noBadge.style.cssText='position:absolute;bottom:4px;left:4px;right:4px;background:rgba(231,76,60,0.85);color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;pointer-events:none;z-index:3;text-align:center;';
           noBadge.textContent='ยังไม่มีวัน';cell.appendChild(noBadge);
         }
-        const overlay=document.createElement('div');
-        overlay.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,0);transition:background 0.2s;display:flex;align-items:flex-end;justify-content:flex-end;padding:4px;gap:3px;';
-        const btnEdit=document.createElement('button');
-        btnEdit.textContent='✏️';btnEdit.style.cssText='background:rgba(26,111,181,0.9);border:none;border-radius:4px;color:white;font-size:11px;padding:4px 6px;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:4;';
-        btnEdit.onclick=e=>{e.stopPropagation();openGridModal(realIdx);};
-        const btnDel=document.createElement('button');
-        btnDel.textContent='🗑';btnDel.style.cssText='background:rgba(231,76,60,0.9);border:none;border-radius:4px;color:white;font-size:11px;padding:4px 6px;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:4;';
-        btnDel.onclick=e=>{e.stopPropagation();deleteGridSlot(realIdx);};
-        overlay.appendChild(btnEdit);overlay.appendChild(btnDel);cell.appendChild(overlay);
-        cell.addEventListener('mouseenter',()=>{overlay.style.background='rgba(0,0,0,0.35)';btnEdit.style.opacity='1';btnDel.style.opacity='1';});
-        cell.addEventListener('mouseleave',()=>{overlay.style.background='rgba(0,0,0,0)';btnEdit.style.opacity='0';btnDel.style.opacity='0';});
-        cell.addEventListener('dragstart',e=>{dragSrcIdx=realIdx;setTimeout(()=>cell.style.opacity='0.4',0);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('type','grid');});
-        cell.addEventListener('dragend',()=>{cell.style.opacity='1';document.querySelectorAll('#igGrid > div').forEach(c=>c.style.outline='none');});
-        cell.addEventListener('dragover',e=>{e.preventDefault();cell.style.outline='2px solid #1A6FB5';return false;});
-        cell.addEventListener('dragleave',()=>{cell.style.outline='none';});
-        cell.addEventListener('drop',async e=>{
-          e.preventDefault();e.stopPropagation();cell.style.outline='none';
-          if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
-          const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
-          dragSrcIdx=null;await saveGridSlots();renderGrid();
-        });
+        // Select mode checkbox
+        const checkEl=document.createElement('div');
+        checkEl.className='grid-check';
+        const isSelected=gridSelected.has(realIdx);
+        checkEl.style.cssText='position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:'+(isSelected?'#E74C3C':'rgba(0,0,0,0.4)')+';border:2px solid '+(isSelected?'#E74C3C':'rgba(255,255,255,0.8)')+';display:flex;align-items:center;justify-content:center;z-index:5;opacity:'+(gridSelectMode?'1':'0')+';transition:opacity 0.15s,background 0.15s;pointer-events:none;';
+        checkEl.innerHTML=isSelected?'<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':'';
+        cell.appendChild(checkEl);
+        if(gridSelectMode){
+          cell.style.cursor='pointer';cell.draggable=false;
+          cell.style.outline=isSelected?'3px solid #E74C3C':'none';
+          cell.addEventListener('click',e=>{e.stopPropagation();toggleGridSlotSelect(realIdx);});
+        } else {
+          const overlay=document.createElement('div');
+          overlay.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,0);transition:background 0.2s;display:flex;align-items:flex-end;justify-content:flex-end;padding:4px;gap:3px;';
+          const btnEdit=document.createElement('button');
+          btnEdit.textContent='✏️';btnEdit.style.cssText='background:rgba(26,111,181,0.9);border:none;border-radius:4px;color:white;font-size:11px;padding:4px 6px;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:4;';
+          btnEdit.onclick=e=>{e.stopPropagation();openGridModal(realIdx);};
+          const btnDel=document.createElement('button');
+          btnDel.textContent='🗑';btnDel.style.cssText='background:rgba(231,76,60,0.9);border:none;border-radius:4px;color:white;font-size:11px;padding:4px 6px;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:4;';
+          btnDel.onclick=e=>{e.stopPropagation();deleteGridSlot(realIdx);};
+          overlay.appendChild(btnEdit);overlay.appendChild(btnDel);cell.appendChild(overlay);
+          cell.addEventListener('mouseenter',()=>{overlay.style.background='rgba(0,0,0,0.35)';btnEdit.style.opacity='1';btnDel.style.opacity='1';});
+          cell.addEventListener('mouseleave',()=>{overlay.style.background='rgba(0,0,0,0)';btnEdit.style.opacity='0';btnDel.style.opacity='0';});
+          cell.addEventListener('dragstart',e=>{dragSrcIdx=realIdx;setTimeout(()=>cell.style.opacity='0.4',0);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('type','grid');});
+          cell.addEventListener('dragend',()=>{cell.style.opacity='1';document.querySelectorAll('#igGrid > div').forEach(c=>c.style.outline='none');});
+          cell.addEventListener('dragover',e=>{e.preventDefault();cell.style.outline='2px solid #1A6FB5';return false;});
+          cell.addEventListener('dragleave',()=>{cell.style.outline='none';});
+          cell.addEventListener('drop',async e=>{
+            e.preventDefault();e.stopPropagation();cell.style.outline='none';
+            if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
+            const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
+            dragSrcIdx=null;await saveGridSlots();renderGrid();
+          });
+        }
       } else {
         cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:8px;background:rgba(255,255,255,0.07);border:1.5px dashed rgba(255,255,255,0.22);cursor:pointer;transition:all 0.25s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;';
         cell.innerHTML=`
@@ -2711,32 +2816,32 @@ function openOverview(){
     +'.ov-month-title{font-family:\'Prompt\',sans-serif;font-size:16px;font-weight:700;color:'+chTheme.primaryDark+';}'
     +'.ov-month-meta{font-size:12px;color:#7F8C8D;margin-top:2px;}'
     +'.ov-month-toggle{font-size:12px;color:'+chTheme.primary+';font-weight:700;flex-shrink:0;}'
-    +'.ov-posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;}'
-    +'.ov-card{background:white;border-radius:10px;border:1.5px solid #E4EDF5;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;transition:box-shadow .15s,border-color .15s;}'
-    +'.ov-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);border-color:'+chTheme.primary+';}'
+    +'.ov-posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;}'
+    +'.ov-card{background:white;border-radius:8px;border:1.5px solid #E4EDF5;padding:7px 9px;display:flex;gap:8px;align-items:flex-start;transition:box-shadow .15s,border-color .15s;cursor:pointer;}'
+    +'.ov-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);border-color:'+chTheme.primary+';}'
     +'.ov-card.filtered-out{display:none;}'
-    +'.ov-thumb{width:44px;height:44px;border-radius:7px;flex-shrink:0;background:'+chTheme.bgLight+';display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;}'
+    +'.ov-thumb{width:36px;height:36px;border-radius:5px;flex-shrink:0;background:'+chTheme.bgLight+';display:flex;align-items:center;justify-content:center;font-size:15px;overflow:hidden;}'
     +'.ov-thumb img{width:100%;height:100%;object-fit:cover;}'
     +'.ov-card-body{flex:1;min-width:0;}'
-    +'.ov-card-title{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}'
-    +'.ov-card-meta{display:flex;gap:4px;flex-wrap:wrap;}'
-    +'.ov-tag{font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;}'
-    +'.ov-date{font-size:10px;color:#7F8C8D;margin-top:3px;}'
+    +'.ov-card-title{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}'
+    +'.ov-card-meta{display:flex;gap:3px;flex-wrap:wrap;}'
+    +'.ov-tag{font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;white-space:nowrap;}'
+    +'.ov-date{font-size:9px;color:#7F8C8D;margin-top:2px;}'
     +'.ov-empty{text-align:center;padding:40px;color:#aaa;font-size:14px;}'
     +'.progress-bar{height:4px;border-radius:3px;background:'+chTheme.primaryLight+';margin-top:4px;width:160px;overflow:hidden;}'
     +'.progress-fill{height:100%;border-radius:3px;}'
     +'@media(max-width:640px){.ov-header,.ov-filters,.ov-stats,.ov-body{padding-left:14px;padding-right:14px;}.ov-filters{top:64px;}.ov-posts-grid{grid-template-columns:1fr;}}'
     +'.detail-overlay{display:none;position:fixed;inset:0;background:rgba(13,63,110,0.45);backdrop-filter:blur(4px);z-index:200;align-items:flex-end;justify-content:center;padding:0;}'
     +'.detail-overlay.open{display:flex;}'
-    +'.detail-modal{background:white;border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:0;animation:slideUp 0.25s ease;}'
+    +'.detail-modal{background:white;border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;padding:0;animation:slideUp 0.25s ease;}'
     +'@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}'
     +'.detail-handle{display:flex;justify-content:center;padding:10px 0 4px;}'
     +'.detail-handle-bar{width:36px;height:4px;border-radius:4px;background:#D0DCE8;}'
-    +'.detail-header{padding:12px 20px;border-bottom:1px solid #EDF2F7;display:flex;align-items:center;justify-content:space-between;}'
+    +'.detail-header{padding:12px 20px;border-bottom:1px solid #EDF2F7;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;z-index:1;}'
     +'.detail-title{font-family:\'Prompt\',sans-serif;font-size:15px;font-weight:700;color:#0D3F6E;}'
     +'.detail-close{background:none;border:none;font-size:22px;cursor:pointer;color:#7F8C8D;line-height:1;}'
-    +'.detail-body{padding:16px 20px 32px;}'
-    +'.d-thumb{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:14px;display:block;}'
+    +'.detail-body{padding:16px 20px 40px;}'
+    +'.d-thumb{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:14px;display:block;}'
     +'.d-field{margin-bottom:12px;}'
     +'.d-label{font-size:10px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}'
     +'.d-value{font-size:13px;color:#1A1A2E;line-height:1.6;white-space:pre-wrap;}'
@@ -2829,8 +2934,10 @@ function openOverview(){
 
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob);
-  window.open(url,'_blank');
-  setTimeout(()=>URL.revokeObjectURL(url),120000);
+  const a=document.createElement('a');
+  a.href=url;a.target='_blank';a.rel='noopener';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},120000);
 }
 
 function printCalendar(){

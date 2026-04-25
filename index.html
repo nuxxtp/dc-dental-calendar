@@ -895,18 +895,21 @@ async function loadGridSlots(){
       if(sheetSlots.length===0 && gridSlots.length>0){
         await saveGridSlotsToSheet();
       } else {
-        gridSlots=sheetSlots;
-        // auto-fill createdMonth ให้ blank/pending ที่ยังไม่มีค่าใน Sheet
-        const nowMonth=cy+'-'+String(cm+1).padStart(2,'0');
+      gridSlots=sheetSlots;
+        // auto-fill createdMonth ให้ slot ที่ยังไม่มีค่า — ใช้วันที่จริงของ slot ถ้ามี
         let needsSave=false;
         gridSlots=gridSlots.map(s=>{
-          if((s.type==='blank'||s.type==='pending')&&!s.createdMonth){
+          if(!s.createdMonth){
             needsSave=true;
-            return {...s,createdMonth:nowMonth};
+            // ถ้ามีวันโพสต์ใช้เดือนของวันนั้น ไม่งั้นใช้เดือนปัจจุบัน
+            const m=s.date
+              ?(()=>{const d=new Date(s.date+'T00:00:00');return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');})()
+              :cy+'-'+String(cm+1).padStart(2,'0');
+            return {...s,createdMonth:m};
           }
           return s;
         });
-        if(needsSave) saveGridSlotsToSheet(); // save กลับ Sheet เลย ไม่ต้อง await
+        if(needsSave) saveGridSlotsToSheet();
       }
     }
   }catch(e){
@@ -982,15 +985,24 @@ async function saveGridSlots(showLoading=false){
 
 async function saveGridSlotsToSheet(){
   try{
-    const cleanSlots=gridSlots.map(s=>({
+    const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
+    // ส่งเฉพาะ slot ของเดือนปัจจุบัน พร้อม monthKey เพื่อให้ Apps Script รู้ว่าจะ overwrite เดือนไหน
+    const monthSlots=gridSlots.filter(s=>{
+      if(s.date){
+        const d=new Date(s.date+'T00:00:00');
+        return d.getFullYear()===cy&&d.getMonth()===cm;
+      }
+      return (s.createdMonth||curMonthKey)===curMonthKey;
+    });
+    const cleanSlots=monthSlots.map(s=>({
       id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
       caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
       type:s.type==='blank'?'blank':(s.img&&s.img.trim()!=='')?'image':'pending',
-      createdMonth:s.createdMonth||'',
+      createdMonth:s.createdMonth||curMonthKey,
     }));
     const res=await fetch(SHEET_URL,{
       method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'saveGrid',sheetName:getGridSheetName(activeChannel),slots:cleanSlots}),
+      body:JSON.stringify({action:'saveGrid',sheetName:getGridSheetName(activeChannel),slots:cleanSlots,monthKey:curMonthKey}),
     });
     return JSON.parse(await res.text());
   }catch(e){ console.error('saveGridSlotsToSheet error:',e); return null; }
@@ -1880,17 +1892,16 @@ function renderGrid(){
   document.getElementById('igUsername').textContent=ch.username;
   const lbl=document.getElementById('igChannelLabel');
   if(lbl&&chMeta) lbl.textContent=chMeta.label;
+  const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
   const monthSlots=gridSlots.filter(s=>{
-    if(!s.date){
-      if(s.type==='blank'||s.type==='pending'){
-        const cm2=s.createdMonth||(cy+'-'+String(cm+1).padStart(2,'0'));
-        const [y,m]=cm2.split('-').map(Number);
-        return y===cy&&(m-1)===cm;
-      }
-      return true;
+    // รูปที่มีวันโพสต์ → ดูจากวันที่
+    if(s.date){
+      const d=new Date(s.date+'T00:00:00');
+      return d.getFullYear()===cy&&d.getMonth()===cm;
     }
-    const d=new Date(s.date+'T00:00:00');
-    return d.getFullYear()===cy&&d.getMonth()===cm;
+    // blank/pending/รูปที่ยังไม่มีวัน → ดูจาก createdMonth
+    const slotMonth=s.createdMonth||curMonthKey;
+    return slotMonth===curMonthKey;
   });
   const scheduledInMonth=monthSlots.filter(s=>s.date).length;
   document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date&&s.type!=='blank').length+' รอจัดวัน';

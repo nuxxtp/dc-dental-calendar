@@ -619,7 +619,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbyG4XirWBBct0ZLhiYGCrd3DP5_tX0Xo9Brd0SCmEy1MCq4m7mEmXieJA85MpUeUpyhIw/exec';
+const SHEET_URL='https://script.google.com/macros/library/d/1EfY494VkYq2Q3o1lmEfMyucFWTe9oUQ1s9wPmVbMFIlhCiqdV6TAUmvI/33';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -964,15 +964,26 @@ async function saveGridEditMode(){
 
 
 async function saveGridSlots(showLoading=false){
-  // auto-fill createdMonth ให้ blank/pending ที่ยังไม่มีค่า
   const nowMonth=cy+'-'+String(cm+1).padStart(2,'0');
-  gridSlots=gridSlots.filter(s=>s.img||s.type==='pending'||s.type==='blank').map(s=>{
-    if((s.type==='blank'||s.type==='pending')&&!s.createdMonth){
-      return {...s,createdMonth:nowMonth};
+  // normalize type และ set createdMonth ให้ครบทุก slot
+  gridSlots=gridSlots.map(s=>{
+    // normalize type — ถ้า id มี 'blank' ให้ถือว่า blank
+    let type=s.type||'';
+    if(!type){
+      if(String(s.id||'').includes('blank')) type='blank';
+      else if(String(s.id||'').includes('pend')) type='pending';
+      else type=s.img?'image':'pending';
     }
-    return s;
-  });
-  saveToLocalCache(); // บันทึก local ทันที ไม่ต้องรอ Sheet
+    // set createdMonth ถ้ายังไม่มี — ใช้วันโพสต์ถ้ามี ไม่งั้นใช้เดือนปัจจุบัน
+    let createdMonth=s.createdMonth||'';
+    if(!createdMonth){
+      createdMonth=s.date
+        ?(()=>{const d=new Date(s.date+'T00:00:00');return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');})()
+        :nowMonth;
+    }
+    return {...s,type,createdMonth};
+  }).filter(s=>s.img||s.type==='pending'||s.type==='blank'); // เก็บเฉพาะที่มีรูป หรือเป็น pending/blank
+  saveToLocalCache();
   if(showLoading) showGridLoading(true);
   const result=await saveGridSlotsToSheet();
   if(showLoading) showGridLoading(false);
@@ -2264,9 +2275,11 @@ async function openGridModal(editIdx){
 // BULK UPLOAD
 // =====================================================
 function openBulkUpload(){
-  const MAX_SLOTS=23;
-  const remaining=Math.max(0,MAX_SLOTS-gridSlots.length);
-  if(remaining<=0){showNoti('เต็ม 23 รูปแล้วครับ ลบรูปเก่าก่อน','#E74C3C');return;}
+  const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
+  const curMonthCount=gridSlots.filter(s=>{
+    if(s.date){const d=new Date(s.date+'T00:00:00');return d.getFullYear()===cy&&d.getMonth()===cm;}
+    return (s.createdMonth||curMonthKey)===curMonthKey;
+  }).length;
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(13,63,110,0.55);backdrop-filter:blur(4px);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;';
   const modal=document.createElement('div');
@@ -2276,13 +2289,13 @@ function openBulkUpload(){
       <h3 style="font-family:'Prompt',sans-serif;color:#0D3F6E;font-size:17px">📸 อัปโหลดรูป Grid</h3>
       <button id="bmClose" style="background:none;border:none;font-size:24px;cursor:pointer;color:#999;line-height:1">×</button>
     </div>
-    <p style="font-size:12px;color:#888;margin-bottom:16px">เลือกรูปได้สูงสุด <b>${remaining}</b> รูป · วันที่ตั้งทีหลังได้ใน Grid</p>
+    <p style="font-size:12px;color:#888;margin-bottom:16px">เลือกรูปได้ไม่จำกัด · เดือนนี้มีแล้ว <b>${curMonthCount}</b> รูป · วันที่ตั้งทีหลังได้ใน Grid</p>
     <div id="bmDropZone" style="border:2.5px dashed #1A6FB5;border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;position:relative;background:#F0F7FF;transition:all 0.2s;margin-bottom:16px;">
       <input type="file" id="bmFiles" accept="image/*" multiple style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;">
       <div style="pointer-events:none;">
         <div style="font-size:36px;margin-bottom:8px">🖼️</div>
         <div style="font-size:14px;font-weight:700;color:#1A6FB5;margin-bottom:4px">คลิกหรือลากรูปมาวางที่นี่</div>
-        <div style="font-size:12px;color:#888;">เลือกได้หลายรูปพร้อมกัน · สูงสุด ${remaining} รูป</div>
+        <div style="font-size:12px;color:#888;">เลือกได้หลายรูปพร้อมกัน ไม่จำกัดจำนวน</div>
       </div>
     </div>
     <div id="bmPreviewGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;"></div>
@@ -2304,9 +2317,7 @@ function openBulkUpload(){
   document.getElementById('bmFiles').onchange=function(){handleFiles(this.files);};
   function handleFiles(fileList){
     const files=Array.from(fileList).filter(f=>f.type.startsWith('image/'));
-    const allowed=Math.min(files.length,remaining);
-    if(files.length>remaining) showNoti(`เลือกได้แค่ ${remaining} รูปครับ`,'#E67E22');
-    selectedFiles=files.slice(0,allowed);renderPreviews();
+    selectedFiles=files;renderPreviews();
   }
   function renderPreviews(){
     const pg=document.getElementById('bmPreviewGrid');pg.innerHTML='';
@@ -2642,18 +2653,16 @@ function renderSandbox(){
       <input type="file" accept="image/*" multiple style="display:none;" onchange="handleSandboxFiles(this.files)">
       <span style="font-size:18px;">🖼️</span>เพิ่มรูป
     </label>
-    <button onclick="sandboxSlots.push({id:activeChannel+'-pend-'+Date.now(),type:'pending',img:'',title:'รอปก'});renderSandbox();"
+    <button onclick="(()=>{const m=cy+'-'+String(cm+1).padStart(2,'0');sandboxSlots.push({id:activeChannel+'-pend-'+Date.now(),type:'pending',img:'',title:'รอปก',createdMonth:m});renderSandbox();})()"
       style="flex:1;min-width:90px;background:linear-gradient(135deg,#8B6F3E,#C8956C);border:none;border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:600;cursor:pointer;">รอปก</button>
-    <button onclick="sandboxSlots.push({id:activeChannel+'-blank-'+Date.now(),type:'blank',img:'',title:''});renderSandbox();"
+    <button onclick="(()=>{const m=cy+'-'+String(cm+1).padStart(2,'0');sandboxSlots.push({id:activeChannel+'-blank-'+Date.now(),type:'blank',img:'',title:'',createdMonth:m});renderSandbox();})()"
       style="flex:1;min-width:90px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer;">▭ คั่น</button>`;
   grid.appendChild(toolbar);
 }
 
 async function confirmSandbox(){
   if(!sandboxSlots.length) return;
-  const remaining=Math.max(0,23-gridSlots.length);
-  if(remaining===0){showNoti('⚠️ Grid เต็ม 23 รูปแล้ว ลบรูปเก่าก่อน','#E74C3C');return;}
-  const toAdd=sandboxSlots.slice(0,remaining);
+  const toAdd=sandboxSlots;
   showNoti('⏳ กำลังย้าย '+toAdd.length+' ช่องเข้า Grid...','#1A6FB5');
 
   const createdMonth=cy+'-'+String(cm+1).padStart(2,'0');

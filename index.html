@@ -1893,20 +1893,41 @@ function updateSelectedCount(){
 
 async function deleteSelectedGridSlots(){
   if(gridSelected.size===0){showNoti('ยังไม่ได้เลือกรูปเลยครับ','#E67E22');return;}
-  if(!confirm('ลบ '+gridSelected.size+' รูปที่เลือก?\n(ถ้าผูกกับ Calendar แล้วจะลบออกด้วย)')) return;
-  // เรียงจากมากไปน้อยกัน index เลื่อน
+  const totalReal=gridSlots.filter(s=>s.type!=='blank').length;
+  const isAll=gridSelected.size>=totalReal;
+  const confirmMsg=isAll
+    ?'⚠️ คุณกำลังจะลบทุกรูปใน Grid ('+gridSelected.size+' รูป)\n\nแน่ใจ 100% ไหมครับ?\nพิมพ์ "ลบ" เพื่อยืนยัน'
+    :'ลบ '+gridSelected.size+' รูปที่เลือก?\n(ถ้าผูกกับ Calendar แล้วจะลบออกด้วย)';
+  if(isAll){
+    const input=prompt(confirmMsg);
+    if(input!=='ลบ'){showNoti('ยกเลิกการลบแล้ว','#27AE60');return;}
+  } else {
+    if(!confirm(confirmMsg)) return;
+  }
+
   const indices=[...gridSelected].sort((a,b)=>b-a);
+  const gridSheetName=getGridSheetName(activeChannel);
+
   for(const idx of indices){
     const slot=gridSlots[idx];
     if(!slot) continue;
+    // ลบออกจาก Calendar
     const calIdx=posts.findIndex(p=>p.id===slot.id);
     if(calIdx>=0){
       const delId=posts[calIdx].id;
       posts.splice(calIdx,1);
       apiCall({action:'delete',id:delId});
     }
+    // ลบออกจาก Sheet โดยตรง
+    try{
+      await fetch(SHEET_URL,{
+        method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'delete',id:String(slot.id),sheetName:gridSheetName}),
+      });
+    }catch(e){console.error('delete sheet error:',e);}
     gridSlots.splice(idx,1);
   }
+
   gridSelected.clear();
   updateSelectedCount();
   showNoti('🗑️ ลบ '+indices.length+' รูปแล้ว','#E74C3C');
@@ -1914,7 +1935,6 @@ async function deleteSelectedGridSlots(){
   render();
   renderGrid();
   renderUnscheduled();
-  // ออกจาก select mode
   toggleGridSelectMode();
 }
 
@@ -2106,14 +2126,30 @@ function renderGrid(){
 async function deleteGridSlot(idx){
   if(!confirm('ลบรูปนี้ออกจาก Grid?\n(ถ้าผูกกับ Calendar แล้ว จะลบออกจาก Calendar ด้วย)')) return;
   const slot=gridSlots[idx];
+  if(!slot) return;
+
+  // ลบออกจาก Calendar ถ้าผูกกันอยู่
   const calIdx=posts.findIndex(p=>p.id===slot.id);
   if(calIdx>=0){
-    const delId=posts[calIdx].id;posts.splice(calIdx,1);
-    apiCall({action:'delete',id:delId});render();
+    const delId=posts[calIdx].id;
+    posts.splice(calIdx,1);
+    apiCall({action:'delete',id:delId});
+    render();
   }
+
+  // ลบออกจาก Sheet โดยตรง (ไม่ผ่าน saveGridSlots)
+  try{
+    await fetch(SHEET_URL,{
+      method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'delete',id:String(slot.id),sheetName:getGridSheetName(activeChannel)}),
+    });
+  }catch(e){console.error('deleteGridSlot sheet error:',e);}
+
+  // ลบออกจาก memory แล้ว save state ปัจจุบัน
   gridSlots.splice(idx,1);
   await saveGridSlots(true);
-  renderGrid();renderUnscheduled();
+  renderGrid();
+  renderUnscheduled();
 }
 
 async function syncSlotToCalendar(slot){

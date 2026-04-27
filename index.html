@@ -884,7 +884,19 @@ async function loadGridSlots(){
         date:parseSheetDate(r.date),channel:String(r.channel||activeChannel),
         caption:String(r.caption||''),hashtag:String(r.hashtag||''),
         note:String(r.note||''),
-        createdMonth:String(r.createdMonth||''),
+        createdMonth:(()=>{
+          // normalize createdMonth ให้เป็น YYYY-MM เสมอ ไม่ว่า Sheets จะส่งมาในรูปแบบไหน
+          let cm3=String(r.createdMonth||'').trim();
+          if(!cm3) return '';
+          // "1/4/2026" หรือ "4/1/2026"
+          if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(cm3)){
+            const p=cm3.split('/');return p[2]+'-'+String(parseInt(p[1])).padStart(2,'0');
+          }
+          // "2026-04-01"
+          if(/^\d{4}-\d{2}-\d{2}/.test(cm3)) return cm3.slice(0,7);
+          // "2026-04" ถูกแล้ว
+          return cm3;
+        })(),
         type:(()=>{
           const t=String(r.type||'');
           if(t==='pending'||t==='blank') return t;
@@ -997,7 +1009,6 @@ async function saveGridSlots(showLoading=false){
 async function saveGridSlotsToSheet(){
   try{
     const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
-    // ส่งเฉพาะ slot ของเดือนปัจจุบัน พร้อม monthKey เพื่อให้ Apps Script รู้ว่าจะ overwrite เดือนไหน
     const monthSlots=gridSlots.filter(s=>{
       if(s.date){
         const d=new Date(s.date+'T00:00:00');
@@ -1005,12 +1016,22 @@ async function saveGridSlotsToSheet(){
       }
       return (s.createdMonth||curMonthKey)===curMonthKey;
     });
-    const cleanSlots=monthSlots.map(s=>({
-      id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
-      caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
-      type:s.type==='blank'?'blank':(s.img&&s.img.trim()!=='')?'image':'pending',
-      createdMonth:s.createdMonth||curMonthKey,
-    }));
+    const cleanSlots=monthSlots.map(s=>{
+      // normalize createdMonth ให้เป็น YYYY-MM เสมอ
+      let cm2=String(s.createdMonth||curMonthKey).trim();
+      // ถ้าหลุดมาเป็น "1/4/2026" format ให้แปลงกลับ
+      if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(cm2)){
+        const p=cm2.split('/');cm2=p[2]+'-'+String(parseInt(p[1])).padStart(2,'0');
+      } else if(/^\d{4}-\d{2}-\d{2}/.test(cm2)){
+        cm2=cm2.slice(0,7);
+      }
+      return {
+        id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
+        caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
+        type:s.type==='blank'?'blank':s.type==='pending'?'pending':(s.img&&s.img.trim()!=='')?'image':'pending',
+        createdMonth:cm2,
+      };
+    });
     const res=await fetch(SHEET_URL,{
       method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
       body:JSON.stringify({action:'saveGrid',sheetName:getGridSheetName(activeChannel),slots:cleanSlots,monthKey:curMonthKey}),
@@ -2389,14 +2410,23 @@ async function igSectionDrop(e){
   const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
   if(!files.length) return;
   showNoti('⏳ กำลังอัปโหลด '+files.length+' รูป...','#1A6FB5');
+  const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
   let uploaded=0;
   for(const file of files){
-    if(gridSlots.length>=23){showNoti('⚠️ เต็มแล้ว (สูงสุด 23 รูป)','#E74C3C');break;}
     try{
       const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);fd.append('folder','dc-dental-grid');
       const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
       const data=await res.json();
-      if(data.secure_url){gridSlots.unshift({id:activeChannel+'-'+Date.now()+'-'+uploaded,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,''),date:'',caption:'',hashtag:'',note:''});uploaded++;}
+      if(data.secure_url){
+        gridSlots.unshift({
+          id:activeChannel+'-'+Date.now()+'-'+uploaded,
+          img:data.secure_url,
+          title:file.name.replace(/\.[^.]+$/,''),
+          type:'image',date:'',caption:'',hashtag:'',note:'',
+          createdMonth:curMonthKey
+        });
+        uploaded++;
+      }
     }catch(err){console.error(err);}
   }
   await saveGridSlots(true);

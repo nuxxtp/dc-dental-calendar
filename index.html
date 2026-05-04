@@ -220,6 +220,13 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .btn-export{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:10px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
 .btn-export:hover{background:rgba(255,255,255,0.28);}
 
+/* ── PIPELINE STYLES ── */
+#pipelineSection input:focus{border-color:var(--blue)!important;outline:none;box-shadow:0 0 0 3px rgba(26,111,181,0.1);}
+@media(max-width:640px){
+  #pipelineSection{padding:10px 12px 80px!important;}
+  #pipelineSection>div:first-child{flex-direction:column;align-items:flex-start!important;}
+  #plSearchInput{width:100%!important;}
+}
 /* ── ARCHIVE MODAL STYLES ── */
 /* archive modal override removed */
 </style>
@@ -273,6 +280,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     <div id="tabSwitcher" style="display:flex;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.25);flex-shrink:0;">
       <button id="tabCalBtn" onclick="switchTab('calendar')" style="background:rgba(255,255,255,0.25);border:none;color:white;padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s">📅 Calendar</button>
       <button id="tabGridBtn" onclick="switchTab('grid')" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">📸 IG Grid</button>
+      <button id="tabPipelineBtn" onclick="openPipelinePage()" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🎬 Pipeline</button>
     </div>
     <div id="calendarControls" style="display:flex;align-items:center;gap:10px">
       <div class="month-nav">
@@ -415,6 +423,122 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <div id="igGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;"></div>
     </div>
     <div style="text-align:center;margin-top:16px;font-size:12px;color:#aaa">ลากเพื่อสลับตำแหน่ง · คลิกรูปเพื่อแก้ไข/ลบ</div>
+  </div>
+</div>
+
+<!-- ====== PIPELINE SECTION ====== -->
+<div id="pipelineSection" style="display:none;padding:20px 28px 60px;min-height:80vh;">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-family:'Prompt',sans-serif;font-size:18px;font-weight:700;color:var(--blue-dark);">🎬 Pipeline — ภาพรวมสถานะการผลิต</div>
+      <div style="font-size:12px;color:var(--gray-dark);margin-top:2px;">ทุกช่องรวมกัน · กดที่ขั้นตอนในแถวเพื่อเปลี่ยนสถานะทันที</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input id="plSearchInput" type="text" placeholder="🔍 ค้นหาชื่อคลิป..." oninput="renderPipeline()" style="border:1.5px solid #D0DCE8;border-radius:20px;padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;width:220px;transition:border-color 0.2s;">
+      <button onclick="openAddPipeline()" style="background:var(--accent);color:white;border:none;border-radius:10px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">＋ เพิ่มคลิป</button>
+    </div>
+  </div>
+
+  <!-- Summary cards — กดเพื่อ filter -->
+  <div id="plSummaryBar" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:20px;"></div>
+
+  <!-- Filter row — ช่อง -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+    <span style="font-size:11px;font-weight:700;color:var(--gray-dark);">ช่อง:</span>
+    <button class="pl-ch-btn active" data-ch="all" onclick="setPipelineChFilter('all',this)" style="border:1.5px solid var(--blue);background:var(--blue);color:white;border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;font-weight:700;">ทั้งหมด</button>
+    <button class="pl-ch-btn" data-ch="dc-dental" onclick="setPipelineChFilter('dc-dental',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">DC Dental</button>
+    <button class="pl-ch-btn" data-ch="dc-aligner" onclick="setPipelineChFilter('dc-aligner',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">DC Aligner</button>
+    <button class="pl-ch-btn" data-ch="junfun" onclick="setPipelineChFilter('junfun',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">junfun</button>
+    <button class="pl-ch-btn" data-ch="implant" onclick="setPipelineChFilter('implant',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">implant</button>
+    <button class="pl-ch-btn" data-ch="dr-north" onclick="setPipelineChFilter('dr-north',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">dr.north</button>
+    <button class="pl-ch-btn" data-ch="dr-daran" onclick="setPipelineChFilter('dr-daran',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">dr.daran</button>
+    <button class="pl-ch-btn" data-ch="north-tiktok" onclick="setPipelineChFilter('north-tiktok',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">TikTok</button>
+  </div>
+
+  <!-- Filter row — stage -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+    <span style="font-size:11px;font-weight:700;color:var(--gray-dark);">ขั้นตอน:</span>
+    <button class="pl-stage-btn active" data-stage="all" onclick="setPipelineStageFilter('all',this)" style="border:1.5px solid var(--blue);background:var(--blue);color:white;border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;font-weight:700;">ทั้งหมด</button>
+    <button class="pl-stage-btn" data-stage="storyboard" onclick="setPipelineStageFilter('storyboard',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">📝 สตอรี่บอร์ด</button>
+    <button class="pl-stage-btn" data-stage="shooting" onclick="setPipelineStageFilter('shooting',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">🎥 ถ่ายทำ</button>
+    <button class="pl-stage-btn" data-stage="editing" onclick="setPipelineStageFilter('editing',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">✂️ ตัดต่อ</button>
+    <button class="pl-stage-btn" data-stage="thumbnail" onclick="setPipelineStageFilter('thumbnail',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">🖼️ ปกคลิป</button>
+    <button class="pl-stage-btn" data-stage="caption" onclick="setPipelineStageFilter('caption',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">✍️ แคปชั่น</button>
+    <button class="pl-stage-btn" data-stage="scheduling" onclick="setPipelineStageFilter('scheduling',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">📅 ลงแพลน</button>
+    <button class="pl-stage-btn" data-stage="complete" onclick="setPipelineStageFilter('complete',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">✅ Complete</button>
+  </div>
+
+  <!-- Result count -->
+  <div id="plResultCount" style="font-size:12px;color:var(--gray-dark);margin-bottom:10px;"></div>
+
+  <!-- Pipeline table-style list -->
+  <div style="background:white;border-radius:12px;border:1.5px solid #E4EDF5;overflow:hidden;">
+    <!-- Table header -->
+    <div style="display:grid;grid-template-columns:1fr 100px 340px 28px;gap:0;background:#F4F7FB;border-bottom:1.5px solid #E4EDF5;padding:8px 16px;align-items:center;">
+      <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;">ชื่อคลิป</div>
+      <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;">ช่อง</div>
+      <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;text-align:center;">
+        <span style="display:inline-flex;gap:0;align-items:center;">
+          <span style="width:40px;text-align:center;font-size:9px;">📝<br>Story</span>
+          <span style="width:6px;color:#C5CDD6;">›</span>
+          <span style="width:40px;text-align:center;font-size:9px;">🎥<br>ถ่าย</span>
+          <span style="width:6px;color:#C5CDD6;">›</span>
+          <span style="width:40px;text-align:center;font-size:9px;">✂️<br>ตัด</span>
+          <span style="width:6px;color:#C5CDD6;">›</span>
+          <span style="width:40px;text-align:center;font-size:9px;">🖼️<br>ปก</span>
+          <span style="width:6px;color:#C5CDD6;">›</span>
+          <span style="width:40px;text-align:center;font-size:9px;">✍️<br>แคป</span>
+          <span style="width:6px;color:#C5CDD6;">›</span>
+          <span style="width:40px;text-align:center;font-size:9px;">📅<br>แพลน</span>
+          <span style="width:6px;color:#C5CDD6;">›</span>
+          <span style="width:40px;text-align:center;font-size:9px;">✅<br>Done</span>
+        </span>
+      </div>
+      <div></div>
+    </div>
+    <!-- List rows -->
+    <div id="pipelineList"></div>
+    <div id="plEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--gray-dark);">
+      <div style="font-size:36px;margin-bottom:10px;">🎬</div>
+      <div style="font-size:14px;font-weight:700;">ไม่พบคลิปที่ตรงกัน</div>
+      <div style="font-size:12px;margin-top:5px;">ลองเปลี่ยน filter หรือกด "+ เพิ่มคลิป"</div>
+    </div>
+  </div>
+</div>
+
+<!-- PIPELINE ADD/EDIT MODAL -->
+<div class="modal-overlay" id="pipelineModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="plModalTitle">➕ เพิ่มคลิปใน Pipeline</h2>
+      <button class="modal-close" onclick="closeModal('pipelineModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="plEditId">
+      <div class="form-row"><label>ชื่อคลิป / หัวข้อ *</label>
+        <input type="text" id="plTitle" placeholder="เช่น 171 รากฟันเทียม"></div>
+      <div class="form-row"><label>โฟลเดอร์ใน Sheet (ถ้ามี)</label>
+        <input type="text" id="plFolder" placeholder="เช่น 171 รากฟันเทียมคือ"></div>
+      <div class="form-row"><label>ช่อง</label>
+        <select id="plChannel">
+          <option value="dc-dental">DC Dental Clinic</option>
+          <option value="dc-aligner">DC Aligner</option>
+          <option value="junfun">judfunreview</option>
+          <option value="implant">implant review</option>
+          <option value="dr-north">dr.north</option>
+          <option value="dr-daran">dr.daran</option>
+          <option value="north-tiktok">TikTok</option>
+        </select></div>
+      <div class="form-row"><label>หมายเหตุ</label>
+        <textarea id="plNote" placeholder="บันทึกเพิ่มเติม..." style="min-height:60px"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-delete" id="plBtnDelete" onclick="deletePipelineItem()" style="display:none">🗑 ลบ</button>
+        <button class="btn-cancel" onclick="closeModal('pipelineModal')">ยกเลิก</button>
+        <button class="btn-save" onclick="savePipelineItem()">💾 บันทึก</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1813,15 +1937,18 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('cl
 // =====================================================
 async function switchTab(tab){
   const isGrid=tab==='grid';
+  const isCalendar=tab==='calendar';
   document.getElementById('igGridSection').style.display=isGrid?'block':'none';
-  document.querySelector('.calendar-wrap').style.display=isGrid?'none':'block';
-  document.querySelector('.stats-bar').style.display=isGrid?'none':'flex';
-  document.getElementById('calendarControls').style.display=isGrid?'none':'flex';
+  document.querySelector('.calendar-wrap').style.display=isCalendar?'block':'none';
+  document.querySelector('.stats-bar').style.display=isCalendar?'flex':'none';
+  document.getElementById('calendarControls').style.display=isCalendar?'flex':'none';
   document.getElementById('gridControls').style.display=isGrid?'flex':'none';
-  document.getElementById('tabCalBtn').style.background=isGrid?'transparent':'rgba(255,255,255,0.25)';
-  document.getElementById('tabCalBtn').style.color=isGrid?'rgba(255,255,255,0.7)':'white';
+  document.getElementById('tabCalBtn').style.background=isCalendar?'rgba(255,255,255,0.25)':'transparent';
+  document.getElementById('tabCalBtn').style.color=isCalendar?'white':'rgba(255,255,255,0.7)';
+  document.getElementById('tabCalBtn').style.fontWeight=isCalendar?'700':'600';
   document.getElementById('tabGridBtn').style.background=isGrid?'rgba(255,255,255,0.25)':'transparent';
   document.getElementById('tabGridBtn').style.color=isGrid?'white':'rgba(255,255,255,0.7)';
+  document.getElementById('tabGridBtn').style.fontWeight=isGrid?'700':'600';
   if(isGrid){
     await loadGridSlots();
     renderGrid();
@@ -3286,6 +3413,640 @@ function jumpToMonth(year,month){
   cy=parseInt(year);
   cm=parseInt(month);
   render();
+}
+
+// =====================================================
+// PIPELINE — DATA & RENDER
+// =====================================================
+let pipelineItems=[];
+let plStageFilter='all';
+let plChFilter='all';
+
+const PL_STAGES=[
+  {key:'storyboard', label:'สตอรี่บอร์ด', short:'Story', icon:'📝', color:'#7F8C8D', bg:'#ECF0F1', ring:'#b0b8bd'},
+  {key:'shooting',   label:'ถ่ายทำ',       short:'ถ่าย',  icon:'🎥', color:'#8E44AD', bg:'#F3E5F5', ring:'#c39bd3'},
+  {key:'editing',    label:'ตัดต่อ',        short:'ตัด',   icon:'✂️', color:'#2980B9', bg:'#D6EAF8', ring:'#7fb3d3'},
+  {key:'thumbnail',  label:'ปกคลิป',        short:'ปก',    icon:'🖼️', color:'#E67E22', bg:'#FEF0D9', ring:'#f0b27a'},
+  {key:'caption',    label:'แคปชั่น',       short:'แคป',   icon:'✍️', color:'#C13584', bg:'#FDE7F3', ring:'#d98ec7'},
+  {key:'scheduling', label:'ลงแพลน',        short:'แพลน',  icon:'📅', color:'#1A6FB5', bg:'#E8F4FD', ring:'#7fb3e0'},
+  {key:'complete',   label:'Complete',       short:'Done',  icon:'✅', color:'#27AE60', bg:'#D5F5E3', ring:'#82e0aa'},
+];
+
+const PL_CHANNEL_COLORS={
+  'dc-dental':   {bg:'#FFF3E0',fg:'#8B6F5E',label:'DC Dental'},
+  'dc-aligner':  {bg:'#E8F4FD',fg:'#1A6FB5',label:'DC Aligner'},
+  'junfun':      {bg:'#FAF3EE',fg:'#B8876A',label:'junfun'},
+  'implant':     {bg:'#F2F3F4',fg:'#5D6D7E',label:'implant'},
+  'dr-north':    {bg:'#FEF5EC',fg:'#E67E22',label:'dr.north'},
+  'dr-daran':    {bg:'#EAFAF1',fg:'#27AE60',label:'dr.daran'},
+  'north-tiktok':{bg:'#F0F0F0',fg:'#010101',label:'TikTok'},
+};
+
+function getStage(key){ return PL_STAGES.find(s=>s.key===key)||PL_STAGES[0]; }
+function getStageIdx(key){ return PL_STAGES.findIndex(s=>s.key===key); }
+
+async function loadPipelineItems(){
+  try{
+    const cached=localStorage.getItem('dcPipeline');
+    if(cached) pipelineItems=JSON.parse(cached);
+  }catch(e){ pipelineItems=[]; }
+  try{
+    const res=await fetch(SHEET_URL+'?t='+Date.now()+'&sheet=Pipeline',{method:'GET',redirect:'follow'});
+    const data=JSON.parse(await res.text());
+    if(Array.isArray(data)&&data.length>0){
+      pipelineItems=data.map(r=>({
+        id:String(r.id||''),
+        title:String(r.title||''),
+        folder:String(r.folder||''),
+        channel:String(r.channel||'dc-dental'),
+        stage:String(r.stage||'storyboard'),
+        note:String(r.note||''),
+        updatedAt:String(r.updatedAt||''),
+      })).filter(r=>r.id&&r.title);
+      try{ localStorage.setItem('dcPipeline',JSON.stringify(pipelineItems)); }catch(e){}
+    }
+  }catch(e){ console.warn('Pipeline load error:',e); }
+}
+
+async function savePipelineToSheet(item){
+  try{
+    const res=await fetch(SHEET_URL,{
+      method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'save',sheetName:'Pipeline',post:item})
+    });
+    return JSON.parse(await res.text());
+  }catch(e){ console.error('Pipeline save error:',e); return null; }
+}
+
+async function deletePipelineFromSheet(id){
+  try{
+    const res=await fetch(SHEET_URL,{
+      method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'delete',sheetName:'Pipeline',id:id})
+    });
+    return JSON.parse(await res.text());
+  }catch(e){ return null; }
+}
+
+// ── Quick stage change (กดที่ dot ใน row) ──
+async function quickSetStage(id, newStageKey, dotEl){
+  const item=pipelineItems.find(p=>p.id===id);
+  if(!item) return;
+  if(item.stage===newStageKey) return;
+  item.stage=newStageKey;
+  item.updatedAt=new Date().toISOString();
+  try{ localStorage.setItem('dcPipeline',JSON.stringify(pipelineItems)); }catch(e){}
+  // อัปเดต UI row เฉพาะ row นั้น ไม่ re-render ทั้งหน้า
+  const row=dotEl.closest('.pl-row');
+  if(row) updateRowDots(row, id, newStageKey);
+  renderPipelineSummary();
+  // sync sheet ใน background
+  savePipelineToSheet(item).then(r=>{
+    if(r&&r.ok) showNoti('✅ บันทึกแล้ว','#27AE60');
+    else showNoti('⚠️ sync ไม่สำเร็จ (local saved)','#E67E22');
+  });
+}
+
+function updateRowDots(row, id, currentStageKey){
+  const curIdx=getStageIdx(currentStageKey);
+  const dots=row.querySelectorAll('.pl-dot');
+  dots.forEach((dot,i)=>{
+    const s=PL_STAGES[i];
+    const done=i<curIdx;
+    const current=i===curIdx;
+    // สี background ของ dot
+    dot.style.background=done?s.color:current?s.color:'#E4EDF5';
+    dot.style.opacity=done?'1':current?'1':'0.25';
+    dot.style.transform=current?'scale(1.25)':'scale(1)';
+    dot.style.boxShadow=current?`0 0 0 3px ${s.ring}`:'none';
+    dot.title=s.icon+' '+s.label+(current?' ← อยู่นี่':done?' ✓':'');
+  });
+  // อัปเดต label ช่อง stage ซ้ายมือ
+  const stageLabel=row.querySelector('.pl-row-stage');
+  if(stageLabel){
+    const s=PL_STAGES[curIdx];
+    stageLabel.textContent=s.icon+' '+s.label;
+    stageLabel.style.background=s.bg;
+    stageLabel.style.color=s.color;
+  }
+}
+
+function setPipelineStageFilter(stage,btn){
+  plStageFilter=stage;
+  document.querySelectorAll('.pl-stage-btn').forEach(b=>{
+    const active=b.dataset.stage===stage;
+    b.style.background=active?'var(--blue)':'white';
+    b.style.color=active?'white':'var(--gray-dark)';
+    b.style.borderColor=active?'var(--blue)':'#D0DCE8';
+    b.style.fontWeight=active?'700':'400';
+  });
+  renderPipeline();
+}
+
+function setPipelineChFilter(ch,btn){
+  plChFilter=ch;
+  document.querySelectorAll('.pl-ch-btn').forEach(b=>{
+    const active=b.dataset.ch===ch;
+    b.style.background=active?'var(--blue)':'white';
+    b.style.color=active?'white':'var(--gray-dark)';
+    b.style.borderColor=active?'var(--blue)':'#D0DCE8';
+    b.style.fontWeight=active?'700':'400';
+  });
+  renderPipeline();
+}
+
+function renderPipelineSummary(){
+  const bar=document.getElementById('plSummaryBar');
+  if(!bar) return;
+  const counts={};
+  PL_STAGES.forEach(s=>{ counts[s.key]=0; });
+  pipelineItems.forEach(item=>{ if(counts[item.stage]!==undefined) counts[item.stage]++; });
+  const total=pipelineItems.length;
+  let html=`<div onclick="setPipelineStageFilter('all',document.querySelector('.pl-stage-btn[data-stage=all]'))" style="background:#E8F4FD;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:2px solid ${plStageFilter==='all'?'var(--blue)':'transparent'};transition:border 0.15s;">
+    <span style="font-size:22px;font-weight:700;color:#1A6FB5;line-height:1;">${total}</span>
+    <span style="font-size:10px;color:#1A6FB5;font-weight:700;">ทั้งหมด</span></div>`;
+  PL_STAGES.forEach(s=>{
+    const active=plStageFilter===s.key;
+    html+=`<div onclick="setPipelineStageFilter('${s.key}',document.querySelector('.pl-stage-btn[data-stage=${s.key}]'))" style="background:${s.bg};border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:2px solid ${active?s.color:'transparent'};transition:border 0.15s;">
+      <span style="font-size:22px;font-weight:700;color:${s.color};line-height:1;">${counts[s.key]}</span>
+      <span style="font-size:9px;color:${s.color};font-weight:700;text-align:center;">${s.icon} ${s.short}</span></div>`;
+  });
+  bar.innerHTML=html;
+}
+
+function renderPipeline(){
+  renderPipelineSummary();
+  const search=(document.getElementById('plSearchInput')?.value||'').toLowerCase().trim();
+  let items=pipelineItems.filter(item=>{
+    if(plStageFilter!=='all'&&item.stage!==plStageFilter) return false;
+    if(plChFilter!=='all'&&item.channel!==plChFilter) return false;
+    if(search&&!item.title.toLowerCase().includes(search)&&!(item.folder||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+  // sort by stage order
+  items.sort((a,b)=>{
+    const ia=getStageIdx(a.stage);
+    const ib=getStageIdx(b.stage);
+    return ia-ib;
+  });
+
+  const list=document.getElementById('pipelineList');
+  const empty=document.getElementById('plEmpty');
+  const countEl=document.getElementById('plResultCount');
+  if(!list) return;
+  if(countEl) countEl.textContent=`แสดง ${items.length} คลิป จากทั้งหมด ${pipelineItems.length} คลิป`;
+
+  if(items.length===0){
+    list.innerHTML='';
+    if(empty) empty.style.display='block';
+    return;
+  }
+  if(empty) empty.style.display='none';
+
+  list.innerHTML=items.map((item,rowIdx)=>{
+    const curIdx=getStageIdx(item.stage);
+    const chMeta=PL_CHANNEL_COLORS[item.channel]||{bg:'#ECF0F1',fg:'#7F8C8D',label:item.channel};
+    const stage=getStage(item.stage);
+
+    // 7 dots — กดได้ทันที
+    const dotsHtml=PL_STAGES.map((s,i)=>{
+      const done=i<curIdx;
+      const current=i===curIdx;
+      const bg=done?s.color:current?s.color:'#E4EDF5';
+      const opacity=done?'1':current?'1':'0.22';
+      const scale=current?'scale(1.25)':'scale(1)';
+      const ring=current?`0 0 0 3px ${s.ring}`:'none';
+      const title=s.icon+' '+s.label+(current?' ← อยู่นี่':done?' ✓':'');
+      return `<div class="pl-dot" data-stage="${s.key}" onclick="quickSetStage('${item.id}','${s.key}',this)" title="${title}"
+        style="width:26px;height:26px;border-radius:50%;background:${bg};opacity:${opacity};transform:${scale};box-shadow:${ring};
+        cursor:pointer;flex-shrink:0;transition:all 0.15s;display:flex;align-items:center;justify-content:center;font-size:11px;">
+      </div>
+      ${i<6?`<div style="width:14px;height:2px;background:${done&&(i+1)<=curIdx-1?PL_STAGES[i+1].color:'#E4EDF5'};opacity:${done?'0.6':'0.3'};border-radius:2px;flex-shrink:0;"></div>`:''}`;
+    }).join('');
+
+    const bg=rowIdx%2===0?'white':'#FAFBFC';
+    return `<div class="pl-row" data-id="${item.id}" style="display:grid;grid-template-columns:1fr 100px 340px 28px;gap:0;background:${bg};border-bottom:1px solid #F0F4F8;padding:10px 16px;align-items:center;transition:background 0.1s;" onmouseover="this.style.background='#EEF5FB'" onmouseout="this.style.background='${bg}'">
+      <!-- ชื่อ -->
+      <div style="min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${item.title}">${item.title}</div>
+        ${item.folder?`<div style="font-size:10px;color:#aaa;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📁 ${item.folder}</div>`:''}
+        ${item.note?`<div style="font-size:10px;color:#bbb;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📎 ${item.note}</div>`:''}
+      </div>
+      <!-- ช่อง -->
+      <div>
+        <span style="background:${chMeta.bg};color:${chMeta.fg};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;white-space:nowrap;">${chMeta.label}</span>
+      </div>
+      <!-- Dots progress -->
+      <div style="display:flex;align-items:center;gap:0;">${dotsHtml}</div>
+      <!-- Edit btn -->
+      <div>
+        <button onclick="openEditPipeline('${item.id}')" title="แก้ไข" style="background:none;border:none;cursor:pointer;color:#C5CDD6;font-size:16px;padding:4px;border-radius:6px;transition:color 0.15s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='#C5CDD6'">✏️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddPipeline(){
+  document.getElementById('plModalTitle').textContent='➕ เพิ่มคลิปใน Pipeline';
+  document.getElementById('plEditId').value='';
+  document.getElementById('plTitle').value='';
+  document.getElementById('plFolder').value='';
+  document.getElementById('plChannel').value=activeChannel||'dc-dental';
+  document.getElementById('plNote').value='';
+  document.getElementById('plBtnDelete').style.display='none';
+  document.getElementById('pipelineModal').classList.add('open');
+}
+
+function openEditPipeline(id){
+  const item=pipelineItems.find(p=>p.id===id);
+  if(!item) return;
+  document.getElementById('plModalTitle').textContent='✏️ แก้ไขข้อมูลคลิป';
+  document.getElementById('plEditId').value=item.id;
+  document.getElementById('plTitle').value=item.title;
+  document.getElementById('plFolder').value=item.folder||'';
+  document.getElementById('plChannel').value=item.channel||'dc-dental';
+  document.getElementById('plNote').value=item.note||'';
+  document.getElementById('plBtnDelete').style.display='inline-block';
+  document.getElementById('pipelineModal').classList.add('open');
+}
+
+async function savePipelineItem(){
+  const title=document.getElementById('plTitle').value.trim();
+  if(!title){ showNoti('⚠️ กรุณาใส่ชื่อคลิป','#E67E22'); return; }
+  const existingId=document.getElementById('plEditId').value;
+  const id=existingId||('pl_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+  const existingItem=pipelineItems.find(p=>p.id===id);
+  const item={
+    id,
+    title,
+    folder:document.getElementById('plFolder').value.trim(),
+    channel:document.getElementById('plChannel').value,
+    stage:existingItem?existingItem.stage:'storyboard',
+    note:document.getElementById('plNote').value.trim(),
+    updatedAt:new Date().toISOString(),
+  };
+  const idx=pipelineItems.findIndex(p=>p.id===id);
+  if(idx>=0) pipelineItems[idx]=item;
+  else pipelineItems.unshift(item);
+  try{ localStorage.setItem('dcPipeline',JSON.stringify(pipelineItems)); }catch(e){}
+  closeModal('pipelineModal');
+  renderPipeline();
+  showNoti('💾 บันทึกแล้ว กำลัง sync...','#27AE60');
+  const result=await savePipelineToSheet(item);
+  if(result&&result.ok) showNoti('✅ บันทึกลง Sheets แล้ว','#27AE60');
+  else showNoti('⚠️ Sheets sync ไม่สำเร็จ (local saved)','#E67E22');
+}
+
+async function deletePipelineItem(){
+  const id=document.getElementById('plEditId').value;
+  if(!id) return;
+  if(!confirm('ลบคลิปนี้ออกจาก Pipeline?')) return;
+  pipelineItems=pipelineItems.filter(p=>p.id!==id);
+  try{ localStorage.setItem('dcPipeline',JSON.stringify(pipelineItems)); }catch(e){}
+  closeModal('pipelineModal');
+  renderPipeline();
+  showNoti('🗑 ลบแล้ว','#E74C3C');
+  await deletePipelineFromSheet(id);
+}
+
+// ===== เปิด Pipeline เป็น page ใหม่ =====
+function openPipelinePage(){
+  const GAS=SHEET_URL;
+  const stagesJson=JSON.stringify(PL_STAGES);
+  const chJson=JSON.stringify(PL_CHANNEL_COLORS);
+  const cached=localStorage.getItem('dcPipeline')||'[]';
+
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🎬 DC Dental Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:#F0F4F8;color:#1A1A2E;}
+.top-bar{background:linear-gradient(135deg,#1A6FB5 0%,#0D4F8C 100%);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.15);}
+.top-bar h1{font-family:'Prompt',sans-serif;font-size:18px;font-weight:700;color:white;}
+.top-bar .sub{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;}
+.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.top-actions input{border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);border-radius:20px;padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;color:white;outline:none;width:220px;}
+.top-actions input::placeholder{color:rgba(255,255,255,0.6);}
+.top-actions input:focus{border-color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.2);}
+.btn-add{background:white;color:#1A6FB5;border:none;border-radius:10px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-add:hover{background:#E8F4FD;}
+.wrap{padding:20px 28px 80px;}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:8px;margin-bottom:20px;}
+.s-card{border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
+.s-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.s-card .num{font-size:24px;font-weight:700;line-height:1;}
+.s-card .lbl{font-size:9px;font-weight:700;text-align:center;}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;}
+.filter-row span{font-size:11px;font-weight:700;color:#5D6D7E;}
+.pill{border:1.5px solid #D0DCE8;background:white;color:#5D6D7E;border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;transition:all 0.15s;}
+.pill.active{background:#1A6FB5;color:white;border-color:#1A6FB5;font-weight:700;}
+.result-count{font-size:12px;color:#7F8C8D;margin-bottom:10px;}
+.table-wrap{background:white;border-radius:12px;border:1.5px solid #E4EDF5;overflow:hidden;}
+.table-head{display:grid;grid-template-columns:1fr 100px 340px 32px;background:#F4F7FB;border-bottom:1.5px solid #E4EDF5;padding:8px 16px;}
+.table-head div{font-size:10px;font-weight:700;color:#7F8C8D;text-transform:uppercase;letter-spacing:0.5px;}
+.th-stage{display:flex;gap:0;align-items:center;}
+.th-stage span{width:40px;text-align:center;font-size:9px;font-weight:700;color:#7F8C8D;}
+.th-stage .sep{width:6px;color:#C5CDD6;font-size:10px;}
+.pl-row{display:grid;grid-template-columns:1fr 100px 340px 32px;padding:10px 16px;border-bottom:1px solid #F0F4F8;align-items:center;transition:background 0.1s;cursor:default;}
+.pl-row:hover{background:#EEF5FB;}
+.pl-row:last-child{border-bottom:none;}
+.clip-title{font-size:13px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.clip-sub{font-size:10px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.ch-badge{display:inline-block;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;white-space:nowrap;}
+.dots-row{display:flex;align-items:center;gap:0;}
+.pl-dot{width:26px;height:26px;border-radius:50%;cursor:pointer;flex-shrink:0;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+.pl-dot:hover{transform:scale(1.3)!important;}
+.dot-sep{width:14px;height:2px;border-radius:2px;flex-shrink:0;}
+.edit-btn{background:none;border:none;cursor:pointer;color:#C5CDD6;font-size:15px;padding:4px;border-radius:6px;transition:color 0.15s;}
+.edit-btn:hover{color:#1A6FB5;}
+.empty{text-align:center;padding:60px 20px;color:#7F8C8D;}
+.empty .ico{font-size:40px;margin-bottom:12px;}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:16px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+.modal-header{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:center;}
+.modal-header h2{font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;color:#1A1A2E;}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#7F8C8D;line-height:1;}
+.modal-body{padding:16px 24px 24px;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:12px;font-weight:700;color:#5D6D7E;margin-bottom:5px;}
+.form-row input,.form-row select,.form-row textarea{width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#1A6FB5;}
+.form-row textarea{min-height:60px;resize:vertical;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+.btn-cancel{background:#F4F7FB;color:#5D6D7E;border:none;border-radius:8px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;}
+.btn-save{background:#1A6FB5;color:white;border:none;border-radius:8px;padding:8px 20px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-delete{background:#FDECEA;color:#E74C3C;border:none;border-radius:8px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;margin-right:auto;}
+.noti{position:fixed;bottom:24px;right:24px;background:#1A1A2E;color:white;padding:10px 18px;border-radius:10px;font-size:13px;font-family:'Sarabun',sans-serif;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;}
+@media(max-width:700px){
+  .wrap{padding:12px 12px 80px;}
+  .table-head,.pl-row{grid-template-columns:1fr 70px 200px 28px;}
+  .th-stage span{width:26px;font-size:8px;}
+  .pl-dot{width:20px;height:20px;}
+  .dot-sep{width:8px;}
+}
+</style></head><body>
+
+<div class="top-bar">
+  <div>
+    <div class="top-bar h1" style="font-family:Prompt,sans-serif;font-size:18px;font-weight:700;color:white;">🎬 DC Dental Pipeline</div>
+    <div class="sub">ภาพรวมสถานะการผลิตคอนเทนต์ทุกช่อง · กดที่จุดเพื่อเปลี่ยนสถานะทันที</div>
+  </div>
+  <div class="top-actions">
+    <input type="text" id="plSearch" placeholder="🔍 ค้นหาชื่อคลิป..." oninput="renderPL()">
+    <button class="btn-add" onclick="openAdd()">＋ เพิ่มคลิป</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="plSummary" class="summary-grid"></div>
+  <div class="filter-row">
+    <span>ช่อง:</span>
+    <button class="pill active" data-ch="all" onclick="setChF('all',this)">ทั้งหมด</button>
+    <button class="pill" data-ch="dc-dental" onclick="setChF('dc-dental',this)">DC Dental</button>
+    <button class="pill" data-ch="dc-aligner" onclick="setChF('dc-aligner',this)">DC Aligner</button>
+    <button class="pill" data-ch="junfun" onclick="setChF('junfun',this)">junfun</button>
+    <button class="pill" data-ch="implant" onclick="setChF('implant',this)">implant</button>
+    <button class="pill" data-ch="dr-north" onclick="setChF('dr-north',this)">dr.north</button>
+    <button class="pill" data-ch="dr-daran" onclick="setChF('dr-daran',this)">dr.daran</button>
+    <button class="pill" data-ch="north-tiktok" onclick="setChF('north-tiktok',this)">TikTok</button>
+  </div>
+  <div class="filter-row">
+    <span>ขั้นตอน:</span>
+    <button class="pill active" data-st="all" onclick="setStF('all',this)">ทั้งหมด</button>
+    <button class="pill" data-st="storyboard" onclick="setStF('storyboard',this)">📝 สตอรี่บอร์ด</button>
+    <button class="pill" data-st="shooting" onclick="setStF('shooting',this)">🎥 ถ่ายทำ</button>
+    <button class="pill" data-st="editing" onclick="setStF('editing',this)">✂️ ตัดต่อ</button>
+    <button class="pill" data-st="thumbnail" onclick="setStF('thumbnail',this)">🖼️ ปกคลิป</button>
+    <button class="pill" data-st="caption" onclick="setStF('caption',this)">✍️ แคปชั่น</button>
+    <button class="pill" data-st="scheduling" onclick="setStF('scheduling',this)">📅 ลงแพลน</button>
+    <button class="pill" data-st="complete" onclick="setStF('complete',this)">✅ Complete</button>
+  </div>
+  <div id="plCount" class="result-count"></div>
+  <div class="table-wrap">
+    <div class="table-head">
+      <div>ชื่อคลิป</div><div>ช่อง</div>
+      <div class="th-stage">
+        <span>📝<br>Story</span><span class="sep">›</span>
+        <span>🎥<br>ถ่าย</span><span class="sep">›</span>
+        <span>✂️<br>ตัด</span><span class="sep">›</span>
+        <span>🖼️<br>ปก</span><span class="sep">›</span>
+        <span>✍️<br>แคป</span><span class="sep">›</span>
+        <span>📅<br>แพลน</span><span class="sep">›</span>
+        <span>✅<br>Done</span>
+      </div>
+      <div></div>
+    </div>
+    <div id="plList"></div>
+    <div id="plEmpty" class="empty" style="display:none">
+      <div class="ico">🎬</div>
+      <div style="font-size:14px;font-weight:700;">ไม่พบคลิปที่ตรงกัน</div>
+      <div style="font-size:12px;margin-top:5px;">ลองเปลี่ยน filter หรือกด "+ เพิ่มคลิป"</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="plModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="plMTitle">➕ เพิ่มคลิปใน Pipeline</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="plEId">
+      <div class="form-row"><label>ชื่อคลิป / หัวข้อ *</label><input type="text" id="plTit" placeholder="เช่น 171 รากฟันเทียม"></div>
+      <div class="form-row"><label>โฟลเดอร์ใน Sheet (ถ้ามี)</label><input type="text" id="plFol" placeholder="เช่น 171 รากฟันเทียมคือ"></div>
+      <div class="form-row"><label>ช่อง</label>
+        <select id="plCh">
+          <option value="dc-dental">DC Dental Clinic</option>
+          <option value="dc-aligner">DC Aligner</option>
+          <option value="junfun">judfunreview</option>
+          <option value="implant">implant review</option>
+          <option value="dr-north">dr.north</option>
+          <option value="dr-daran">dr.daran</option>
+          <option value="north-tiktok">TikTok</option>
+        </select></div>
+      <div class="form-row"><label>หมายเหตุ</label><textarea id="plNt" placeholder="บันทึกเพิ่มเติม..."></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-delete" id="plDelBtn" onclick="deleteItem()" style="display:none">🗑 ลบ</button>
+        <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+        <button class="btn-save" onclick="saveItem()">💾 บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="noti" id="noti"></div>
+
+<script>
+const GAS_URL='${GAS}';
+const STAGES=${stagesJson};
+const CH_COLORS=${chJson};
+let items=[];
+let stF='all',chF='all';
+
+function getStIdx(k){return STAGES.findIndex(s=>s.key===k);}
+function getSt(k){return STAGES.find(s=>s.key===k)||STAGES[0];}
+
+async function init(){
+  try{const c=localStorage.getItem('dcPipeline');if(c)items=JSON.parse(c);}catch(e){items=[];}
+  renderPL();
+  try{
+    const res=await fetch(GAS_URL+'?t='+Date.now()+'&sheet=Pipeline',{method:'GET',redirect:'follow'});
+    const data=JSON.parse(await res.text());
+    if(Array.isArray(data)&&data.length>0){
+      items=data.map(r=>({id:String(r.id||''),title:String(r.title||''),folder:String(r.folder||''),channel:String(r.channel||'dc-dental'),stage:String(r.stage||'storyboard'),note:String(r.note||''),updatedAt:String(r.updatedAt||'')})).filter(r=>r.id&&r.title);
+      try{localStorage.setItem('dcPipeline',JSON.stringify(items));}catch(e){}
+      renderPL();
+    }
+  }catch(e){console.warn('load err',e);}
+}
+
+function setChF(v,btn){chF=v;document.querySelectorAll('[data-ch]').forEach(b=>{b.classList.toggle('active',b.dataset.ch===v);});renderPL();}
+function setStF(v,btn){stF=v;document.querySelectorAll('[data-st]').forEach(b=>{b.classList.toggle('active',b.dataset.st===v);});renderPL();}
+
+function renderSummary(){
+  const bar=document.getElementById('plSummary');if(!bar)return;
+  const c={};STAGES.forEach(s=>{c[s.key]=0;});
+  items.forEach(it=>{if(c[it.stage]!==undefined)c[it.stage]++;});
+  let h=\`<div class="s-card" style="background:#E8F4FD;border-color:\${stF==='all'?'#1A6FB5':'transparent'}" onclick="setStF('all',null)"><span class="num" style="color:#1A6FB5;">\${items.length}</span><span class="lbl" style="color:#1A6FB5;">ทั้งหมด</span></div>\`;
+  STAGES.forEach(s=>{h+=\`<div class="s-card" style="background:\${s.bg};border-color:\${stF===s.key?s.color:'transparent'}" onclick="setStF('\${s.key}',null)"><span class="num" style="color:\${s.color};">\${c[s.key]}</span><span class="lbl" style="color:\${s.color};">\${s.icon} \${s.short}</span></div>\`;});
+  bar.innerHTML=h;
+}
+
+function renderPL(){
+  renderSummary();
+  const q=(document.getElementById('plSearch')?.value||'').toLowerCase();
+  let list=items.filter(it=>{
+    if(stF!=='all'&&it.stage!==stF)return false;
+    if(chF!=='all'&&it.channel!==chF)return false;
+    if(q&&!it.title.toLowerCase().includes(q)&&!(it.folder||'').toLowerCase().includes(q))return false;
+    return true;
+  }).sort((a,b)=>getStIdx(a.stage)-getStIdx(b.stage));
+  const el=document.getElementById('plList');
+  const em=document.getElementById('plEmpty');
+  const co=document.getElementById('plCount');
+  if(co)co.textContent='แสดง '+list.length+' คลิป จากทั้งหมด '+items.length+' คลิป';
+  if(!list.length){el.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  el.innerHTML=list.map((it,ri)=>{
+    const ci=getStIdx(it.stage);
+    const ch=CH_COLORS[it.channel]||{bg:'#ECF0F1',fg:'#7F8C8D',label:it.channel};
+    const dots=STAGES.map((s,i)=>{
+      const done=i<ci,cur=i===ci;
+      const bg=done||cur?s.color:'#E4EDF5';
+      const op=done||cur?1:0.22;
+      const sc=cur?1.25:1;
+      const sh=cur?\`0 0 0 3px \${s.ring}\`:'none';
+      return \`<div class="pl-dot" onclick="quickSet('\${it.id}','\${s.key}',this)" title="\${s.icon} \${s.label}\${cur?' ← อยู่นี่':done?' ✓':''}"
+        style="background:\${bg};opacity:\${op};transform:scale(\${sc});box-shadow:\${sh};"></div>
+        \${i<6?\`<div class="dot-sep" style="background:\${done&&i+1<=ci-1?STAGES[i+1].color:'#E4EDF5'};opacity:\${done?0.6:0.3};"></div>\`:''}\`;
+    }).join('');
+    return \`<div class="pl-row" style="background:\${ri%2===0?'white':'#FAFBFC'}">
+      <div style="min-width:0"><div class="clip-title" title="\${it.title}">\${it.title}</div>\${it.folder?\`<div class="clip-sub">📁 \${it.folder}</div>\`:''}\${it.note?\`<div class="clip-sub">📎 \${it.note}</div>\`:''}</div>
+      <div><span class="ch-badge" style="background:\${ch.bg};color:\${ch.fg};">\${ch.label}</span></div>
+      <div class="dots-row">\${dots}</div>
+      <div><button class="edit-btn" onclick="openEdit('\${it.id}')">✏️</button></div>
+    </div>\`;
+  }).join('');
+}
+
+async function quickSet(id,newStage,dotEl){
+  const it=items.find(p=>p.id===id);if(!it||it.stage===newStage)return;
+  it.stage=newStage;it.updatedAt=new Date().toISOString();
+  try{localStorage.setItem('dcPipeline',JSON.stringify(items));}catch(e){}
+  const row=dotEl.closest('.pl-row');
+  if(row){
+    const ci=getStIdx(newStage);
+    const dots=row.querySelectorAll('.pl-dot');
+    const seps=row.querySelectorAll('.dot-sep');
+    dots.forEach((d,i)=>{
+      const s=STAGES[i];const done=i<ci,cur=i===ci;
+      d.style.background=done||cur?s.color:'#E4EDF5';
+      d.style.opacity=done||cur?1:0.22;
+      d.style.transform=\`scale(\${cur?1.25:1})\`;
+      d.style.boxShadow=cur?\`0 0 0 3px \${s.ring}\`:'none';
+    });
+    seps.forEach((sp,i)=>{sp.style.background=i<ci-1?STAGES[i+1].color:'#E4EDF5';sp.style.opacity=i<ci-1?0.6:0.3;});
+  }
+  renderSummary();
+  showNoti('💾 บันทึกแล้ว...','#27AE60');
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'save',sheetName:'Pipeline',post:it})});
+    const r=JSON.parse(await res.text());
+    if(r&&r.ok)showNoti('✅ sync แล้ว','#27AE60');
+    else showNoti('⚠️ sync ไม่สำเร็จ','#E67E22');
+  }catch(e){showNoti('⚠️ offline — local saved','#E67E22');}
+}
+
+function openAdd(){
+  document.getElementById('plMTitle').textContent='➕ เพิ่มคลิปใน Pipeline';
+  document.getElementById('plEId').value='';
+  document.getElementById('plTit').value='';
+  document.getElementById('plFol').value='';
+  document.getElementById('plCh').value='dc-dental';
+  document.getElementById('plNt').value='';
+  document.getElementById('plDelBtn').style.display='none';
+  document.getElementById('plModal').classList.add('open');
+}
+function openEdit(id){
+  const it=items.find(p=>p.id===id);if(!it)return;
+  document.getElementById('plMTitle').textContent='✏️ แก้ไขข้อมูลคลิป';
+  document.getElementById('plEId').value=it.id;
+  document.getElementById('plTit').value=it.title;
+  document.getElementById('plFol').value=it.folder||'';
+  document.getElementById('plCh').value=it.channel||'dc-dental';
+  document.getElementById('plNt').value=it.note||'';
+  document.getElementById('plDelBtn').style.display='inline-block';
+  document.getElementById('plModal').classList.add('open');
+}
+function closeModal(){document.getElementById('plModal').classList.remove('open');}
+async function saveItem(){
+  const title=document.getElementById('plTit').value.trim();
+  if(!title){showNoti('⚠️ กรุณาใส่ชื่อคลิป','#E67E22');return;}
+  const eid=document.getElementById('plEId').value;
+  const id=eid||('pl_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+  const ex=items.find(p=>p.id===id);
+  const it={id,title,folder:document.getElementById('plFol').value.trim(),channel:document.getElementById('plCh').value,stage:ex?ex.stage:'storyboard',note:document.getElementById('plNt').value.trim(),updatedAt:new Date().toISOString()};
+  const idx=items.findIndex(p=>p.id===id);
+  if(idx>=0)items[idx]=it;else items.unshift(it);
+  try{localStorage.setItem('dcPipeline',JSON.stringify(items));}catch(e){}
+  closeModal();renderPL();showNoti('💾 บันทึกแล้ว กำลัง sync...','#27AE60');
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'save',sheetName:'Pipeline',post:it})});
+    const r=JSON.parse(await res.text());
+    if(r&&r.ok)showNoti('✅ บันทึกลง Sheets แล้ว','#27AE60');
+    else showNoti('⚠️ sync ไม่สำเร็จ','#E67E22');
+  }catch(e){showNoti('⚠️ offline — local saved','#E67E22');}
+}
+async function deleteItem(){
+  const id=document.getElementById('plEId').value;if(!id)return;
+  if(!confirm('ลบคลิปนี้ออกจาก Pipeline?'))return;
+  items=items.filter(p=>p.id!==id);
+  try{localStorage.setItem('dcPipeline',JSON.stringify(items));}catch(e){}
+  closeModal();renderPL();showNoti('🗑 ลบแล้ว','#E74C3C');
+  try{await fetch(GAS_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',sheetName:'Pipeline',id})});}catch(e){}
+}
+function showNoti(msg,color){
+  const n=document.getElementById('noti');if(!n)return;
+  n.textContent=msg;n.style.background=color||'#1A1A2E';n.style.opacity='1';
+  clearTimeout(n._t);n._t=setTimeout(()=>{n.style.opacity='0';},2500);
+}
+document.getElementById('plModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+init();
+</script></body></html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const w=window.open(url,'_blank');
+  if(!w){
+    const a=document.createElement('a');
+    a.href=url;a.target='_blank';a.rel='noopener';
+    document.body.appendChild(a);a.click();
+  }
+  setTimeout(()=>{URL.revokeObjectURL(url);},300000);
 }
 
 document.addEventListener('DOMContentLoaded',async function(){

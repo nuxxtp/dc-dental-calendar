@@ -3714,11 +3714,14 @@ function openPipelinePage(){
   const GAS=SHEET_URL;
   const stagesJson=JSON.stringify(PL_STAGES);
   const chJson=JSON.stringify(PL_CHANNEL_COLORS);
-  const cached=localStorage.getItem('dcPipeline')||'[]';
+
+  // inject variables ก่อน แยกออกจาก template ใหญ่ — กัน single quote ทำ string ขาด
+  const varScript='<sc'+'ript>const GAS_URL='+JSON.stringify(GAS)+';const STAGES='+stagesJson+';const CH_COLORS='+chJson+';let items=[];let stF="all",chF="all";<\/sc'+'ript>';
 
   const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🎬 DC Dental Pipeline</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
+${varScript}
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Sarabun',sans-serif;background:#FAF5F0;color:#3C2A1E;}
@@ -3869,12 +3872,6 @@ body{font-family:'Sarabun',sans-serif;background:#FAF5F0;color:#3C2A1E;}
 <div class="noti" id="noti"></div>
 
 <script>
-const GAS_URL='${GAS}';
-const STAGES=${stagesJson};
-const CH_COLORS=${chJson};
-let items=[];
-let stF='all',chF='all';
-
 function getStIdx(k){return STAGES.findIndex(s=>s.key===k);}
 function getSt(k){return STAGES.find(s=>s.key===k)||STAGES[0];}
 

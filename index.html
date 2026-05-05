@@ -3897,7 +3897,7 @@ function openPipelinePage(){
   parts.push('    if(chF!=="all"&&it.channel!==chF)return false;');
   parts.push('    if(q&&it.title.toLowerCase().indexOf(q)<0&&(it.folder||"").toLowerCase().indexOf(q)<0)return false;');
   parts.push('    return true;');
-  parts.push('  }).sort(function(a,b){return getStIdx(a.stage)-getStIdx(b.stage);});');
+  parts.push('  }).sort(function(a,b){var aDone=a.stage==="complete",bDone=b.stage==="complete";if(aDone!==bDone)return aDone?1:-1;var na=parseInt((a.title.match(/^\\d+/)||[""])[0],10),nb=parseInt((b.title.match(/^\\d+/)||[""])[0],10);if(!isNaN(na)&&!isNaN(nb))return na-nb;if(!isNaN(na))return -1;if(!isNaN(nb))return 1;return 0;});');
   parts.push('  var el=document.getElementById("plList");');
   parts.push('  var em=document.getElementById("plEmpty");');
   parts.push('  var co=document.getElementById("plCount");');

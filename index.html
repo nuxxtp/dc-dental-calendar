@@ -470,8 +470,11 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     <button class="pl-stage-btn" data-stage="complete" onclick="setPipelineStageFilter('complete',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">✅ Complete</button>
   </div>
 
-  <!-- Result count -->
-  <div id="plResultCount" style="font-size:12px;color:var(--gray-dark);margin-bottom:10px;"></div>
+  <!-- Sort toggle + Result count -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+    <div id="plResultCount" style="font-size:12px;color:var(--gray-dark);"></div>
+    <button id="plDoneToggleBtn" onclick="togglePlDone()" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:4px 14px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;font-weight:600;">✅ Done ไว้ล่าง</button>
+  </div>
 
   <!-- Pipeline table-style list -->
   <div style="background:white;border-radius:12px;border:1.5px solid #E4EDF5;overflow:hidden;">
@@ -3421,6 +3424,7 @@ function jumpToMonth(year,month){
 let pipelineItems=[];
 let plStageFilter='all';
 let plChFilter='all';
+let plDoneOnTop=false;
 
 const PL_STAGES=[
   {key:'storyboard', label:'สตอรี่บอร์ด', short:'Story', icon:'📝', color:'#7F8C8D', bg:'#ECF0F1', ring:'#b0b8bd'},
@@ -3531,6 +3535,17 @@ function updateRowDots(row, id, currentStageKey){
   }
 }
 
+function togglePlDone(){
+  plDoneOnTop=!plDoneOnTop;
+  const btn=document.getElementById('plDoneToggleBtn');
+  if(btn){
+    btn.textContent=plDoneOnTop?'✅ Done ไว้บน':'✅ Done ไว้ล่าง';
+    btn.style.background=plDoneOnTop?'var(--blue)':'white';
+    btn.style.color=plDoneOnTop?'white':'var(--gray-dark)';
+    btn.style.borderColor=plDoneOnTop?'var(--blue)':'#D0DCE8';
+  }
+  renderPipeline();
+}
 function setPipelineStageFilter(stage,btn){
   plStageFilter=stage;
   document.querySelectorAll('.pl-stage-btn').forEach(b=>{
@@ -3583,14 +3598,17 @@ function renderPipeline(){
     if(search&&!item.title.toLowerCase().includes(search)&&!(item.folder||'').toLowerCase().includes(search)) return false;
     return true;
   });
-  // sort by clip number (leading digits in title), fallback to stage order
+  // sort: in-progress on top, complete at bottom (or flipped if plDoneOnTop)
   items.sort((a,b)=>{
+    const aDone=a.stage==='complete';
+    const bDone=b.stage==='complete';
+    if(aDone!==bDone) return plDoneOnTop ? (aDone?-1:1) : (aDone?1:-1);
     const na=parseInt((a.title.match(/^\d+/)||[''])[0],10);
     const nb=parseInt((b.title.match(/^\d+/)||[''])[0],10);
     if(!isNaN(na)&&!isNaN(nb)) return na-nb;
     if(!isNaN(na)) return -1;
     if(!isNaN(nb)) return 1;
-    return getStageIdx(a.stage)-getStageIdx(b.stage);
+    return 0;
   });
 
   const list=document.getElementById('pipelineList');

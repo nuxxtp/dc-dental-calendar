@@ -3712,334 +3712,290 @@ async function deletePipelineItem(){
 // ===== เปิด Pipeline เป็น page ใหม่ =====
 function openPipelinePage(){
   const GAS=SHEET_URL;
-  const stagesJson=JSON.stringify(PL_STAGES);
-  const chJson=JSON.stringify(PL_CHANNEL_COLORS);
+  const stagesData=JSON.stringify(PL_STAGES);
+  const chData=JSON.stringify(PL_CHANNEL_COLORS);
 
-  // inject variables ก่อน แยกออกจาก template ใหญ่ — กัน single quote ทำ string ขาด
-  const varScript='<sc'+'ript>const GAS_URL='+JSON.stringify(GAS)+';const STAGES='+stagesJson+';const CH_COLORS='+chJson+';let items=[];let stF="all",chF="all";<\/sc'+'ript>';
+  // build page using array join — ไม่มี template literal เลย กัน backtick ซ้อน
+  const parts=[];
+  parts.push('<!DOCTYPE html><html lang="th"><head>');
+  parts.push('<meta charset="UTF-8">');
+  parts.push('<meta name="viewport" content="width=device-width,initial-scale=1">');
+  parts.push('<title>\uD83C\uDFAC DC Dental Pipeline</title>');
+  // inject Google Fonts inline via @import แทน link tag
+  parts.push('<style>');
+  parts.push('@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap");');
+  parts.push('*{box-sizing:border-box;margin:0;padding:0;}');
+  parts.push('body{font-family:"Sarabun",sans-serif;background:#FAF5F0;color:#3C2A1E;}');
+  parts.push('.top-bar{background:linear-gradient(135deg,#6B5040 0%,#8B6F5E 50%,#C8956C 100%);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(107,80,64,0.25);}');
+  parts.push('.top-title{font-family:"Prompt",sans-serif;font-size:18px;font-weight:700;color:white;display:flex;align-items:center;gap:8px;}');
+  parts.push('.top-sub{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;}');
+  parts.push('.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}');
+  parts.push('.top-actions input{border:1.5px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.18);border-radius:20px;padding:7px 16px;font-family:"Sarabun",sans-serif;font-size:13px;color:white;outline:none;width:220px;}');
+  parts.push('.top-actions input::placeholder{color:rgba(255,255,255,0.65);}');
+  parts.push('.top-actions input:focus{border-color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.25);}');
+  parts.push('.btn-add{background:white;color:#6B5040;border:none;border-radius:10px;padding:8px 18px;font-family:"Sarabun",sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1);}');
+  parts.push('.btn-add:hover{background:#FDF6F0;}');
+  parts.push('.wrap{padding:20px 28px 80px;}');
+  parts.push('.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:8px;margin-bottom:20px;}');
+  parts.push('.s-card{border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}');
+  parts.push('.s-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(107,80,64,0.12);}');
+  parts.push('.s-card .num{font-size:24px;font-weight:700;line-height:1;}');
+  parts.push('.s-card .lbl{font-size:9px;font-weight:700;text-align:center;}');
+  parts.push('.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;}');
+  parts.push('.filter-row span{font-size:11px;font-weight:700;color:#8B6F5E;}');
+  parts.push('.pill{border:1.5px solid #DDD0C8;background:white;color:#8B6F5E;border-radius:20px;padding:3px 12px;font-size:11px;font-family:"Sarabun",sans-serif;cursor:pointer;transition:all 0.15s;}');
+  parts.push('.pill:hover{border-color:#C8956C;color:#6B5040;}');
+  parts.push('.pill.active{background:#6B5040;color:white;border-color:#6B5040;font-weight:700;}');
+  parts.push('.result-count{font-size:12px;color:#A08070;margin-bottom:10px;}');
+  parts.push('.table-wrap{background:white;border-radius:14px;border:1.5px solid #EDE0D8;overflow:hidden;box-shadow:0 2px 12px rgba(107,80,64,0.06);}');
+  parts.push('.table-head{display:grid;grid-template-columns:1fr 100px 1fr 32px;background:#FDF6F0;border-bottom:1.5px solid #EDE0D8;padding:8px 16px;}');
+  parts.push('.table-head div{font-size:10px;font-weight:700;color:#A08070;text-transform:uppercase;letter-spacing:0.5px;}');
+  parts.push('.pl-row{display:grid;grid-template-columns:1fr 100px 1fr 32px;padding:11px 16px;border-bottom:1px solid #F5EDE8;align-items:center;transition:background 0.1s;}');
+  parts.push('.pl-row:hover{background:#FDF6F0;}');
+  parts.push('.pl-row:last-child{border-bottom:none;}');
+  parts.push('.clip-title{font-size:13px;font-weight:600;color:#3C2A1E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}');
+  parts.push('.clip-sub{font-size:10px;color:#B09080;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}');
+  parts.push('.ch-badge{display:inline-block;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;white-space:nowrap;}');
+  parts.push('.dots-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}');
+  parts.push('.pl-pill{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 10px;font-size:11px;font-family:"Sarabun",sans-serif;cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;white-space:nowrap;font-weight:600;}');
+  parts.push('.pl-pill.done{opacity:0.45;}.pl-pill.done:hover{opacity:0.85;}');
+  parts.push('.pl-pill.future{background:#F5EDE8;color:#C4A090;border-color:#EDE0D8;opacity:0.55;}.pl-pill.future:hover{opacity:0.9;background:#EDE0D8;}');
+  parts.push('.pl-pill.active{font-weight:700;box-shadow:0 2px 10px rgba(107,80,64,0.2);}');
+  parts.push('.pl-sep{color:#DDD0C8;font-size:11px;flex-shrink:0;}');
+  parts.push('.edit-btn{background:none;border:none;cursor:pointer;color:#DDD0C8;font-size:15px;padding:4px;border-radius:6px;transition:color 0.15s;}');
+  parts.push('.edit-btn:hover{color:#8B6F5E;}');
+  parts.push('.empty{text-align:center;padding:60px 20px;color:#A08070;}');
+  parts.push('.modal-overlay{display:none;position:fixed;inset:0;background:rgba(60,42,30,0.45);z-index:200;align-items:center;justify-content:center;}');
+  parts.push('.modal-overlay.open{display:flex;}');
+  parts.push('.modal{background:white;border-radius:16px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(107,80,64,0.2);}');
+  parts.push('.modal-header{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:center;}');
+  parts.push('.modal-header h2{font-family:"Prompt",sans-serif;font-size:16px;font-weight:700;color:#3C2A1E;}');
+  parts.push('.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#A08070;line-height:1;}');
+  parts.push('.modal-body{padding:16px 24px 24px;}');
+  parts.push('.form-row{margin-bottom:14px;}');
+  parts.push('.form-row label{display:block;font-size:12px;font-weight:700;color:#8B6F5E;margin-bottom:5px;}');
+  parts.push('.form-row input,.form-row select,.form-row textarea{width:100%;border:1.5px solid #DDD0C8;border-radius:8px;padding:8px 12px;font-family:"Sarabun",sans-serif;font-size:13px;outline:none;color:#3C2A1E;}');
+  parts.push('.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#8B6F5E;box-shadow:0 0 0 3px rgba(139,111,94,0.1);}');
+  parts.push('.form-row textarea{min-height:60px;resize:vertical;}');
+  parts.push('.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}');
+  parts.push('.btn-cancel{background:#F5EDE8;color:#8B6F5E;border:none;border-radius:8px;padding:8px 18px;font-family:"Sarabun",sans-serif;font-size:13px;cursor:pointer;}');
+  parts.push('.btn-save{background:linear-gradient(135deg,#6B5040,#8B6F5E);color:white;border:none;border-radius:8px;padding:8px 20px;font-family:"Sarabun",sans-serif;font-size:13px;font-weight:700;cursor:pointer;}');
+  parts.push('.btn-delete{background:#FFF0F0;color:#E74C3C;border:none;border-radius:8px;padding:8px 14px;font-family:"Sarabun",sans-serif;font-size:13px;cursor:pointer;margin-right:auto;}');
+  parts.push('.noti{position:fixed;bottom:24px;right:24px;background:#3C2A1E;color:white;padding:10px 18px;border-radius:10px;font-size:13px;font-family:"Sarabun",sans-serif;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;}');
+  parts.push('@media(max-width:700px){.wrap{padding:12px 12px 80px;}.table-head,.pl-row{grid-template-columns:1fr 70px 1fr 28px;}.pl-pill{padding:3px 7px;font-size:10px;}}');
+  parts.push('</style></head><body>');
 
-  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>🎬 DC Dental Pipeline</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
-${varScript}
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Sarabun',sans-serif;background:#FAF5F0;color:#3C2A1E;}
-.wrap{padding:20px 28px 80px;}
-.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:8px;margin-bottom:20px;}
-.s-card{border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
-.s-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(107,80,64,0.12);}
-.s-card .num{font-size:24px;font-weight:700;line-height:1;}
-.s-card .lbl{font-size:9px;font-weight:700;text-align:center;}
-.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;}
-.filter-row span{font-size:11px;font-weight:700;color:#8B6F5E;}
-.pill{border:1.5px solid #DDD0C8;background:white;color:#8B6F5E;border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;transition:all 0.15s;}
-.pill:hover{border-color:#C8956C;color:#6B5040;}
-.pill.active{background:#6B5040;color:white;border-color:#6B5040;font-weight:700;}
-.result-count{font-size:12px;color:#A08070;margin-bottom:10px;}
-.table-wrap{background:white;border-radius:14px;border:1.5px solid #EDE0D8;overflow:hidden;box-shadow:0 2px 12px rgba(107,80,64,0.06);}
-.table-head{display:grid;grid-template-columns:1fr 100px 1fr 32px;background:#FDF6F0;border-bottom:1.5px solid #EDE0D8;padding:8px 16px;}
-.table-head div{font-size:10px;font-weight:700;color:#A08070;text-transform:uppercase;letter-spacing:0.5px;}
-.th-stage{display:flex;gap:4px;align-items:center;}
-.th-stage span{font-size:9px;font-weight:700;color:#A08070;}
-.th-stage .sep{color:#DDD0C8;font-size:10px;}
-.pl-row{display:grid;grid-template-columns:1fr 100px 1fr 32px;padding:11px 16px;border-bottom:1px solid #F5EDE8;align-items:center;transition:background 0.1s;cursor:default;}
-.pl-row:hover{background:#FDF6F0;}
-.pl-row:last-child{border-bottom:none;}
-.clip-title{font-size:13px;font-weight:600;color:#3C2A1E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.clip-sub{font-size:10px;color:#B09080;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
-.ch-badge{display:inline-block;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;white-space:nowrap;}
-.dots-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
-.pl-pill{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 10px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;white-space:nowrap;font-weight:600;}
-.pl-pill.done{opacity:0.45;}
-.pl-pill.done:hover{opacity:0.85;}
-.pl-pill.future{background:#F5EDE8;color:#C4A090;border-color:#EDE0D8;opacity:0.55;}
-.pl-pill.future:hover{opacity:0.9;background:#EDE0D8;}
-.pl-pill.active{font-weight:700;box-shadow:0 2px 10px rgba(107,80,64,0.2);}
-.pl-sep{color:#DDD0C8;font-size:11px;flex-shrink:0;}
-.edit-btn{background:none;border:none;cursor:pointer;color:#DDD0C8;font-size:15px;padding:4px;border-radius:6px;transition:color 0.15s;}
-.edit-btn:hover{color:#8B6F5E;}
-.empty{text-align:center;padding:60px 20px;color:#A08070;}
-.empty .ico{font-size:40px;margin-bottom:12px;}
-/* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(60,42,30,0.45);z-index:200;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
-.modal{background:white;border-radius:16px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(107,80,64,0.2);}
-.modal-header{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:center;}
-.modal-header h2{font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;color:#3C2A1E;}
-.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#A08070;line-height:1;}
-.modal-body{padding:16px 24px 24px;}
-.form-row{margin-bottom:14px;}
-.form-row label{display:block;font-size:12px;font-weight:700;color:#8B6F5E;margin-bottom:5px;}
-.form-row input,.form-row select,.form-row textarea{width:100%;border:1.5px solid #DDD0C8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;color:#3C2A1E;}
-.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#8B6F5E;box-shadow:0 0 0 3px rgba(139,111,94,0.1);}
-.form-row textarea{min-height:60px;resize:vertical;}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
-.btn-cancel{background:#F5EDE8;color:#8B6F5E;border:none;border-radius:8px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;}
-.btn-cancel:hover{background:#EDE0D8;}
-.btn-save{background:linear-gradient(135deg,#6B5040,#8B6F5E);color:white;border:none;border-radius:8px;padding:8px 20px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(107,80,64,0.25);}
-.btn-save:hover{background:linear-gradient(135deg,#5A4235,#7A6050);}
-.btn-delete{background:#FFF0F0;color:#E74C3C;border:none;border-radius:8px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;margin-right:auto;}
-.noti{position:fixed;bottom:24px;right:24px;background:#3C2A1E;color:white;padding:10px 18px;border-radius:10px;font-size:13px;font-family:'Sarabun',sans-serif;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;}
-@media(max-width:700px){
-  .wrap{padding:12px 12px 80px;}
-  .table-head,.pl-row{grid-template-columns:1fr 70px 1fr 28px;}
-  .pl-pill{padding:3px 7px;font-size:10px;}
-}
-</style></head><body>
+  // top bar
+  parts.push('<div class="top-bar">');
+  parts.push('<div><div class="top-title">\uD83C\uDFAC DC Dental Pipeline</div>');
+  parts.push('<div class="top-sub">\u0e20\u0e32\u0e1e\u0e23\u0e27\u0e21\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15\u0e04\u0e2d\u0e19\u0e40\u0e17\u0e19\u0e15\u0e4c\u0e17\u0e38\u0e01\u0e0a\u0e48\u0e2d\u0e07 \u00b7 \u0e01\u0e14\u0e17\u0e35\u0e48 pill \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e17\u0e31\u0e19\u0e17\u0e35</div></div>');
+  parts.push('<div class="top-actions">');
+  parts.push('<input type="text" id="plSearch" placeholder="\uD83D\uDD0D \u0e04\u0e49\u0e19\u0e2b\u0e32\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b..." oninput="renderPL()">');
+  parts.push('<button class="btn-add" onclick="openAdd()">\uff0b \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e25\u0e34\u0e1b</button>');
+  parts.push('</div></div>');
 
-<div class="top-bar">
-  <div>
-    <div class="top-bar h1" style="font-family:Prompt,sans-serif;font-size:18px;font-weight:700;color:white;">🎬 DC Dental Pipeline</div>
-    <div class="sub">ภาพรวมสถานะการผลิตคอนเทนต์ทุกช่อง · กดที่จุดเพื่อเปลี่ยนสถานะทันที</div>
-  </div>
-  <div class="top-actions">
-    <input type="text" id="plSearch" placeholder="🔍 ค้นหาชื่อคลิป..." oninput="renderPL()">
-    <button class="btn-add" onclick="openAdd()">＋ เพิ่มคลิป</button>
-  </div>
-</div>
+  // wrap
+  parts.push('<div class="wrap">');
+  parts.push('<div id="plSummary" class="summary-grid"></div>');
 
-<div class="wrap">
-  <div id="plSummary" class="summary-grid"></div>
-  <div class="filter-row">
-    <span>ช่อง:</span>
-    <button class="pill active" data-ch="all" onclick="setChF('all',this)">ทั้งหมด</button>
-    <button class="pill" data-ch="dc-dental" onclick="setChF('dc-dental',this)">DC Dental</button>
-    <button class="pill" data-ch="dc-aligner" onclick="setChF('dc-aligner',this)">DC Aligner</button>
-    <button class="pill" data-ch="junfun" onclick="setChF('junfun',this)">junfun</button>
-    <button class="pill" data-ch="implant" onclick="setChF('implant',this)">implant</button>
-    <button class="pill" data-ch="dr-north" onclick="setChF('dr-north',this)">dr.north</button>
-    <button class="pill" data-ch="dr-daran" onclick="setChF('dr-daran',this)">dr.daran</button>
-    <button class="pill" data-ch="north-tiktok" onclick="setChF('north-tiktok',this)">TikTok</button>
-  </div>
-  <div class="filter-row">
-    <span>ขั้นตอน:</span>
-    <button class="pill active" data-st="all" onclick="setStF('all',this)">ทั้งหมด</button>
-    <button class="pill" data-st="storyboard" onclick="setStF('storyboard',this)">📝 สตอรี่บอร์ด</button>
-    <button class="pill" data-st="shooting" onclick="setStF('shooting',this)">🎥 ถ่ายทำ</button>
-    <button class="pill" data-st="editing" onclick="setStF('editing',this)">✂️ ตัดต่อ</button>
-    <button class="pill" data-st="thumbnail" onclick="setStF('thumbnail',this)">🖼️ ปกคลิป</button>
-    <button class="pill" data-st="caption" onclick="setStF('caption',this)">✍️ แคปชั่น</button>
-    <button class="pill" data-st="scheduling" onclick="setStF('scheduling',this)">📅 ลงแพลน</button>
-    <button class="pill" data-st="complete" onclick="setStF('complete',this)">✅ Complete</button>
-  </div>
-  <div id="plCount" class="result-count"></div>
-  <div class="table-wrap">
-    <div class="table-head">
-      <div>ชื่อคลิป</div><div>ช่อง</div>
-      <div class="th-stage"><span>ขั้นตอนปัจจุบัน</span></div>
-      <div></div>
-    </div>
-    <div id="plList"></div>
-    <div id="plEmpty" class="empty" style="display:none">
-      <div class="ico">🎬</div>
-      <div style="font-size:14px;font-weight:700;">ไม่พบคลิปที่ตรงกัน</div>
-      <div style="font-size:12px;margin-top:5px;">ลองเปลี่ยน filter หรือกด "+ เพิ่มคลิป"</div>
-    </div>
-  </div>
-</div>
+  // channel filter
+  parts.push('<div class="filter-row">');
+  parts.push('<span>\u0e0a\u0e48\u0e2d\u0e07:</span>');
+  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['dc-dental','DC Dental'],['dc-aligner','DC Aligner'],['junfun','junfun'],['implant','implant'],['dr-north','dr.north'],['dr-daran','dr.daran'],['north-tiktok','TikTok']].forEach(function(pair){
+    parts.push('<button class="pill'+(pair[0]==='all'?' active':'')+'" data-ch="'+pair[0]+'" onclick="setChF(\''+pair[0]+'\',this)">'+pair[1]+'</button>');
+  });
+  parts.push('</div>');
 
-<!-- Modal -->
-<div class="modal-overlay" id="plModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="plMTitle">➕ เพิ่มคลิปใน Pipeline</h2>
-      <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="plEId">
-      <div class="form-row"><label>ชื่อคลิป / หัวข้อ *</label><input type="text" id="plTit" placeholder="เช่น 171 รากฟันเทียม"></div>
-      <div class="form-row"><label>โฟลเดอร์ใน Sheet (ถ้ามี)</label><input type="text" id="plFol" placeholder="เช่น 171 รากฟันเทียมคือ"></div>
-      <div class="form-row"><label>ช่อง</label>
-        <select id="plCh">
-          <option value="dc-dental">DC Dental Clinic</option>
-          <option value="dc-aligner">DC Aligner</option>
-          <option value="junfun">judfunreview</option>
-          <option value="implant">implant review</option>
-          <option value="dr-north">dr.north</option>
-          <option value="dr-daran">dr.daran</option>
-          <option value="north-tiktok">TikTok</option>
-        </select></div>
-      <div class="form-row"><label>หมายเหตุ</label><textarea id="plNt" placeholder="บันทึกเพิ่มเติม..."></textarea></div>
-      <div class="modal-actions">
-        <button class="btn-delete" id="plDelBtn" onclick="deleteItem()" style="display:none">🗑 ลบ</button>
-        <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
-        <button class="btn-save" onclick="saveItem()">💾 บันทึก</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="noti" id="noti"></div>
+  // stage filter
+  parts.push('<div class="filter-row">');
+  parts.push('<span>\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19:</span>');
+  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['storyboard','\uD83D\uDCDD \u0e2a\u0e15\u0e2d\u0e23\u0e35\u0e48\u0e1a\u0e2d\u0e23\u0e4c\u0e14'],['shooting','\uD83C\uDFA5 \u0e16\u0e48\u0e32\u0e22\u0e17\u0e33'],['editing','\u2702\uFE0F \u0e15\u0e31\u0e14\u0e15\u0e48\u0e2d'],['thumbnail','\uD83D\uDDBC\uFE0F \u0e1b\u0e01\u0e04\u0e25\u0e34\u0e1b'],['caption','\u270D\uFE0F \u0e41\u0e04\u0e1b\u0e0a\u0e31\u0e48\u0e19'],['scheduling','\uD83D\uDCC5 \u0e25\u0e07\u0e41\u0e1e\u0e25\u0e19'],['complete','\u2705 Complete']].forEach(function(pair){
+    parts.push('<button class="pill'+(pair[0]==='all'?' active':'')+'" data-st="'+pair[0]+'" onclick="setStF(\''+pair[0]+'\',this)">'+pair[1]+'</button>');
+  });
+  parts.push('</div>');
 
-<script>
-function getStIdx(k){return STAGES.findIndex(s=>s.key===k);}
-function getSt(k){return STAGES.find(s=>s.key===k)||STAGES[0];}
+  parts.push('<div id="plCount" class="result-count"></div>');
+  parts.push('<div class="table-wrap">');
+  parts.push('<div class="table-head"><div>\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b</div><div>\u0e0a\u0e48\u0e2d\u0e07</div><div>\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19</div><div></div></div>');
+  parts.push('<div id="plList"></div>');
+  parts.push('<div id="plEmpty" class="empty" style="display:none"><div style="font-size:36px;margin-bottom:10px;">\uD83C\uDFAC</div><div style="font-size:14px;font-weight:700;">\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e04\u0e25\u0e34\u0e1b\u0e17\u0e35\u0e48\u0e15\u0e23\u0e07\u0e01\u0e31\u0e19</div></div>');
+  parts.push('</div></div>');
 
-async function init(){
-  try{const c=localStorage.getItem('dcPipeline');if(c)items=JSON.parse(c);}catch(e){items=[];}
-  renderPL();
-  try{
-    const res=await fetch(GAS_URL+'?t='+Date.now()+'&sheet=Pipeline',{method:'GET',redirect:'follow'});
-    const data=JSON.parse(await res.text());
-    if(Array.isArray(data)&&data.length>0){
-      items=data.map(r=>({id:String(r.id||''),title:String(r.title||''),folder:String(r.folder||''),channel:String(r.channel||'dc-dental'),stage:String(r.stage||'storyboard'),note:String(r.note||''),updatedAt:String(r.updatedAt||'')})).filter(r=>r.id&&r.title);
-      try{localStorage.setItem('dcPipeline',JSON.stringify(items));}catch(e){}
-      renderPL();
-    }
-  }catch(e){console.warn('load err',e);}
-}
+  // modal
+  parts.push('<div class="modal-overlay" id="plModal">');
+  parts.push('<div class="modal"><div class="modal-header"><h2 id="plMTitle">\u2795 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e25\u0e34\u0e1b</h2><button class="modal-close" onclick="closeModal()">\u00d7</button></div>');
+  parts.push('<div class="modal-body">');
+  parts.push('<input type="hidden" id="plEId">');
+  parts.push('<div class="form-row"><label>\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b *</label><input type="text" id="plTit" placeholder="\u0e40\u0e0a\u0e48\u0e19 171 \u0e23\u0e32\u0e01\u0e1f\u0e31\u0e19\u0e40\u0e17\u0e35\u0e22\u0e21"></div>');
+  parts.push('<div class="form-row"><label>\u0e42\u0e1f\u0e25\u0e40\u0e14\u0e2d\u0e23\u0e4c</label><input type="text" id="plFol" placeholder="\u0e40\u0e0a\u0e48\u0e19 171 \u0e23\u0e32\u0e01\u0e1f\u0e31\u0e19\u0e40\u0e17\u0e35\u0e22\u0e21\u0e04\u0e37\u0e2d"></div>');
+  parts.push('<div class="form-row"><label>\u0e0a\u0e48\u0e2d\u0e07</label><select id="plCh">');
+  parts.push('<option value="dc-dental">DC Dental Clinic</option>');
+  parts.push('<option value="dc-aligner">DC Aligner</option>');
+  parts.push('<option value="junfun">judfunreview</option>');
+  parts.push('<option value="implant">implant review</option>');
+  parts.push('<option value="dr-north">dr.north</option>');
+  parts.push('<option value="dr-daran">dr.daran</option>');
+  parts.push('<option value="north-tiktok">TikTok</option>');
+  parts.push('</select></div>');
+  parts.push('<div class="form-row"><label>\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38</label><textarea id="plNt" placeholder="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21..."></textarea></div>');
+  parts.push('<div class="modal-actions"><button class="btn-delete" id="plDelBtn" onclick="deleteItem()" style="display:none">\uD83D\uDDD1 \u0e25\u0e1a</button>');
+  parts.push('<button class="btn-cancel" onclick="closeModal()">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button>');
+  parts.push('<button class="btn-save" onclick="saveItem()">\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button></div>');
+  parts.push('</div></div></div>');
+  parts.push('<div class="noti" id="noti"></div>');
 
-function setChF(v,btn){chF=v;document.querySelectorAll('[data-ch]').forEach(b=>{b.classList.toggle('active',b.dataset.ch===v);});renderPL();}
-function setStF(v,btn){stF=v;document.querySelectorAll('[data-st]').forEach(b=>{b.classList.toggle('active',b.dataset.st===v);});renderPL();}
+  // script — inject data as JSON, ไม่มี quote ซ้อน
+  parts.push('<script>');
+  parts.push('var GAS_URL='+JSON.stringify(GAS)+';');
+  parts.push('var STAGES='+stagesData+';');
+  parts.push('var CH_COLORS='+chData+';');
+  parts.push('var items=[],stF="all",chF="all";');
+  parts.push('function getStIdx(k){return STAGES.findIndex(function(s){return s.key===k;});}');
+  parts.push('function getSt(k){return STAGES.find(function(s){return s.key===k;})||STAGES[0];}');
+  parts.push('function setChF(v,btn){chF=v;document.querySelectorAll("[data-ch]").forEach(function(b){b.classList.toggle("active",b.dataset.ch===v);});renderPL();}');
+  parts.push('function setStF(v,btn){stF=v;document.querySelectorAll("[data-st]").forEach(function(b){b.classList.toggle("active",b.dataset.st===v);});renderPL();}');
+  parts.push('function renderSummary(){');
+  parts.push('  var bar=document.getElementById("plSummary");if(!bar)return;');
+  parts.push('  var c={};STAGES.forEach(function(s){c[s.key]=0;});');
+  parts.push('  items.forEach(function(it){if(c[it.stage]!==undefined)c[it.stage]++;});');
+  parts.push('  var h="<div class=\\"s-card\\" style=\\"background:#FDF6F0;border-color:"+(stF==="all"?"#6B5040":"transparent")+";\\" onclick=\\"setStF(\'all\',null)\\">";');
+  parts.push('  h+="<span class=\\"num\\" style=\\"color:#6B5040;\\">"+items.length+"</span>";');
+  parts.push('  h+="<span class=\\"lbl\\" style=\\"color:#6B5040;\\">\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</span></div>";');
+  parts.push('  STAGES.forEach(function(s){');
+  parts.push('    h+="<div class=\\"s-card\\" style=\\"background:"+s.bg+";border-color:"+(stF===s.key?s.color:"transparent")+";\\" onclick=\\"setStF(\'"+s.key+"\',null)\\">";');
+  parts.push('    h+="<span class=\\"num\\" style=\\"color:"+s.color+";\\">"+(c[s.key]||0)+"</span>";');
+  parts.push('    h+="<span class=\\"lbl\\" style=\\"color:"+s.color+"\\">"+s.icon+" "+s.short+"</span></div>";');
+  parts.push('  });');
+  parts.push('  bar.innerHTML=h;');
+  parts.push('}');
+  parts.push('function renderPL(){');
+  parts.push('  renderSummary();');
+  parts.push('  var q=(document.getElementById("plSearch").value||"").toLowerCase();');
+  parts.push('  var list=items.filter(function(it){');
+  parts.push('    if(stF!=="all"&&it.stage!==stF)return false;');
+  parts.push('    if(chF!=="all"&&it.channel!==chF)return false;');
+  parts.push('    if(q&&it.title.toLowerCase().indexOf(q)<0&&(it.folder||"").toLowerCase().indexOf(q)<0)return false;');
+  parts.push('    return true;');
+  parts.push('  }).sort(function(a,b){return getStIdx(a.stage)-getStIdx(b.stage);});');
+  parts.push('  var el=document.getElementById("plList");');
+  parts.push('  var em=document.getElementById("plEmpty");');
+  parts.push('  var co=document.getElementById("plCount");');
+  parts.push('  if(co)co.textContent="\u0e41\u0e2a\u0e14\u0e07 "+list.length+" \u0e04\u0e25\u0e34\u0e1b \u0e08\u0e32\u0e01\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14 "+items.length+" \u0e04\u0e25\u0e34\u0e1b";');
+  parts.push('  if(!list.length){el.innerHTML="";em.style.display="block";return;}');
+  parts.push('  em.style.display="none";');
+  parts.push('  var rows="";');
+  parts.push('  list.forEach(function(it,ri){');
+  parts.push('    var ci=getStIdx(it.stage);');
+  parts.push('    var ch=CH_COLORS[it.channel]||{bg:"#ECF0F1",fg:"#7F8C8D",label:it.channel};');
+  parts.push('    var pills="";');
+  parts.push('    STAGES.forEach(function(s,i){');
+  parts.push('      var done=i<ci,cur=i===ci;');
+  parts.push('      var cls="pl-pill "+(cur?"active":done?"done":"future");');
+  parts.push('      var st=cur?"background:"+s.color+";color:white;border-color:"+s.color+";transform:scale(1.05);":done?"background:"+s.bg+";color:"+s.color+";border-color:"+s.color+";":"";');
+  parts.push('      var lbl=cur?s.icon+" "+s.label:done?"\u2713 "+s.short:s.short;');
+  parts.push('      if(i>0)pills+="<span class=\\"pl-sep\\">&#8250;</span>";');
+  parts.push('      pills+="<div class=\\""+cls+"\\" onclick=\\"quickSet(\'"+it.id+"\',\'"+s.key+"\',this)\\" style=\\""+st+"\\">"+lbl+"</div>";');
+  parts.push('    });');
+  parts.push('    var bg=ri%2===0?"white":"#FAFAF8";');
+  parts.push('    rows+="<div class=\\"pl-row\\" style=\\"background:"+bg+";\\">";');
+  parts.push('    rows+="<div style=\\"min-width:0\\"><div class=\\"clip-title\\" title=\\""+it.title+"\\">"+it.title+"</div>";');
+  parts.push('    if(it.folder)rows+="<div class=\\"clip-sub\\">\uD83D\uDCC1 "+it.folder+"</div>";');
+  parts.push('    if(it.note)rows+="<div class=\\"clip-sub\\">\uD83D\uDCCE "+it.note+"</div>";');
+  parts.push('    rows+="</div>";');
+  parts.push('    rows+="<div><span class=\\"ch-badge\\" style=\\"background:"+ch.bg+";color:"+ch.fg+"\\">"+ch.label+"</span></div>";');
+  parts.push('    rows+="<div class=\\"dots-row\\">"+pills+"</div>";');
+  parts.push('    rows+="<div><button class=\\"edit-btn\\" onclick=\\"openEdit(\'"+it.id+"\')\\">\u270F\uFE0F</button></div>";');
+  parts.push('    rows+="</div>";');
+  parts.push('  });');
+  parts.push('  el.innerHTML=rows;');
+  parts.push('}');
+  parts.push('function quickSet(id,newStage,pillEl){');
+  parts.push('  var it=items.find(function(p){return p.id===id;});');
+  parts.push('  if(!it||it.stage===newStage)return;');
+  parts.push('  it.stage=newStage;it.updatedAt=new Date().toISOString();');
+  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
+  parts.push('  var ci=getStIdx(newStage);');
+  parts.push('  var row=pillEl.closest(".pl-row");');
+  parts.push('  if(row){');
+  parts.push('    var pills=row.querySelectorAll(".pl-pill");');
+  parts.push('    pills.forEach(function(p,i){');
+  parts.push('      var s=STAGES[i];var done=i<ci,cur=i===ci;');
+  parts.push('      p.className="pl-pill "+(cur?"active":done?"done":"future");');
+  parts.push('      p.style.cssText=cur?"background:"+s.color+";color:white;border-color:"+s.color+";transform:scale(1.05);font-weight:700;box-shadow:0 2px 10px rgba(107,80,64,0.2);":done?"background:"+s.bg+";color:"+s.color+";border-color:"+s.color+";opacity:0.45;":"background:#F5EDE8;color:#C4A090;border-color:#EDE0D8;opacity:0.55;";');
+  parts.push('      p.textContent=cur?s.icon+" "+s.label:done?"\u2713 "+s.short:s.short;');
+  parts.push('    });');
+  parts.push('  }');
+  parts.push('  renderSummary();');
+  parts.push('  showNoti("\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27...","#27AE60");');
+  parts.push('  fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:it})}).then(function(r){return r.text();}).then(function(t){var d=JSON.parse(t);showNoti(d&&d.ok?"\u2705 sync \u0e41\u0e25\u0e49\u0e27":"\u26a0\uFE0F sync \u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08",d&&d.ok?"#27AE60":"#E67E22");}).catch(function(){showNoti("\u26a0\uFE0F offline","#E67E22");});');
+  parts.push('}');
+  parts.push('function openAdd(){');
+  parts.push('  document.getElementById("plMTitle").textContent="\u2795 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e25\u0e34\u0e1b\u0e43\u0e19 Pipeline";');
+  parts.push('  document.getElementById("plEId").value="";');
+  parts.push('  document.getElementById("plTit").value="";');
+  parts.push('  document.getElementById("plFol").value="";');
+  parts.push('  document.getElementById("plCh").value="dc-dental";');
+  parts.push('  document.getElementById("plNt").value="";');
+  parts.push('  document.getElementById("plDelBtn").style.display="none";');
+  parts.push('  document.getElementById("plModal").classList.add("open");');
+  parts.push('}');
+  parts.push('function openEdit(id){');
+  parts.push('  var it=items.find(function(p){return p.id===id;});if(!it)return;');
+  parts.push('  document.getElementById("plMTitle").textContent="\u270F\uFE0F \u0e41\u0e01\u0e49\u0e44\u0e02\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e04\u0e25\u0e34\u0e1b";');
+  parts.push('  document.getElementById("plEId").value=it.id;');
+  parts.push('  document.getElementById("plTit").value=it.title;');
+  parts.push('  document.getElementById("plFol").value=it.folder||"";');
+  parts.push('  document.getElementById("plCh").value=it.channel||"dc-dental";');
+  parts.push('  document.getElementById("plNt").value=it.note||"";');
+  parts.push('  document.getElementById("plDelBtn").style.display="inline-block";');
+  parts.push('  document.getElementById("plModal").classList.add("open");');
+  parts.push('}');
+  parts.push('function closeModal(){document.getElementById("plModal").classList.remove("open");}');
+  parts.push('function saveItem(){');
+  parts.push('  var title=document.getElementById("plTit").value.trim();');
+  parts.push('  if(!title){showNoti("\u26a0\uFE0F \u0e01\u0e23\u0e38\u0e13\u0e32\u0e43\u0e2a\u0e48\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b","#E67E22");return;}');
+  parts.push('  var eid=document.getElementById("plEId").value;');
+  parts.push('  var id=eid||("pl_"+Date.now()+"_"+Math.random().toString(36).slice(2,6));');
+  parts.push('  var ex=items.find(function(p){return p.id===id;});');
+  parts.push('  var it={id:id,title:title,folder:document.getElementById("plFol").value.trim(),channel:document.getElementById("plCh").value,stage:ex?ex.stage:"storyboard",note:document.getElementById("plNt").value.trim(),updatedAt:new Date().toISOString()};');
+  parts.push('  var idx=items.findIndex(function(p){return p.id===id;});');
+  parts.push('  if(idx>=0)items[idx]=it;else items.unshift(it);');
+  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
+  parts.push('  closeModal();renderPL();showNoti("\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27 \u0e01\u0e33\u0e25\u0e31\u0e07 sync...","#27AE60");');
+  parts.push('  fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:it})}).then(function(r){return r.text();}).then(function(t){var d=JSON.parse(t);showNoti(d&&d.ok?"\u2705 \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e25\u0e07 Sheets \u0e41\u0e25\u0e49\u0e27":"\u26a0\uFE0F sync \u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08",d&&d.ok?"#27AE60":"#E67E22");}).catch(function(){});');
+  parts.push('}');
+  parts.push('function deleteItem(){');
+  parts.push('  var id=document.getElementById("plEId").value;if(!id)return;');
+  parts.push('  if(!confirm("\u0e25\u0e1a\u0e04\u0e25\u0e34\u0e1b\u0e19\u0e35\u0e49\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01 Pipeline?"))return;');
+  parts.push('  items=items.filter(function(p){return p.id!==id;});');
+  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
+  parts.push('  closeModal();renderPL();showNoti("\uD83D\uDDD1 \u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27","#E74C3C");');
+  parts.push('  fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"delete",sheetName:"Pipeline",id:id})}).catch(function(){});');
+  parts.push('}');
+  parts.push('function showNoti(msg,color){var n=document.getElementById("noti");if(!n)return;n.textContent=msg;n.style.background=color||"#3C2A1E";n.style.opacity="1";clearTimeout(n._t);n._t=setTimeout(function(){n.style.opacity="0";},2500);}');
+  parts.push('document.getElementById("plModal").addEventListener("click",function(e){if(e.target===this)closeModal();});');
+  parts.push('async function init(){');
+  parts.push('  try{var c=localStorage.getItem("dcPipeline");if(c)items=JSON.parse(c);}catch(e){items=[];}');
+  parts.push('  renderPL();');
+  parts.push('  try{');
+  parts.push('    var res=await fetch(GAS_URL+"?t="+Date.now()+"&sheet=Pipeline",{method:"GET",redirect:"follow"});');
+  parts.push('    var data=JSON.parse(await res.text());');
+  parts.push('    if(Array.isArray(data)&&data.length>0){');
+  parts.push('      items=data.map(function(r){return{id:String(r.id||""),title:String(r.title||""),folder:String(r.folder||""),channel:String(r.channel||"dc-dental"),stage:String(r.stage||"storyboard"),note:String(r.note||""),updatedAt:String(r.updatedAt||"")};}).filter(function(r){return r.id&&r.title;});');
+  parts.push('      try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
+  parts.push('      renderPL();');
+  parts.push('    }');
+  parts.push('  }catch(e){console.warn("load err",e);}');
+  parts.push('}');
+  parts.push('init();');
+  parts.push('<\/script></body></html>');
 
-function renderSummary(){
-  const bar=document.getElementById('plSummary');if(!bar)return;
-  const c={};STAGES.forEach(s=>{c[s.key]=0;});
-  items.forEach(it=>{if(c[it.stage]!==undefined)c[it.stage]++;});
-  let h=\`<div class="s-card" style="background:#FDF6F0;border-color:\${stF==='all'?'#1A6FB5':'transparent'}" onclick="setStF('all',null)"><span class="num" style="color:#6B5040;">\${items.length}</span><span class="lbl" style="color:#6B5040;">ทั้งหมด</span></div>\`;
-  STAGES.forEach(s=>{h+=\`<div class="s-card" style="background:\${s.bg};border-color:\${stF===s.key?s.color:'transparent'}" onclick="setStF('\${s.key}',null)"><span class="num" style="color:\${s.color};">\${c[s.key]}</span><span class="lbl" style="color:\${s.color};">\${s.icon} \${s.short}</span></div>\`;});
-  bar.innerHTML=h;
-}
-
-function renderPL(){
-  renderSummary();
-  const q=(document.getElementById('plSearch')?.value||'').toLowerCase();
-  let list=items.filter(it=>{
-    if(stF!=='all'&&it.stage!==stF)return false;
-    if(chF!=='all'&&it.channel!==chF)return false;
-    if(q&&!it.title.toLowerCase().includes(q)&&!(it.folder||'').toLowerCase().includes(q))return false;
-    return true;
-  }).sort((a,b)=>getStIdx(a.stage)-getStIdx(b.stage));
-  const el=document.getElementById('plList');
-  const em=document.getElementById('plEmpty');
-  const co=document.getElementById('plCount');
-  if(co)co.textContent='แสดง '+list.length+' คลิป จากทั้งหมด '+items.length+' คลิป';
-  if(!list.length){el.innerHTML='';em.style.display='block';return;}
-  em.style.display='none';
-  el.innerHTML=list.map((it,ri)=>{
-    const ci=getStIdx(it.stage);
-    const ch=CH_COLORS[it.channel]||{bg:'#ECF0F1',fg:'#7F8C8D',label:it.channel};
-    const pills=STAGES.map((s,i)=>{
-      const done=i<ci, cur=i===ci;
-      let cls, style;
-      if(cur){
-        cls='pl-pill active';
-        style='background:'+s.color+';color:white;border-color:'+s.color+';transform:scale(1.05);';
-      } else if(done){
-        cls='pl-pill done';
-        style='background:'+s.bg+';color:'+s.color+';border-color:'+s.color+';';
-      } else {
-        cls='pl-pill future';
-        style='';
-      }
-      const label=cur?s.icon+' '+s.label : done?'✓ '+s.short : s.short;
-      return (i>0?'<span class="pl-sep">›</span>':'')
-        +'<div class="'+cls+'" onclick="quickSet(\''+it.id+'\',\''+s.key+'\',this)" title="'+s.icon+' '+s.label+(cur?' ← อยู่นี่':done?' ✓':'')+'" style="'+style+'">'+label+'</div>';
-    }).join('');
-    return '<div class="pl-row" style="background:'+(ri%2===0?'white':'#FAFBFC')+'">'
-      +'<div style="min-width:0"><div class="clip-title" title="'+it.title+'">'+it.title+'</div>'+(it.folder?'<div class="clip-sub">📁 '+it.folder+'</div>':'')+(it.note?'<div class="clip-sub">📎 '+it.note+'</div>':'')+'</div>'
-      +'<div><span class="ch-badge" style="background:'+ch.bg+';color:'+ch.fg+';">'+ch.label+'</span></div>'
-      +'<div class="dots-row">'+pills+'</div>'
-      +'<div><button class="edit-btn" onclick="openEdit(\''+it.id+'\')">✏️</button></div>'
-      +'</div>';
-  }).join('');
-}
-
-async function quickSet(id,newStage,pillEl){
-  const it=items.find(p=>p.id===id);if(!it||it.stage===newStage)return;
-  it.stage=newStage;it.updatedAt=new Date().toISOString();
-  try{localStorage.setItem('dcPipeline',JSON.stringify(items));}catch(e){}
-  // re-render pills ใน row นั้นเลย
-  const row=pillEl.closest('.pl-row');
-  if(row){
-    const ci=getStIdx(newStage);
-    const pillEls=row.querySelectorAll('.pl-pill');
-    pillEls.forEach((p,i)=>{
-      const s=STAGES[i];
-      const done=i<ci,cur=i===ci;
-      p.className='pl-pill'+(cur?' active':done?' done':' future');
-      if(cur){p.style.cssText='background:'+s.color+';color:white;border-color:'+s.color+';transform:scale(1.05);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.12);';}
-      else if(done){p.style.cssText='background:'+s.bg+';color:'+s.color+';border-color:'+s.color+';opacity:0.45;font-weight:600;';}
-      else{p.style.cssText='background:#F0F4F8;color:#B0BEC5;border-color:#E4EDF5;opacity:0.5;font-weight:600;';}
-      p.textContent=cur?s.icon+' '+s.label:done?'✓ '+s.short:s.short;
-    });
-  }
-  renderSummary();
-  showNoti('💾 บันทึกแล้ว...','#27AE60');
-  try{
-    const res=await fetch(GAS_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'save',sheetName:'Pipeline',post:it})});
-    const r=JSON.parse(await res.text());
-    if(r&&r.ok)showNoti('✅ sync แล้ว','#27AE60');
-    else showNoti('⚠️ sync ไม่สำเร็จ','#E67E22');
-  }catch(e){showNoti('⚠️ offline — local saved','#E67E22');}
-}
-
-function openAdd(){
-  document.getElementById('plMTitle').textContent='➕ เพิ่มคลิปใน Pipeline';
-  document.getElementById('plEId').value='';
-  document.getElementById('plTit').value='';
-  document.getElementById('plFol').value='';
-  document.getElementById('plCh').value='dc-dental';
-  document.getElementById('plNt').value='';
-  document.getElementById('plDelBtn').style.display='none';
-  document.getElementById('plModal').classList.add('open');
-}
-function openEdit(id){
-  const it=items.find(p=>p.id===id);if(!it)return;
-  document.getElementById('plMTitle').textContent='✏️ แก้ไขข้อมูลคลิป';
-  document.getElementById('plEId').value=it.id;
-  document.getElementById('plTit').value=it.title;
-  document.getElementById('plFol').value=it.folder||'';
-  document.getElementById('plCh').value=it.channel||'dc-dental';
-  document.getElementById('plNt').value=it.note||'';
-  document.getElementById('plDelBtn').style.display='inline-block';
-  document.getElementById('plModal').classList.add('open');
-}
-function closeModal(){document.getElementById('plModal').classList.remove('open');}
-async function saveItem(){
-  const title=document.getElementById('plTit').value.trim();
-  if(!title){showNoti('⚠️ กรุณาใส่ชื่อคลิป','#E67E22');return;}
-  const eid=document.getElementById('plEId').value;
-  const id=eid||('pl_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
-  const ex=items.find(p=>p.id===id);
-  const it={id,title,folder:document.getElementById('plFol').value.trim(),channel:document.getElementById('plCh').value,stage:ex?ex.stage:'storyboard',note:document.getElementById('plNt').value.trim(),updatedAt:new Date().toISOString()};
-  const idx=items.findIndex(p=>p.id===id);
-  if(idx>=0)items[idx]=it;else items.unshift(it);
-  try{localStorage.setItem('dcPipeline',JSON.stringify(items));}catch(e){}
-  closeModal();renderPL();showNoti('💾 บันทึกแล้ว กำลัง sync...','#27AE60');
-  try{
-    const res=await fetch(GAS_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'save',sheetName:'Pipeline',post:it})});
-    const r=JSON.parse(await res.text());
-    if(r&&r.ok)showNoti('✅ บันทึกลง Sheets แล้ว','#27AE60');
-    else showNoti('⚠️ sync ไม่สำเร็จ','#E67E22');
-  }catch(e){showNoti('⚠️ offline — local saved','#E67E22');}
-}
-async function deleteItem(){
-  const id=document.getElementById('plEId').value;if(!id)return;
-  if(!confirm('ลบคลิปนี้ออกจาก Pipeline?'))return;
-  items=items.filter(p=>p.id!==id);
-  try{localStorage.setItem('dcPipeline',JSON.stringify(items));}catch(e){}
-  closeModal();renderPL();showNoti('🗑 ลบแล้ว','#E74C3C');
-  try{await fetch(GAS_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',sheetName:'Pipeline',id})});}catch(e){}
-}
-function showNoti(msg,color){
-  const n=document.getElementById('noti');if(!n)return;
-  n.textContent=msg;n.style.background=color||'#1A1A2E';n.style.opacity='1';
-  clearTimeout(n._t);n._t=setTimeout(()=>{n.style.opacity='0';},2500);
-}
-document.getElementById('plModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-init();
-<\/script></body></html>`;
-
+  const html=parts.join('\n');
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const w=window.open(url,'_blank');
-  if(!w){
-    const a=document.createElement('a');
-    a.href=url;a.target='_blank';a.rel='noopener';
-    document.body.appendChild(a);a.click();
-  }
-  setTimeout(()=>{URL.revokeObjectURL(url);},300000);
+  if(!w){const a=document.createElement('a');a.href=url;a.target='_blank';document.body.appendChild(a);a.click();}
+  setTimeout(function(){URL.revokeObjectURL(url);},300000);
 }
 
 document.addEventListener('DOMContentLoaded',async function(){

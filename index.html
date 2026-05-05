@@ -3583,11 +3583,14 @@ function renderPipeline(){
     if(search&&!item.title.toLowerCase().includes(search)&&!(item.folder||'').toLowerCase().includes(search)) return false;
     return true;
   });
-  // sort by stage order
+  // sort by clip number (leading digits in title), fallback to stage order
   items.sort((a,b)=>{
-    const ia=getStageIdx(a.stage);
-    const ib=getStageIdx(b.stage);
-    return ia-ib;
+    const na=parseInt((a.title.match(/^\d+/)||[''])[0],10);
+    const nb=parseInt((b.title.match(/^\d+/)||[''])[0],10);
+    if(!isNaN(na)&&!isNaN(nb)) return na-nb;
+    if(!isNaN(na)) return -1;
+    if(!isNaN(nb)) return 1;
+    return getStageIdx(a.stage)-getStageIdx(b.stage);
   });
 
   const list=document.getElementById('pipelineList');

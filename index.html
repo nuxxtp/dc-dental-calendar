@@ -747,6 +747,9 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 
 
 <script>
+// ================================================
+// CONSTANTS & GLOBAL STATE
+// ================================================
 const SHEET_URL='https://script.google.com/macros/s/AKfycbzyz3v-7-wekXOa9kwREFImlAMwxsaNRvNStu406KIFllFo0deiCxXbh9EpHA9xH26TLQ/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
@@ -765,6 +768,9 @@ let posts=[],filter='all',viewingId=null,activeChannel='dc-dental';
 // Advanced multi-filter state
 let advFilter={funnel:[],mood:[],style:[],strategy:[]};
 
+// ================================================
+// ADVANCED FILTER — multi-select funnel/style/strategy
+// ================================================
 function toggleAdvFilter(){
   const isMobile=window.innerWidth<=640;
   if(isMobile){
@@ -957,6 +963,9 @@ let gridSelected=new Set();
 let gridEditMode=false;
 let gridSnapshot=[];
 
+// ================================================
+// IG GRID — Storage, Loading, Save
+// ================================================
 function getGridStorageKey(){ return 'igGridSlots_'+activeChannel; }
 function getGridSheetName(ch){ return 'IG Grid '+(ch||activeChannel); }
 
@@ -1067,6 +1076,9 @@ function markGridDirty(){
   if(badge) badge.style.display='flex';
 }
 
+// ================================================
+// IG GRID — Edit Mode (reorder slots)
+// ================================================
 function enterGridEditMode(){
   gridEditMode=true;
   gridSnapshot=JSON.parse(JSON.stringify(gridSlots)); // deep copy
@@ -1171,6 +1183,9 @@ async function saveGridSlotsToSheet(){
 // =====================================================
 // THEME & CHANNEL
 // =====================================================
+// ================================================
+// CHANNEL MANAGEMENT — switch, theme, load data
+// ================================================
 function applyChannelTheme(ch){
   const t=CHANNEL_THEMES[ch]||CHANNEL_THEMES['dc-dental'];
   const root=document.documentElement;
@@ -1385,6 +1400,9 @@ async function loadChannelData(ch){
   renderUnscheduled();
 }
 
+// ================================================
+// UTILITIES — debounce, notifications, API, badges
+// ================================================
 function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
 const debouncedRenderPipeline=debounce(()=>renderPipeline(),200);
 function showNoti(msg,color='#1A6FB5'){
@@ -1431,6 +1449,9 @@ function updateChannelPreview(selectId,previewId){
   document.getElementById(previewId).innerHTML=val?channelBadge(val):'';
 }
 
+// ================================================
+// CALENDAR — Month Picker
+// ================================================
 function openMonthPicker(){
   const old=document.getElementById('monthPickerOverlay');
   if(old){old.remove();return;}
@@ -1541,6 +1562,9 @@ function closeMonthPicker(){
   }
 }
 
+// ================================================
+// CALENDAR — Render, Filter, Cards
+// ================================================
 function render(){
   document.getElementById('monthLabel').textContent=MONTHS[cm]+' '+(cy+543);
   const mp=postsInMonth();
@@ -1730,6 +1754,9 @@ function changeMonth(d){
 }
 function setFilter(f,btn){filter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
 
+// ================================================
+// CALENDAR — Add / Edit / View Posts (modal)
+// ================================================
 function openAdd(dateStr){
   document.getElementById('editId').value='';
   document.getElementById('modalTitle').textContent='➕ เพิ่มโพสต์ใหม่';
@@ -1948,6 +1975,9 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('cl
 // =====================================================
 // SWITCH TAB
 // =====================================================
+// ================================================
+// TAB SWITCHING — Calendar / IG Grid / Process
+// ================================================
 async function switchTab(tab){
   const isGrid=tab==='grid';
   const isCalendar=tab==='calendar';
@@ -1972,6 +2002,9 @@ async function switchTab(tab){
 // =====================================================
 // IG GRID RENDER & ACTIONS
 // =====================================================
+// ================================================
+// IG GRID — Select & Delete Mode
+// ================================================
 function toggleGridSelectMode(){
   gridSelectMode=!gridSelectMode;
   gridSelected.clear();
@@ -2090,6 +2123,9 @@ async function deleteSelectedGridSlots(){
   toggleGridSelectMode();
 }
 
+// ================================================
+// IG GRID — Render, Sync, Drag & Drop
+// ================================================
 function renderGrid(){
   const ch=GRID_CHANNEL_META[activeChannel]||GRID_CHANNEL_META['dc-dental'];
   const chMeta=CHANNEL_META[activeChannel];
@@ -2639,6 +2675,9 @@ const STYLE_CARD_COLORS={
 };
 const STYLE_LABELS={review:'R · รีวิว',educated:'E · ให้ความรู้',branding:'B · แบรนด์',sale:'S · ขาย',event:'V · กิจกรรม',ads:'A · โฆษณา',lifestyle:'L · ชีวิต','':`✏️ ชื่อคอนเทนต์`};
 
+// ================================================
+// IG GRID — Sandbox (ทดลองจัด)
+// ================================================
 function openGridSandbox(){
   const overlay=document.createElement('div');
   overlay.id='gridSandboxOverlay';
@@ -3027,6 +3066,9 @@ function printIGGrid(){
 // =====================================================
 // OVERVIEW — ภาพรวมทุกช่อง
 // =====================================================
+// ================================================
+// OVERVIEW PAGE — blob page (ภาพรวมคอนเทนต์)
+// ================================================
 function openOverview(){
   const chMeta=CHANNEL_META[activeChannel]||{label:activeChannel,emoji:'📱'};
   const chTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
@@ -3260,6 +3302,9 @@ function openOverview(){
   setTimeout(()=>{URL.revokeObjectURL(url);},120000);
 }
 
+// ================================================
+// PRINT / EXPORT — calendar print, IG grid print
+// ================================================
 function printCalendar(){
   const chMeta=CHANNEL_META[activeChannel];
   const chTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
@@ -3472,6 +3517,9 @@ const PL_CHANNEL_COLORS={
   'north-tiktok':{bg:'#F0F0F0',fg:'#010101',label:'TikTok'},
 };
 
+// ================================================
+// PIPELINE / PROCESS — stages, load, render, CRUD
+// ================================================
 function getStage(key){ return PL_STAGES.find(s=>s.key===key)||PL_STAGES[0]; }
 function getStageIdx(key){ return PL_STAGES.findIndex(s=>s.key===key); }
 
@@ -3767,6 +3815,9 @@ async function deletePipelineItem(){
 }
 
 // ===== เปิด Pipeline เป็น page ใหม่ =====
+// ================================================
+// PIPELINE BLOB PAGE — generates separate window
+// ================================================
 function openPipelinePage(){
   const GAS=SHEET_URL;
   const stagesData=JSON.stringify(PL_STAGES);
@@ -4075,6 +4126,9 @@ document.addEventListener('DOMContentLoaded',async function(){
 });
 
 // ===== GLOBAL SEARCH =====
+// ================================================
+// GLOBAL SEARCH — Ctrl+K spotlight search
+// ================================================
 function openGlobalSearch(){
   const ov=document.getElementById('globalSearchOverlay');
   ov.style.display='flex';
@@ -4166,6 +4220,9 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('globalSearchOverlay').style.display==='flex') closeGlobalSearch();
 });
 
+// ================================================
+// OVERDUE POSTS PROMPT — auto-check on app open
+// ================================================
 let _overdueShown=false;
 function checkOverduePosts(){
   if(_overdueShown) return;

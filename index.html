@@ -3846,7 +3846,7 @@ function openPipelinePage(){
 
   parts.push('<div id="plCount" class="result-count"></div>');
   parts.push('<div class="table-wrap">');
-  parts.push('<div class="table-head"><div>\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b</div><div>\u0e0a\u0e48\u0e2d\u0e07</div><div>\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19</div><div></div></div>');
+  parts.push('<div class="table-head"><div style="display:flex;align-items:center;gap:8px;">\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b <button id="sortBtn" onclick="toggleSort()" style="border:1px solid #D0DCE8;background:white;border-radius:12px;padding:2px 8px;font-size:10px;cursor:pointer;color:#7F8C8D;font-family:inherit;">\u0e40\u0e23\u0e35\u0e22\u0e07: Stage \u25be</button></div><div>\u0e0a\u0e48\u0e2d\u0e07</div><div>\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19</div><div></div></div>');
   parts.push('<div id="plList"></div>');
   parts.push('<div id="plEmpty" class="empty" style="display:none"><div style="font-size:36px;margin-bottom:10px;">\uD83C\uDFAC</div><div style="font-size:14px;font-weight:700;">\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e04\u0e25\u0e34\u0e1b\u0e17\u0e35\u0e48\u0e15\u0e23\u0e07\u0e01\u0e31\u0e19</div></div>');
   parts.push('</div></div>');
@@ -3880,11 +3880,12 @@ function openPipelinePage(){
   parts.push('var GAS_URL='+JSON.stringify(GAS)+';');
   parts.push('var STAGES='+stagesData+';');
   parts.push('var CH_COLORS='+chData+';');
-  parts.push('var items=[],stF="all",chF="all";');
+  parts.push('var items=[],stF="all",chF="all",sortMode="stage";');
   parts.push('function getStIdx(k){return STAGES.findIndex(function(s){return s.key===k;});}');
   parts.push('function getSt(k){return STAGES.find(function(s){return s.key===k;})||STAGES[0];}');
   parts.push('function setChF(v,btn){chF=v;document.querySelectorAll("[data-ch]").forEach(function(b){b.classList.toggle("active",b.dataset.ch===v);});renderPL();}');
   parts.push('function setStF(v,btn){stF=v;document.querySelectorAll("[data-st]").forEach(function(b){b.classList.toggle("active",b.dataset.st===v);});renderPL();}');
+  parts.push('function toggleSort(){sortMode=sortMode==="stage"?"number":"stage";var btn=document.getElementById("sortBtn");if(btn){btn.textContent=sortMode==="number"?"เรียง: เลข ▾":"เรียง: Stage ▾";btn.style.background=sortMode==="number"?"#1A6FB5":"white";btn.style.color=sortMode==="number"?"white":"#7F8C8D";btn.style.borderColor=sortMode==="number"?"#1A6FB5":"#D0DCE8";}renderPL();}');
   parts.push('function renderSummary(){');
   parts.push('  var bar=document.getElementById("plSummary");if(!bar)return;');
   parts.push('  var c={};STAGES.forEach(function(s){c[s.key]=0;});');
@@ -3907,7 +3908,7 @@ function openPipelinePage(){
   parts.push('    if(chF!=="all"&&it.channel!==chF)return false;');
   parts.push('    if(q&&it.title.toLowerCase().indexOf(q)<0&&(it.folder||"").toLowerCase().indexOf(q)<0)return false;');
   parts.push('    return true;');
-  parts.push('  }).sort(function(a,b){return getStIdx(a.stage)-getStIdx(b.stage);});');
+  parts.push('  }).sort(function(a,b){if(sortMode==="number"){var na=parseInt((a.title.match(/^\\d+/)||[""])[0],10),nb=parseInt((b.title.match(/^\\d+/)||[""])[0],10);if(!isNaN(na)&&!isNaN(nb))return na-nb;if(!isNaN(na))return -1;if(!isNaN(nb))return 1;return 0;}return getStIdx(a.stage)-getStIdx(b.stage);});');
   parts.push('  var el=document.getElementById("plList");');
   parts.push('  var em=document.getElementById("plEmpty");');
   parts.push('  var co=document.getElementById("plCount");');

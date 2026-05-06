@@ -477,7 +477,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   <div style="background:white;border-radius:12px;border:1.5px solid #E4EDF5;overflow:hidden;">
     <!-- Table header -->
     <div style="display:grid;grid-template-columns:1fr 100px 340px 28px;gap:0;background:#F4F7FB;border-bottom:1.5px solid #E4EDF5;padding:8px 16px;align-items:center;">
-      <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;">ชื่อคลิป</div>
+      <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:8px;">ชื่อคลิป <button onclick="togglePlSort()" id="plSortBtn" title="สลับการเรียง" style="border:1px solid #D0DCE8;background:white;border-radius:12px;padding:2px 8px;font-size:10px;cursor:pointer;color:var(--gray-dark);font-family:'Sarabun',sans-serif;">เรียง: Stage ▾</button></div>
       <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;">ช่อง</div>
       <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;text-align:center;">
         <span style="display:inline-flex;gap:0;align-items:center;">
@@ -531,6 +531,8 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="dr-daran">dr.daran</option>
           <option value="north-tiktok">TikTok</option>
         </select></div>
+      <div class="form-row"><label>กำหนดส่ง (Deadline)</label>
+        <input type="date" id="plDeadline"></div>
       <div class="form-row"><label>หมายเหตุ</label>
         <textarea id="plNote" placeholder="บันทึกเพิ่มเติม..." style="min-height:60px"></textarea></div>
       <div class="modal-actions">
@@ -3421,6 +3423,7 @@ function jumpToMonth(year,month){
 let pipelineItems=[];
 let plStageFilter='all';
 let plChFilter='all';
+let plSortMode='stage';
 
 const PL_STAGES=[
   {key:'storyboard', label:'สตอรี่บอร์ด', short:'Story', icon:'📝', color:'#7F8C8D', bg:'#ECF0F1', ring:'#b0b8bd'},
@@ -3461,6 +3464,7 @@ async function loadPipelineItems(){
         channel:String(r.channel||'dc-dental'),
         stage:String(r.stage||'storyboard'),
         note:String(r.note||''),
+        deadline:String(r.deadline||''),
         updatedAt:String(r.updatedAt||''),
       })).filter(r=>r.id&&r.title);
       try{ localStorage.setItem('dcPipeline',JSON.stringify(pipelineItems)); }catch(e){}
@@ -3531,6 +3535,12 @@ function updateRowDots(row, id, currentStageKey){
   }
 }
 
+function togglePlSort(){
+  plSortMode=plSortMode==='stage'?'number':'stage';
+  const btn=document.getElementById('plSortBtn');
+  if(btn) btn.textContent=plSortMode==='number'?'เรียง: เลข ▾':'เรียง: Stage ▾';
+  renderPipeline();
+}
 function setPipelineStageFilter(stage,btn){
   plStageFilter=stage;
   document.querySelectorAll('.pl-stage-btn').forEach(b=>{
@@ -3583,12 +3593,18 @@ function renderPipeline(){
     if(search&&!item.title.toLowerCase().includes(search)&&!(item.folder||'').toLowerCase().includes(search)) return false;
     return true;
   });
-  // sort by stage order
-  items.sort((a,b)=>{
-    const ia=getStageIdx(a.stage);
-    const ib=getStageIdx(b.stage);
-    return ia-ib;
-  });
+  if(plSortMode==='number'){
+    items.sort((a,b)=>{
+      const na=parseInt((a.title.match(/^\d+/)||[''])[0],10);
+      const nb=parseInt((b.title.match(/^\d+/)||[''])[0],10);
+      if(!isNaN(na)&&!isNaN(nb)) return na-nb;
+      if(!isNaN(na)) return -1;
+      if(!isNaN(nb)) return 1;
+      return 0;
+    });
+  } else {
+    items.sort((a,b)=>getStageIdx(a.stage)-getStageIdx(b.stage));
+  }
 
   const list=document.getElementById('pipelineList');
   const empty=document.getElementById('plEmpty');
@@ -3624,11 +3640,22 @@ function renderPipeline(){
       ${i<6?`<div style="width:14px;height:2px;background:${done&&(i+1)<=curIdx-1?PL_STAGES[i+1].color:'#E4EDF5'};opacity:${done?'0.6':'0.3'};border-radius:2px;flex-shrink:0;"></div>`:''}`;
     }).join('');
 
+    // deadline highlight
+    const today=new Date(); today.setHours(0,0,0,0);
+    let dlBadge='';
+    let rowBorder='1px solid #F0F4F8';
+    if(item.deadline&&item.stage!=='complete'){
+      const dl=new Date(item.deadline); dl.setHours(0,0,0,0);
+      const diff=Math.round((dl-today)/(1000*60*60*24));
+      if(diff<0){ dlBadge=`<span style="background:#FDECEC;color:#C0392B;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:6px;">🚨 เกิน ${Math.abs(diff)}วัน</span>`; rowBorder='1px solid #F5B7B1'; }
+      else if(diff<=3){ dlBadge=`<span style="background:#FEF3E2;color:#E67E22;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:6px;">⚠️ อีก ${diff}วัน</span>`; }
+      else{ dlBadge=`<span style="background:#EBF5FB;color:#2980B9;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:600;margin-left:6px;">📅 ${item.deadline}</span>`; }
+    }
     const bg=rowIdx%2===0?'white':'#FAFBFC';
-    return `<div class="pl-row" data-id="${item.id}" style="display:grid;grid-template-columns:1fr 100px 340px 28px;gap:0;background:${bg};border-bottom:1px solid #F0F4F8;padding:10px 16px;align-items:center;transition:background 0.1s;" onmouseover="this.style.background='#EEF5FB'" onmouseout="this.style.background='${bg}'">
+    return `<div class="pl-row" data-id="${item.id}" style="display:grid;grid-template-columns:1fr 100px 340px 28px;gap:0;background:${bg};border-bottom:${rowBorder};padding:10px 16px;align-items:center;transition:background 0.1s;" onmouseover="this.style.background='#EEF5FB'" onmouseout="this.style.background='${bg}'">
       <!-- ชื่อ -->
       <div style="min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${item.title}">${item.title}</div>
+        <div style="font-size:13px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${item.title}">${item.title}${dlBadge}</div>
         ${item.folder?`<div style="font-size:10px;color:#aaa;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📁 ${item.folder}</div>`:''}
         ${item.note?`<div style="font-size:10px;color:#bbb;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📎 ${item.note}</div>`:''}
       </div>
@@ -3652,6 +3679,7 @@ function openAddPipeline(){
   document.getElementById('plTitle').value='';
   document.getElementById('plFolder').value='';
   document.getElementById('plChannel').value=activeChannel||'dc-dental';
+  document.getElementById('plDeadline').value='';
   document.getElementById('plNote').value='';
   document.getElementById('plBtnDelete').style.display='none';
   document.getElementById('pipelineModal').classList.add('open');
@@ -3665,6 +3693,7 @@ function openEditPipeline(id){
   document.getElementById('plTitle').value=item.title;
   document.getElementById('plFolder').value=item.folder||'';
   document.getElementById('plChannel').value=item.channel||'dc-dental';
+  document.getElementById('plDeadline').value=item.deadline||'';
   document.getElementById('plNote').value=item.note||'';
   document.getElementById('plBtnDelete').style.display='inline-block';
   document.getElementById('pipelineModal').classList.add('open');
@@ -3682,6 +3711,7 @@ async function savePipelineItem(){
     folder:document.getElementById('plFolder').value.trim(),
     channel:document.getElementById('plChannel').value,
     stage:existingItem?existingItem.stage:'storyboard',
+    deadline:document.getElementById('plDeadline').value||'',
     note:document.getElementById('plNote').value.trim(),
     updatedAt:new Date().toISOString(),
   };

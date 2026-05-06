@@ -302,7 +302,6 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <button id="btnGridDeleteSelected" onclick="deleteSelectedGridSlots()" style="display:none;background:#E74C3C;border:none;color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">🗑 ลบที่เลือก (<span id="selectedCount">0</span>)</button>
         <button id="btnGridSelectAll" onclick="selectAllGridSlots()" style="display:none;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">เลือกทั้งหมด</button>
         <button id="btnGridEdit" onclick="enterGridEditMode()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;">✏️ แก้ไขลำดับ</button>
-        <button onclick="openGridPreview()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">👁️ Preview</button>
       </div>
       <!-- Edit mode -->
       <div id="gridEditBtns" style="display:none;align-items:center;gap:8px;">
@@ -4156,108 +4155,8 @@ function jumpToClip(id){
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); openGlobalSearch(); }
   if(e.key==='Escape'&&document.getElementById('globalSearchOverlay').style.display==='flex') closeGlobalSearch();
-  if(e.key==='Escape'&&document.getElementById('igPreviewOverlay').style.display==='block') closeGridPreview();
 });
-
-function openGridPreview(){
-  const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
-  const monthSlots=gridSlots.filter(s=>{
-    if(s.date){const d=new Date(s.date+'T00:00:00');return d.getFullYear()===cy&&d.getMonth()===cm;}
-    return (s.createdMonth||curMonthKey)===curMonthKey;
-  });
-  const logoEl=document.getElementById('igProfileLogo');
-  document.getElementById('igPrevLogo').src=logoEl?logoEl.src:'';
-  document.getElementById('igPrevUsername').textContent=document.getElementById('igUsername').textContent||'';
-  document.getElementById('igPrevChannelLabel').textContent=document.getElementById('igChannelLabel').textContent||'';
-  const realCount=monthSlots.filter(s=>s.type!=='blank').length;
-  document.getElementById('igPrevPostCount').textContent=realCount+' โพสต์ · '+MONTHS[cm]+' '+(cy+543);
-  const grid=document.getElementById('igPreviewGrid');
-  grid.innerHTML='';
-  let items=[...monthSlots];
-  while(items.length%3!==0) items.push(null);
-  const chunks=[];
-  for(let i=0;i<items.length;i+=3) chunks.push(items.slice(i,i+3));
-  chunks.forEach(chunk=>{
-    [chunk[2],chunk[1],chunk[0]].forEach(item=>{
-      const cell=document.createElement('div');
-      cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;';
-      if(!item||item.type==='blank'){
-        cell.style.background='#EFEFEF';
-      } else if(item.type==='pending'){
-        cell.style.cssText+='background:linear-gradient(135deg,#8B6F3E,#C8956C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;';
-        cell.innerHTML='<div style="font-size:24px;pointer-events:none;">🖼️</div><div style="font-size:10px;font-weight:700;color:white;pointer-events:none;">รอปก</div>';
-        cell.addEventListener('click',()=>showPrevDetail(item));
-      } else if(item.img){
-        cell.style.cursor='pointer';
-        const img=document.createElement('img');
-        img.src=item.img;img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
-        cell.appendChild(img);
-        cell.addEventListener('click',()=>showPrevDetail(item));
-      } else {
-        cell.style.background='#D8D8D8';
-      }
-      grid.appendChild(cell);
-    });
-  });
-  document.getElementById('igPreviewOverlay').style.display='block';
-  document.body.style.overflow='hidden';
-}
-function closeGridPreview(){
-  document.getElementById('igPreviewOverlay').style.display='none';
-  document.body.style.overflow='';
-  closePrevDetail();
-}
-function showPrevDetail(item){
-  const post=posts.find(p=>String(p.id)===String(item.id));
-  let html='';
-  if(item.img) html+='<img src="'+item.img+'" style="width:100%;border-radius:10px;margin-bottom:14px;object-fit:cover;max-height:260px;">';
-  const title=post?post.title:(item.title||'');
-  if(title) html+='<div style="font-family:\'Prompt\',sans-serif;font-size:16px;font-weight:700;color:#1A1A2E;margin-bottom:8px;">'+title+'</div>';
-  if(item.date){
-    const d=new Date(item.date+'T00:00:00');
-    html+='<div style="font-size:13px;color:#666;margin-bottom:10px;">📅 '+d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543)+'</div>';
-  } else {
-    html+='<div style="font-size:12px;color:#E74C3C;margin-bottom:10px;">📅 ยังไม่มีวันที่</div>';
-  }
-  if(post&&post.status){
-    const stColors={draft:'#95A5A6',ready:'#F0A500',posted:'#27AE60'};
-    const stLabels={draft:'📝 Draft',ready:'✅ Ready',posted:'🟢 Posted'};
-    html+='<span style="background:'+(stColors[post.status]||'#eee')+';color:white;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;display:inline-block;margin-bottom:10px;">'+(stLabels[post.status]||post.status)+'</span>';
-  }
-  if(post&&post.caption) html+='<div style="margin-top:10px;background:#F4F7FB;padding:10px 12px;border-radius:8px;font-size:12px;color:#444;line-height:1.7;white-space:pre-wrap;">'+post.caption+'</div>';
-  document.getElementById('igPrevDetailBody').innerHTML=html;
-  document.getElementById('igPrevDetail').style.display='block';
-}
-function closePrevDetail(){
-  const el=document.getElementById('igPrevDetail');
-  if(el) el.style.display='none';
-}
 </script>
-
-<!-- IG PROFILE PREVIEW OVERLAY -->
-<div id="igPreviewOverlay" style="display:none;position:fixed;inset:0;background:#FAFAFA;z-index:450;overflow-y:auto;-webkit-overflow-scrolling:touch;">
-  <button onclick="closeGridPreview()" style="position:fixed;top:14px;right:14px;background:rgba(0,0,0,0.55);border:none;border-radius:50%;width:38px;height:38px;color:white;font-size:20px;cursor:pointer;z-index:460;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
-  <div style="max-width:480px;margin:0 auto;padding:24px 0 60px;">
-    <div id="igPrevHeader" style="display:flex;align-items:center;gap:20px;padding:0 16px 20px;">
-      <img id="igPrevLogo" src="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:1.5px solid #E0E0E0;flex-shrink:0;">
-      <div>
-        <div id="igPrevUsername" style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;color:#1A1A2E;"></div>
-        <div id="igPrevChannelLabel" style="font-size:12px;color:#888;margin-top:2px;"></div>
-        <div id="igPrevPostCount" style="font-size:12px;color:#555;margin-top:8px;font-weight:600;"></div>
-      </div>
-    </div>
-    <div style="border-top:1px solid #DBDBDB;display:flex;justify-content:center;padding:12px 0 10px;">
-      <svg width="22" height="22" viewBox="0 0 24 24"><rect x="2" y="2" width="8.5" height="8.5" rx="1.5" fill="#1A1A2E"/><rect x="13.5" y="2" width="8.5" height="8.5" rx="1.5" fill="#1A1A2E"/><rect x="2" y="13.5" width="8.5" height="8.5" rx="1.5" fill="#1A1A2E"/><rect x="13.5" y="13.5" width="8.5" height="8.5" rx="1.5" fill="#1A1A2E"/></svg>
-    </div>
-    <div id="igPreviewGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;"></div>
-  </div>
-  <div id="igPrevDetail" onclick="if(event.target===this)closePrevDetail()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:470;">
-    <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:10px 20px 32px;max-height:75vh;overflow-y:auto;">
-      <div style="width:40px;height:4px;background:#E0E0E0;border-radius:2px;margin:0 auto 16px;"></div>
-      <div id="igPrevDetailBody"></div>
-    </div>
-  </div>
-</div>
 
 <!-- GLOBAL SEARCH OVERLAY -->
 <div id="globalSearchOverlay" onclick="if(event.target===this)closeGlobalSearch()" style="display:none;position:fixed;inset:0;background:rgba(13,63,110,0.5);backdrop-filter:blur(4px);z-index:500;align-items:flex-start;justify-content:center;padding:80px 16px 16px;">

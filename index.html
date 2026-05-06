@@ -280,7 +280,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     <div id="tabSwitcher" style="display:flex;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.25);flex-shrink:0;">
       <button id="tabCalBtn" onclick="switchTab('calendar')" style="background:rgba(255,255,255,0.25);border:none;color:white;padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s">📅 Calendar</button>
       <button id="tabGridBtn" onclick="switchTab('grid')" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">📸 IG Grid</button>
-      <button id="tabPipelineBtn" onclick="openPipelinePage()" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🎬 Pipeline</button>
+      <button id="tabPipelineBtn" onclick="openPipelinePage()" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🎬 Process</button>
     </div>
     <div id="calendarControls" style="display:flex;align-items:center;gap:10px">
       <div class="month-nav">
@@ -432,7 +432,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   <!-- Header -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
     <div>
-      <div style="font-family:'Prompt',sans-serif;font-size:18px;font-weight:700;color:var(--blue-dark);">🎬 Pipeline — ภาพรวมสถานะการผลิต</div>
+      <div style="font-family:'Prompt',sans-serif;font-size:18px;font-weight:700;color:var(--blue-dark);">🎬 Process — ภาพรวมสถานะการผลิต</div>
       <div style="font-size:12px;color:var(--gray-dark);margin-top:2px;">ทุกช่องรวมกัน · กดที่ขั้นตอนในแถวเพื่อเปลี่ยนสถานะทันที</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -512,7 +512,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 <div class="modal-overlay" id="pipelineModal">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="plModalTitle">➕ เพิ่มคลิปใน Pipeline</h2>
+      <h2 id="plModalTitle">➕ เพิ่มคลิปใน Process</h2>
       <button class="modal-close" onclick="closeModal('pipelineModal')">×</button>
     </div>
     <div class="modal-body">
@@ -3674,7 +3674,7 @@ function renderPipeline(){
 }
 
 function openAddPipeline(){
-  document.getElementById('plModalTitle').textContent='➕ เพิ่มคลิปใน Pipeline';
+  document.getElementById('plModalTitle').textContent='➕ เพิ่มคลิปใน Process';
   document.getElementById('plEditId').value='';
   document.getElementById('plTitle').value='';
   document.getElementById('plFolder').value='';
@@ -3730,7 +3730,7 @@ async function savePipelineItem(){
 async function deletePipelineItem(){
   const id=document.getElementById('plEditId').value;
   if(!id) return;
-  if(!confirm('ลบคลิปนี้ออกจาก Pipeline?')) return;
+  if(!confirm('ลบคลิปนี้ออกจาก Process?')) return;
   pipelineItems=pipelineItems.filter(p=>p.id!==id);
   try{ localStorage.setItem('dcPipeline',JSON.stringify(pipelineItems)); }catch(e){}
   closeModal('pipelineModal');
@@ -3750,7 +3750,7 @@ function openPipelinePage(){
   parts.push('<!DOCTYPE html><html lang="th"><head>');
   parts.push('<meta charset="UTF-8">');
   parts.push('<meta name="viewport" content="width=device-width,initial-scale=1">');
-  parts.push('<title>\uD83C\uDFAC DC Dental Pipeline</title>');
+  parts.push('<title>\uD83C\uDFAC DC Dental Process</title>');
   // inject Google Fonts inline via @import แทน link tag
   parts.push('<style>');
   parts.push('@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap");');
@@ -3818,7 +3818,7 @@ function openPipelinePage(){
 
   // top bar
   parts.push('<div class="top-bar">');
-  parts.push('<div><div class="top-title">\uD83C\uDFAC DC Dental Pipeline</div>');
+  parts.push('<div><div class="top-title">\uD83C\uDFAC DC Dental Process</div>');
   parts.push('<div class="top-sub">\u0e20\u0e32\u0e1e\u0e23\u0e27\u0e21\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15\u0e04\u0e2d\u0e19\u0e40\u0e17\u0e19\u0e15\u0e4c\u0e17\u0e38\u0e01\u0e0a\u0e48\u0e2d\u0e07 \u00b7 \u0e01\u0e14\u0e17\u0e35\u0e48 pill \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e17\u0e31\u0e19\u0e17\u0e35</div></div>');
   parts.push('<div class="top-actions">');
   parts.push('<input type="text" id="plSearch" placeholder="\uD83D\uDD0D \u0e04\u0e49\u0e19\u0e2b\u0e32\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b..." oninput="renderPL()">');
@@ -3966,7 +3966,7 @@ function openPipelinePage(){
   parts.push('  fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:it})}).then(function(r){return r.text();}).then(function(t){var d=JSON.parse(t);showNoti(d&&d.ok?"\u2705 sync \u0e41\u0e25\u0e49\u0e27":"\u26a0\uFE0F sync \u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08",d&&d.ok?"#27AE60":"#E67E22");}).catch(function(){showNoti("\u26a0\uFE0F offline","#E67E22");});');
   parts.push('}');
   parts.push('function openAdd(){');
-  parts.push('  document.getElementById("plMTitle").textContent="\u2795 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e25\u0e34\u0e1b\u0e43\u0e19 Pipeline";');
+  parts.push('  document.getElementById("plMTitle").textContent="\u2795 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e25\u0e34\u0e1b\u0e43\u0e19 Process";');
   parts.push('  document.getElementById("plEId").value="";');
   parts.push('  document.getElementById("plTit").value="";');
   parts.push('  document.getElementById("plFol").value="";');
@@ -4004,7 +4004,7 @@ function openPipelinePage(){
   parts.push('}');
   parts.push('function deleteItem(){');
   parts.push('  var id=document.getElementById("plEId").value;if(!id)return;');
-  parts.push('  if(!confirm("\u0e25\u0e1a\u0e04\u0e25\u0e34\u0e1b\u0e19\u0e35\u0e49\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01 Pipeline?"))return;');
+  parts.push('  if(!confirm("\u0e25\u0e1a\u0e04\u0e25\u0e34\u0e1b\u0e19\u0e35\u0e49\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01 Process?"))return;');
   parts.push('  items=items.filter(function(p){return p.id!==id;});');
   parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
   parts.push('  closeModal();renderPL();showNoti("\uD83D\uDDD1 \u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27","#E74C3C");');

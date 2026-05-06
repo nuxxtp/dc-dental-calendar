@@ -131,21 +131,22 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   header{padding:8px 12px;gap:6px;flex-wrap:wrap;flex-direction:column;align-items:stretch;}
   #headerChannelBadge{font-size:12px;}
   .header-left-group{flex-shrink:0;align-self:flex-start;}
-  .header-right{display:flex;flex-direction:column;gap:6px;width:100%;}
-  #tabSwitcher{align-self:flex-start;}
-  #tabCalBtn{padding:6px 12px;font-size:11px;}
-  #tabGridBtn{padding:6px 12px;font-size:11px;}
-  /* แถว month nav + ปุ่มภาพรวม */
+  /* header-right: row layout — tab+search บรรทัดเดียว, controls บรรทัดล่าง */
+  .header-right{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;width:100%;}
+  #tabSwitcher{flex:1;min-width:0;}
+  #tabCalBtn{padding:6px 10px;font-size:11px;}
+  #tabGridBtn{padding:6px 10px;font-size:11px;}
+  #btnGlobalSearch{padding:6px 10px;font-size:13px;flex-shrink:0;}
+  /* calendarControls และ gridControls เต็มแถวล่าง */
   #calendarControls{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap;width:100%;}
+  #gridControls{width:100%;justify-content:flex-start;}
   .month-nav{flex-shrink:0;}
   .month-label{font-size:13px;font-weight:700;min-width:auto;padding:4px 8px;}
   .month-nav button{padding:4px 10px;font-size:15px;}
   /* ซ่อนปุ่มพิมพ์และเพิ่มโพสต์บน mobile */
   #btnPrint{display:none !important;}
   #btnAddPost{display:none !important;}
-  /* ปุ่มภาพรวมให้เห็นชัด */
   #btnOverview{padding:6px 12px;font-size:11px;white-space:nowrap;flex-shrink:0;}
-  #gridControls{width:100%;justify-content:flex-start;}
   .stats-bar{padding:8px 12px;gap:10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
   .stats-bar::-webkit-scrollbar{display:none;}
   .filter-row{margin-left:0;flex-wrap:nowrap;overflow-x:auto;}
@@ -282,7 +283,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <button id="tabGridBtn" onclick="switchTab('grid')" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">📸 IG Grid</button>
       <button id="tabPipelineBtn" onclick="openPipelinePage()" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🎬 Process</button>
     </div>
-    <button onclick="openGlobalSearch()" title="ค้นหาทั้งหมด (Ctrl+K)" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🔍</button>
+    <button id="btnGlobalSearch" onclick="openGlobalSearch()" title="ค้นหาทั้งหมด (Ctrl+K)" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🔍</button>
     <div id="calendarControls" style="display:flex;align-items:center;gap:10px">
       <div class="month-nav">
         <button onclick="changeMonth(-1)">‹</button>

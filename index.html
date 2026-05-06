@@ -1688,6 +1688,7 @@ function createCard(p){
         <div style="display:flex;align-items:center;gap:3px">
           <span class="pbadge ${TCLASS[p.type]||'t-video'}">${{video:'วิดีโอ',photo:'รูป',reel:'Reels',story:'Story',carousel:'Carousel'}[p.type]||'คอนเทนต์'}</span>
           <span class="sdot ${SCLASS[p.status]||'s-draft'}"></span>
+          <span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;${p.captionCheck==='done'?'background:#D5F5E3;color:#1E8449;':'background:#FDECEA;color:#C0392B;'}">${p.captionCheck==='done'?'✓cap':'✗cap'}</span>
         </div>
       </div>
     </div>

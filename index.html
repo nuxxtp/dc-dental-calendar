@@ -3845,9 +3845,9 @@ function openPipelinePage(){
   });
   parts.push('</div>');
 
-  parts.push('<div id="plCount" class="result-count"></div>');
+  parts.push('<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;"><div id="plCount" class="result-count" style="margin-bottom:0;"></div><button id="sortBtn" onclick="toggleSort()" style="border:1px solid #DDD0C8;background:white;border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;color:#8B6F5E;font-family:inherit;font-weight:600;">\u0e40\u0e23\u0e35\u0e22\u0e07: Stage \u25be</button></div>');
   parts.push('<div class="table-wrap">');
-  parts.push('<div class="table-head"><div style="display:flex;align-items:center;gap:8px;">\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b <button id="sortBtn" onclick="toggleSort()" style="border:1px solid #D0DCE8;background:white;border-radius:12px;padding:2px 8px;font-size:10px;cursor:pointer;color:#7F8C8D;font-family:inherit;">\u0e40\u0e23\u0e35\u0e22\u0e07: Stage \u25be</button></div><div>\u0e0a\u0e48\u0e2d\u0e07</div><div>\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19</div><div></div></div>');
+  parts.push('<div class="table-head"><div>\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b</div><div>\u0e0a\u0e48\u0e2d\u0e07</div><div>\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19\u0e1b\u0e31\u0e08\u0e08\u0e38\u0e1a\u0e31\u0e19</div><div></div></div>');
   parts.push('<div id="plList"></div>');
   parts.push('<div id="plEmpty" class="empty" style="display:none"><div style="font-size:36px;margin-bottom:10px;">\uD83C\uDFAC</div><div style="font-size:14px;font-weight:700;">\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e04\u0e25\u0e34\u0e1b\u0e17\u0e35\u0e48\u0e15\u0e23\u0e07\u0e01\u0e31\u0e19</div></div>');
   parts.push('</div></div>');

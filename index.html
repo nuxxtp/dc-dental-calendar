@@ -1680,14 +1680,14 @@ function createCard(p){
   let collabBadge='';
   if(isCollab){
     const weAreSender=p.doctor===activeChannel;
-    const targetCh=weAreSender?p.collab:p.doctor;
-    const targetMeta=CH_META[targetCh];
-    const shortName=targetMeta?targetMeta.label.split(' ')[0]:targetCh;
-    const arrow=weAreSender?'↗':'↩';
-    const bg=weAreSender?'#EBF5FF':'#F3EEF8';
-    const color=weAreSender?'#1A5276':'#6A5A8E';
-    const border=weAreSender?'#AED6F1':'#C39BD3';
-    collabBadge=`<span style="font-size:8px;font-weight:600;background:${bg};color:${color};border:0.5px solid ${border};padding:1px 5px;border-radius:10px;white-space:nowrap;">${arrow} ${shortName}</span>`;
+    if(weAreSender){
+      const targetCh=p.collab;
+      const targetMeta=CH_META[targetCh];
+      const shortName=targetMeta?targetMeta.label.split(' ')[0]:targetCh;
+      collabBadge=`<span style="font-size:8px;font-weight:600;background:#EBF5FF;color:#1A5276;border:0.5px solid #AED6F1;padding:1px 5px;border-radius:10px;white-space:nowrap;">↗ ${shortName}</span>`;
+    } else {
+      collabBadge=`<span style="font-size:8px;font-weight:600;background:#F3EEF8;color:#6A5A8E;border:0.5px solid #C39BD3;padding:1px 5px;border-radius:10px;white-space:nowrap;">↩ collab</span>`;
+    }
   }
   const typeBadge=`<span class="pbadge ${TCLASS[p.type]||'t-video'}">${{video:'วิดีโอ',photo:'รูป',reel:'Reels',story:'Story',carousel:'Carousel'}[p.type]||'คอนเทนต์'}</span>`;
   card.innerHTML=`<div class="pc-inner">

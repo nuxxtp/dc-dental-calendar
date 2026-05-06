@@ -3867,6 +3867,7 @@ function openPipelinePage(){
   parts.push('<option value="dr-daran">dr.daran</option>');
   parts.push('<option value="north-tiktok">TikTok</option>');
   parts.push('</select></div>');
+  parts.push('<div class="form-row"><label>\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07 (Deadline)</label><input type="date" id="plDl"></div>');
   parts.push('<div class="form-row"><label>\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38</label><textarea id="plNt" placeholder="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21..."></textarea></div>');
   parts.push('<div class="modal-actions"><button class="btn-delete" id="plDelBtn" onclick="deleteItem()" style="display:none">\uD83D\uDDD1 \u0e25\u0e1a</button>');
   parts.push('<button class="btn-cancel" onclick="closeModal()">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button>');
@@ -3928,7 +3929,8 @@ function openPipelinePage(){
   parts.push('    });');
   parts.push('    var bg=ri%2===0?"white":"#FAFAF8";');
   parts.push('    rows+="<div class=\\"pl-row\\" style=\\"background:"+bg+";\\">";');
-  parts.push('    rows+="<div style=\\"min-width:0\\"><div class=\\"clip-title\\" title=\\""+it.title+"\\">"+it.title+"</div>";');
+  parts.push('    var dlB="";if(it.deadline&&it.stage!=="complete"){var td=new Date();td.setHours(0,0,0,0);var dl=new Date(it.deadline);dl.setHours(0,0,0,0);var dff=Math.round((dl-td)/864e5);if(dff<0)dlB="<span style=\\"background:#FDECEC;color:#C0392B;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:6px;\\">\uD83D\uDEA8 \u0E40\u0E01\u0E34\u0E19 "+Math.abs(dff)+"\u0E27\u0E31\u0E19</span>";else if(dff<=3)dlB="<span style=\\"background:#FEF3E2;color:#E67E22;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:6px;\\">\u26A0\uFE0F \u0E2D\u0E35\u0E01 "+dff+"\u0E27\u0E31\u0E19</span>";else dlB="<span style=\\"background:#EBF5FB;color:#2980B9;border-radius:5px;padding:1px 6px;font-size:9px;margin-left:6px;\\">\uD83D\uDCC5 "+it.deadline+"</span>";}');
+  parts.push('    rows+="<div style=\\"min-width:0\\"><div class=\\"clip-title\\" title=\\""+it.title+"\\">"+it.title+dlB+"</div>";');
   parts.push('    if(it.folder)rows+="<div class=\\"clip-sub\\">\uD83D\uDCC1 "+it.folder+"</div>";');
   parts.push('    if(it.note)rows+="<div class=\\"clip-sub\\">\uD83D\uDCCE "+it.note+"</div>";');
   parts.push('    rows+="</div>";');
@@ -3965,6 +3967,7 @@ function openPipelinePage(){
   parts.push('  document.getElementById("plTit").value="";');
   parts.push('  document.getElementById("plFol").value="";');
   parts.push('  document.getElementById("plCh").value="dc-dental";');
+  parts.push('  document.getElementById("plDl").value="";');
   parts.push('  document.getElementById("plNt").value="";');
   parts.push('  document.getElementById("plDelBtn").style.display="none";');
   parts.push('  document.getElementById("plModal").classList.add("open");');
@@ -3976,6 +3979,7 @@ function openPipelinePage(){
   parts.push('  document.getElementById("plTit").value=it.title;');
   parts.push('  document.getElementById("plFol").value=it.folder||"";');
   parts.push('  document.getElementById("plCh").value=it.channel||"dc-dental";');
+  parts.push('  document.getElementById("plDl").value=it.deadline||"";');
   parts.push('  document.getElementById("plNt").value=it.note||"";');
   parts.push('  document.getElementById("plDelBtn").style.display="inline-block";');
   parts.push('  document.getElementById("plModal").classList.add("open");');
@@ -3987,7 +3991,7 @@ function openPipelinePage(){
   parts.push('  var eid=document.getElementById("plEId").value;');
   parts.push('  var id=eid||("pl_"+Date.now()+"_"+Math.random().toString(36).slice(2,6));');
   parts.push('  var ex=items.find(function(p){return p.id===id;});');
-  parts.push('  var it={id:id,title:title,folder:document.getElementById("plFol").value.trim(),channel:document.getElementById("plCh").value,stage:ex?ex.stage:"storyboard",note:document.getElementById("plNt").value.trim(),updatedAt:new Date().toISOString()};');
+  parts.push('  var it={id:id,title:title,folder:document.getElementById("plFol").value.trim(),channel:document.getElementById("plCh").value,stage:ex?ex.stage:"storyboard",deadline:document.getElementById("plDl").value||"",note:document.getElementById("plNt").value.trim(),updatedAt:new Date().toISOString()};');
   parts.push('  var idx=items.findIndex(function(p){return p.id===id;});');
   parts.push('  if(idx>=0)items[idx]=it;else items.unshift(it);');
   parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');

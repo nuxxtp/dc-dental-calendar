@@ -1690,14 +1690,11 @@ function createCard(p){
     collabBadge=`<span style="font-size:8px;font-weight:600;background:${bg};color:${color};border:0.5px solid ${border};padding:1px 5px;border-radius:10px;white-space:nowrap;">${arrow} ${shortName}</span>`;
   }
   const typeBadge=`<span class="pbadge ${TCLASS[p.type]||'t-video'}">${{video:'วิดีโอ',photo:'รูป',reel:'Reels',story:'Story',carousel:'Carousel'}[p.type]||'คอนเทนต์'}</span>`;
-  const stCfg={draft:{bg:'#F0F3F4',color:'#717D7E',label:'Draft'},ready:{bg:'#FEF3E2',color:'#D68910',label:'Ready'},posted:{bg:'#E9F7EF',color:'#1E8449',label:'Posted'}};
-  const sc=stCfg[p.status]||stCfg.draft;
-  const statusBadge=`<span class="qs-badge" data-pid="${p.id}" onclick="quickToggleStatus('${p.id}',event)" style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:10px;cursor:pointer;background:${sc.bg};color:${sc.color};white-space:nowrap;border:1px solid ${sc.color}33;margin-left:auto;flex-shrink:0;" title="กดเปลี่ยน Status">${sc.label}</span>`;
   card.innerHTML=`<div class="pc-inner">
     <div class="pc-thumb" style="position:relative">${thumb}${capDot}</div>
     <div class="pc-info">
       <div class="pc-title">${p.title}</div>
-      <div class="pc-meta" style="flex-wrap:nowrap;overflow:hidden;">${chBadge}${collabBadge}${typeBadge}${statusBadge}</div>
+      <div class="pc-meta">${chBadge}${collabBadge}${typeBadge}</div>
     </div>
   </div>`;
   const checkBtn=document.createElement('button');
@@ -1717,25 +1714,6 @@ function createCard(p){
   card.addEventListener('mouseleave',()=>{checkBtn.style.display='none';});
   card.onclick=()=>openView(p.id);
   return card;
-}
-
-async function quickToggleStatus(id,e){
-  e.stopPropagation();
-  const post=posts.find(p=>String(p.id)===String(id));
-  if(!post) return;
-  const cycle={draft:'ready',ready:'posted',posted:'draft'};
-  post.status=cycle[post.status]||'ready';
-  const stCfg={draft:{bg:'#F0F3F4',color:'#717D7E',label:'Draft'},ready:{bg:'#FEF3E2',color:'#D68910',label:'Ready'},posted:{bg:'#E9F7EF',color:'#1E8449',label:'Posted'}};
-  const sc=stCfg[post.status];
-  // Update badge immediately without full re-render
-  const badge=document.querySelector(`.qs-badge[data-pid="${id}"]`);
-  if(badge){badge.textContent=sc.label;badge.style.background=sc.bg;badge.style.color=sc.color;badge.style.borderColor=sc.color+'33';}
-  const card=document.querySelector(`.post-card[data-post-id="${id}"]`);
-  if(card) card.style.borderLeft='3px solid '+({draft:'#B0BEC5',ready:'#F0A500',posted:'#27AE60'}[post.status]);
-  const notiColor={draft:'#95A5A6',ready:'#F0A500',posted:'#27AE60'}[post.status];
-  showNoti('→ '+sc.label,notiColor);
-  const res=await apiCall({action:'save',post});
-  if(res&&res.ok) render();
 }
 
 function changeMonth(d){

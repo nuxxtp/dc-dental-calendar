@@ -2005,11 +2005,23 @@ function toggleGridSlotSelect(idx){
 }
 
 function selectAllGridSlots(){
-  const realSlots=gridSlots.filter(s=>s.type!=='blank');
-  if(gridSelected.size===realSlots.length){
-    gridSelected.clear();
+  const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
+  const monthIdxs=[];
+  gridSlots.forEach((s,i)=>{
+    if(s.type==='blank') return;
+    if(s.date){
+      const d=new Date(s.date+'T00:00:00');
+      if(d.getFullYear()===cy&&d.getMonth()===cm) monthIdxs.push(i);
+    } else {
+      const slotMonth=s.createdMonth||curMonthKey;
+      if(slotMonth===curMonthKey) monthIdxs.push(i);
+    }
+  });
+  const allSelected=monthIdxs.length>0&&monthIdxs.every(i=>gridSelected.has(i));
+  if(allSelected){
+    monthIdxs.forEach(i=>gridSelected.delete(i));
   } else {
-    gridSlots.forEach((s,i)=>{if(s.type!=='blank') gridSelected.add(i);});
+    monthIdxs.forEach(i=>gridSelected.add(i));
   }
   updateSelectedCount();
   renderGrid();

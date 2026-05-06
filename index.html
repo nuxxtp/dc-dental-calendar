@@ -438,7 +438,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <div style="font-size:12px;color:var(--gray-dark);margin-top:2px;">ทุกช่องรวมกัน · กดที่ขั้นตอนในแถวเพื่อเปลี่ยนสถานะทันที</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <input id="plSearchInput" type="text" placeholder="🔍 ค้นหาชื่อคลิป..." oninput="renderPipeline()" style="border:1.5px solid #D0DCE8;border-radius:20px;padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;width:220px;transition:border-color 0.2s;">
+      <input id="plSearchInput" type="text" placeholder="🔍 ค้นหาชื่อคลิป..." oninput="debouncedRenderPipeline()" style="border:1.5px solid #D0DCE8;border-radius:20px;padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;width:220px;transition:border-color 0.2s;">
       <button onclick="openAddPipeline()" style="background:var(--accent);color:white;border:none;border-radius:10px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">＋ เพิ่มคลิป</button>
     </div>
   </div>
@@ -1385,6 +1385,8 @@ async function loadChannelData(ch){
   renderUnscheduled();
 }
 
+function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+const debouncedRenderPipeline=debounce(()=>renderPipeline(),200);
 function showNoti(msg,color='#1A6FB5'){
   let n=document.getElementById('notiBar');
   if(!n){
@@ -3168,7 +3170,7 @@ function openOverview(){
     +'<select class="ov-sel" id="fSy" onchange="applyF()"><option value="">ทุก Style</option><option value="review">R รีวิว</option><option value="educated">E ให้ความรู้</option><option value="branding">B แบรนด์</option><option value="sale">S ขาย</option><option value="event">V กิจกรรม</option><option value="ads">A โฆษณา</option><option value="lifestyle">L ชีวิต</option></select>'
     +'<select class="ov-sel" id="fStr" onchange="applyF()"><option value="">ทุก Strategy</option><option value="viral">🔥 Viral</option><option value="interactive">💬 Interactive</option><option value="emotional">❤️ Emotional</option><option value="educational">📖 Educational</option><option value="datadriven">📊 Data Driven</option><option value="exclusive">🔒 Exclusive</option><option value="shock">😱 Shock</option><option value="socialproof">⭐ Social Proof</option><option value="stepbystep">📋 Step-by-step</option><option value="controversial">🔥 Controversial</option><option value="vs">⚔️ VS</option><option value="newtech">🚀 New Tech</option><option value="inspiration">💡 Inspiration</option></select>'
     +'<select class="ov-sel" id="fMo" onchange="applyF()"><option value="">ทุกเดือน</option>'+monthOpts+'</select>'
-    +'<input id="fQ" type="text" placeholder="🔍 ค้นหาชื่อโพสต์..." oninput="applyF()" style="border:1.5px solid #D0DCE8;border-radius:20px;padding:4px 12px;font-family:\'Sarabun\',sans-serif;font-size:12px;outline:none;width:170px;">'
+    +'<input id="fQ" type="text" placeholder="🔍 ค้นหาชื่อโพสต์..." oninput="clearTimeout(window._dfq);window._dfq=setTimeout(applyF,200)" style="border:1.5px solid #D0DCE8;border-radius:20px;padding:4px 12px;font-family:\'Sarabun\',sans-serif;font-size:12px;outline:none;width:170px;">'
     +'<button onclick="clearF()" style="background:none;border:1.5px solid #E74C3C;color:#E74C3C;border-radius:20px;padding:4px 12px;font-size:11px;font-family:\'Sarabun\',sans-serif;cursor:pointer;font-weight:700;">✕ ล้าง</button>'
     +'<span id="cntLabel" style="margin-left:auto;font-size:12px;color:#7F8C8D;font-weight:600;"></span></div>'
     +'<div class="ov-stats">'
@@ -3846,7 +3848,7 @@ function openPipelinePage(){
   parts.push('<div><div class="top-title">\uD83C\uDFAC DC Dental Process</div>');
   parts.push('<div class="top-sub">\u0e20\u0e32\u0e1e\u0e23\u0e27\u0e21\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15\u0e04\u0e2d\u0e19\u0e40\u0e17\u0e19\u0e15\u0e4c\u0e17\u0e38\u0e01\u0e0a\u0e48\u0e2d\u0e07 \u00b7 \u0e01\u0e14\u0e17\u0e35\u0e48 pill \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e17\u0e31\u0e19\u0e17\u0e35</div></div>');
   parts.push('<div class="top-actions">');
-  parts.push('<input type="text" id="plSearch" placeholder="\uD83D\uDD0D \u0e04\u0e49\u0e19\u0e2b\u0e32\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b..." oninput="renderPL()">');
+  parts.push('<input type="text" id="plSearch" placeholder="\uD83D\uDD0D \u0e04\u0e49\u0e19\u0e2b\u0e32\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b..." oninput="clearTimeout(window._dpl);window._dpl=setTimeout(renderPL,200)">');
   parts.push('<button class="btn-add" onclick="openAdd()">\uff0b \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e25\u0e34\u0e1b</button>');
   parts.push('</div></div>');
 

@@ -267,7 +267,9 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 
 <div id="channelTabBar" class="no-print" style="background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);padding:0 28px;display:flex;align-items:center;gap:0;overflow-x:auto;box-shadow:0 2px 8px rgba(13,63,110,0.2);">
   <button class="ch-tab active" data-ch="dc-dental" onclick="switchChannel('dc-dental')" style="background:rgba(255,255,255,0.2);border:none;border-bottom:3px solid white;color:white;padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/logo_all_lowwbp.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> DC Dental</span></button>
+  <button class="ch-tab" data-ch="tiktok-dc" onclick="switchChannel('tiktok-dc')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/logo_all_lowwbp.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> 🎵 DC TikTok</span></button>
   <button class="ch-tab" data-ch="dc-aligner" onclick="switchChannel('dc-aligner')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/505445784_17864311473408516_5332727545825280500_n_nzpwov.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> DC Aligner</span></button>
+  <button class="ch-tab" data-ch="tiktok-aligner" onclick="switchChannel('tiktok-aligner')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/505445784_17864311473408516_5332727545825280500_n_nzpwov.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> 🎵 Aligner TikTok</span></button>
   <button class="ch-tab" data-ch="junfun" onclick="switchChannel('junfun')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/601855791_17851545606607604_4610434333560970509_n_qrfon9.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> judfunreview</span></button>
   <button class="ch-tab" data-ch="implant" onclick="switchChannel('implant')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/612995449_17844614772670316_7195624432906695769_n_ednung.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> implant review</span></button>
   <button class="ch-tab" data-ch="dr-north" onclick="switchChannel('dr-north')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> dr.north</span></button>
@@ -923,6 +925,8 @@ const CHANNEL_THEMES={
   'dr-north':{bg:'#FEF5EC',bgLight:'#FDEBD0',primary:'#E67E22',primaryDark:'#A04000',primaryLight:'#FDEBD0',accent:'#E67E22',headerGrad:'135deg, #A04000 0%, #E67E22 100%'},
   'dr-daran':{bg:'#EAFAF1',bgLight:'#D5F5E3',primary:'#27AE60',primaryDark:'#1A6B3A',primaryLight:'#D5F5E3',accent:'#27AE60',headerGrad:'135deg, #1A6B3A 0%, #27AE60 100%'},
   'north-tiktok':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#EE1D52',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
+  'tiktok-dc':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#FE2C55',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
+  'tiktok-aligner':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#FE2C55',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
 };
 const CHANNEL_LOGOS={
   'dc-dental':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/logo_all_lowwbp.jpg',
@@ -932,6 +936,8 @@ const CHANNEL_LOGOS={
   'dr-north':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg',
   'dr-daran':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/574179784_17845527528599344_23126879378071020_n_xphheg.jpg',
   'north-tiktok':'https://res.cloudinary.com/djxw6mu0w/image/upload/q_auto/f_auto/v1775450124/4c323dad7e5f061e077c5ec0028ceebf_tplv-tiktokx-cropcenter_1080_1080_uia8fl.jpg',
+  'tiktok-dc':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/logo_all_lowwbp.jpg',
+  'tiktok-aligner':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/505445784_17864311473408516_5332727545825280500_n_nzpwov.jpg',
 };
 const CHANNEL_META={
   'dc-dental':{label:'DC Dental Clinic',emoji:'🦷',sheetName:'DC Dental Content Calendar',color:'#1A6FB5'},
@@ -941,6 +947,8 @@ const CHANNEL_META={
   'dr-north':{label:'dr.north.judfun',emoji:'👨‍⚕️',sheetName:'dr.north Calendar',color:'#E67E22'},
   'dr-daran':{label:'dr.daran.dc',emoji:'👩‍⚕️',sheetName:'dr.daran Calendar',color:'#27AE60'},
   'north-tiktok':{label:'dr.north TikTok',emoji:'🎵',sheetName:'dr.north.judfun tiktok Calendar',color:'#010101',noGrid:true},
+  'tiktok-dc':{label:'DC Dental TikTok',emoji:'🎵',sheetName:'DC Dental TikTok Calendar',color:'#010101'},
+  'tiktok-aligner':{label:'DC Aligner TikTok',emoji:'🎵',sheetName:'DC Aligner TikTok Calendar',color:'#010101'},
 };
 const GRID_CHANNEL_META={
   'dc-dental':{label:'DC Dental Clinic',username:'@dc_dentalclinic'},
@@ -950,6 +958,8 @@ const GRID_CHANNEL_META={
   'dr-north':{label:'dr.north.judfun',username:'@dr.north.judfun'},
   'dr-daran':{label:'dr.daran.dc',username:'@dr.daran.dc'},
   'north-tiktok':{label:'dr.north TikTok',username:'@drnorth.tiktok'},
+  'tiktok-dc':{label:'DC Dental Clinic',username:'@dc_dentalclinic'},
+  'tiktok-aligner':{label:'DC Aligner',username:'@dc_aligner'},
 };
 const CH_META={
   'dc-dental':{label:'DC Dental Clinic',bg:'#FFFFFF',fg:'#1A6FB5',border:'#1A6FB5'},
@@ -959,6 +969,8 @@ const CH_META={
   'dr-north':{label:'dr.north.judfun',bg:'#E67E22',fg:'#FFFFFF',border:'#E67E22'},
   'dr-daran':{label:'dr.daran.dc',bg:'#27AE60',fg:'#FFFFFF',border:'#27AE60'},
   'north-tiktok':{label:'dr.north TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
+  'tiktok-dc':{label:'DC Dental TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
+  'tiktok-aligner':{label:'DC Aligner TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
 };
 
 // =====================================================

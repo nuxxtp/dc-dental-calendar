@@ -34,13 +34,15 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;
   cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;}
 .btn-add:hover{background:#d4920a;transform:translateY(-1px);}
-.stats-bar{background:white;padding:12px 28px;display:flex;gap:20px;align-items:center;
-  border-bottom:1px solid #E0EAF4;flex-wrap:wrap;}
-.stat-item{display:flex;align-items:center;gap:7px;}
-.stat-dot{width:9px;height:9px;border-radius:50%;}
+.stats-bar{background:white;padding:10px 28px 8px;display:flex;flex-direction:column;gap:8px;
+  border-bottom:1px solid #E0EAF4;}
+.sb-row1{display:flex;gap:16px;align-items:center;}
+.sb-row2{display:flex;gap:6px;align-items:center;}
+.stat-item{display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .stat-label{font-size:12px;color:var(--gray-dark);}
 .stat-count{font-size:13px;font-weight:700;}
-.filter-row{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;}
+.filter-row{display:flex;gap:6px;flex:1;}
 .filter-btn{border:1.5px solid #D0DCE8;background:white;border-radius:20px;
   padding:3px 12px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;
   transition:all 0.2s;color:var(--gray-dark);}
@@ -121,7 +123,8 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 @media(max-width:1024px){
   header{padding:12px 16px;gap:8px;}
   .calendar-wrap{padding:14px 16px 30px;}
-  .stats-bar{padding:10px 16px;gap:12px;}
+  .stats-bar{padding:8px 16px 6px;}
+  .sb-row1{gap:12px;}
   .day-cell{min-height:100px;}
   .month-label{min-width:120px;font-size:13px;}
 }
@@ -147,10 +150,12 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   #btnPrint{display:none !important;}
   #btnAddPost{display:none !important;}
   #btnOverview{padding:6px 12px;font-size:11px;white-space:nowrap;flex-shrink:0;}
-  .stats-bar{padding:8px 12px;gap:10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
-  .stats-bar::-webkit-scrollbar{display:none;}
-  .filter-row{margin-left:0;flex-wrap:nowrap;overflow-x:auto;}
-  .filter-row::-webkit-scrollbar{display:none;}
+  .stats-bar{padding:8px 12px 6px;}
+  .sb-row1{gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .sb-row1::-webkit-scrollbar{display:none;}
+  .sb-row2{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .sb-row2::-webkit-scrollbar{display:none;}
+  .filter-row{flex-wrap:nowrap;}
   .calendar-wrap{padding:8px 10px 80px;}
   .day-headers{display:none;}
   .calendar-grid{display:flex;flex-direction:column;gap:4px;}
@@ -315,21 +320,24 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 </header>
 
 <div class="stats-bar">
-  <div class="stat-item"><div class="stat-dot" style="background:var(--gray-dark)"></div><span class="stat-label">Draft</span><span class="stat-count" id="cDraft">0</span></div>
-  <div class="stat-item"><div class="stat-dot" style="background:var(--accent)"></div><span class="stat-label">Ready</span><span class="stat-count" id="cReady">0</span></div>
-  <div class="stat-item"><div class="stat-dot" style="background:var(--green)"></div><span class="stat-label">Posted</span><span class="stat-count" id="cPosted">0</span></div>
-  <div class="stat-item" style="padding-left:14px;border-left:1px solid #E0EAF4"><span class="stat-label">รวมเดือนนี้</span> <span class="stat-count" id="cTotal">0</span></div>
-  <div class="filter-row">
-    <button class="filter-btn active" onclick="setFilter('all',this)">ทั้งหมด</button>
-    <button class="filter-btn" onclick="setFilter('draft',this)">Draft</button>
-    <button class="filter-btn" onclick="setFilter('ready',this)">Ready</button>
-    <button class="filter-btn" onclick="setFilter('posted',this)">Posted</button>
-    <button class="filter-btn" onclick="setFilter('video',this)">วิดีโอ</button>
-    <button class="filter-btn" onclick="setFilter('photo',this)">รูป</button>
+  <div class="sb-row1">
+    <div class="stat-item"><div class="stat-dot" style="background:var(--gray-dark)"></div><span class="stat-label">Draft</span><span class="stat-count" id="cDraft">0</span></div>
+    <div class="stat-item"><div class="stat-dot" style="background:var(--accent)"></div><span class="stat-label">Ready</span><span class="stat-count" id="cReady">0</span></div>
+    <div class="stat-item"><div class="stat-dot" style="background:var(--green)"></div><span class="stat-label">Posted</span><span class="stat-count" id="cPosted">0</span></div>
+    <div class="stat-item" style="padding-left:12px;border-left:1px solid #E0EAF4;margin-left:auto;"><span class="stat-label">รวมเดือนนี้</span>&nbsp;<span class="stat-count" id="cTotal">0</span></div>
   </div>
+  <div class="sb-row2">
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">ทั้งหมด</button>
+      <button class="filter-btn" onclick="setFilter('draft',this)">Draft</button>
+      <button class="filter-btn" onclick="setFilter('ready',this)">Ready</button>
+      <button class="filter-btn" onclick="setFilter('posted',this)">Posted</button>
+      <button class="filter-btn" onclick="setFilter('video',this)">วิดีโอ</button>
+      <button class="filter-btn" onclick="setFilter('photo',this)">รูป</button>
+    </div>
 
-  <!-- Advanced Multi-Filter Dropdown -->
-  <div id="advFilterWrap" style="position:relative;">
+    <!-- Advanced Multi-Filter Dropdown -->
+    <div id="advFilterWrap" style="position:relative;">
     <button id="advFilterBtn" onclick="toggleAdvFilter()" style="display:flex;align-items:center;gap:5px;background:white;border:1.5px solid #D0DCE8;border-radius:20px;padding:3px 12px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#7F8C8D;transition:all 0.2s;white-space:nowrap;">
       <span>🎯 กรองเพิ่ม</span>
       <span id="advFilterBadge" style="display:none;background:#1A6FB5;color:white;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;min-width:16px;text-align:center;">0</span>
@@ -405,7 +413,8 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     </div>
   </div>
 
-  <button id="btnToggleUnsched" onclick="toggleUnscheduled()" style="background:white;border:1.5px solid #D0DCE8;border-radius:20px;padding:3px 12px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#7F8C8D;transition:all 0.2s;display:none;">📋 รอจัดวัน <span id="unschedBadge" style="background:#E74C3C;color:white;border-radius:8px;padding:0 5px;font-size:10px;margin-left:2px;">0</span></button>
+  <button id="btnToggleUnsched" onclick="toggleUnscheduled()" style="background:white;border:1.5px solid #D0DCE8;border-radius:20px;padding:3px 12px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#7F8C8D;transition:all 0.2s;display:none;white-space:nowrap;flex-shrink:0;">📋 รอจัดวัน <span id="unschedBadge" style="background:#E74C3C;color:white;border-radius:8px;padding:0 5px;font-size:10px;margin-left:2px;">0</span></button>
+  </div>
 </div>
 
 <div id="igGridSection" style="display:none;padding:24px 28px 40px;min-height:80vh" ondragover="igSectionDragOver(event)" ondragleave="igSectionDragLeave(event)" ondrop="igSectionDrop(event)">

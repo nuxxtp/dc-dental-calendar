@@ -184,11 +184,10 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   #channelTabBar .ch-tab{padding:8px 8px;font-size:10px;}
   .day-num-text{font-size:13px;}
 }
-.no-print{}
+@page{size:A4 landscape;margin:8mm;}
+@page ig-portrait{size:A4 portrait;margin:8mm;}
 @media print{
   .no-print{display:none !important;}
-  @page{size:A4 landscape;margin:8mm;}
-  @page ig-portrait{size:A4 portrait;margin:8mm;}
   .ig-grid-print-wrap{page:ig-portrait;}
   header,.stats-bar,.modal-overlay{display:none !important;}
   body{background:white !important;margin:0;padding:0;}

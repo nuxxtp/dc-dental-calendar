@@ -3436,12 +3436,8 @@ function printCalendar(){
 }
 
 function buildIGGridPrintPage(){
-  // แสดงทุก slot เหมือน Grid จริง — รวม pending/blank และ slot ที่ยังไม่มีวัน
-  const allSlots=gridSlots.filter(s=>{
-    if(!s.date) return true; // รวม slot ที่ยังไม่มีวันด้วย
-    const d=new Date(s.date+'T00:00:00');
-    return d.getFullYear()===cy&&d.getMonth()===cm;
-  });
+  // แสดงทุก slot ใน Grid ทั้งหมด ไม่กรองเดือน
+  const allSlots=gridSlots;
   if(allSlots.length===0) return '';
   const COLS=3,GAP=2;
   const usableW=190,usableH=235;

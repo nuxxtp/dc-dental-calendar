@@ -3416,7 +3416,10 @@ function printCalendar(){
   setTimeout(()=>{
     const imgs=section.querySelectorAll('img');
     let loaded=0;const total=imgs.length;
+    let printed=false;
     const doPrint=()=>{
+      if(printed) return;
+      printed=true;
       document.querySelectorAll('[id^="capDiv_"]').forEach(div=>{
         let size=11;div.style.fontSize=size+'px';
         while(div.scrollHeight>div.clientHeight+5&&size>7){size-=0.5;div.style.fontSize=size+'px';div.style.lineHeight=(size<=9?1.5:1.6).toString();}

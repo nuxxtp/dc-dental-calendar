@@ -185,8 +185,10 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   .day-num-text{font-size:13px;}
 }
 @page{size:A4 landscape;margin:8mm;}
+@page ig-portrait{size:A4 portrait;margin:8mm;}
 @media print{
   .no-print{display:none !important;}
+  .ig-grid-print-wrap{page:ig-portrait;}
   header,.stats-bar,.modal-overlay{display:none !important;}
   body{background:white !important;margin:0;padding:0;}
   .print-header{display:block !important;padding:0 0 8px 0 !important;margin-bottom:6px !important;border-bottom-width:2px;border-bottom-style:solid;}
@@ -3437,9 +3439,18 @@ function buildIGGridPrintPage(){
   if(!allSlots||allSlots.length===0){
     try{const raw=localStorage.getItem('igGridSlots_'+activeChannel);if(raw) allSlots=JSON.parse(raw);}catch(e){}
   }
-  if(!allSlots||allSlots.length===0) allSlots=[];
+  if(!allSlots) allSlots=[];
+  // filter to current month; if empty, use last 9 dated slots
+  let slots=allSlots.filter(s=>{
+    if(!s.date) return true;
+    const d=new Date(s.date+'T00:00:00');
+    return d.getFullYear()===cy&&d.getMonth()===cm;
+  });
+  if(slots.length===0) slots=allSlots.filter(s=>s.date).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,9);
+  if(slots.length===0) return '';
+  allSlots=slots;
   const COLS=3,GAP=2;
-  const usableW=245,usableH=140;
+  const usableW=190,usableH=235;
   const numRows=Math.ceil(allSlots.length/COLS);
   let cellW=(usableW-GAP*(COLS-1))/COLS;
   let cellH=cellW*(5/4);
@@ -3479,7 +3490,7 @@ function buildIGGridPrintPage(){
   }
   const pTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];
   const pLogo=CHANNEL_LOGOS[activeChannel]||'';
-  return `<div class="ig-grid-print-wrap" style="width:277mm;height:190mm;box-sizing:border-box;padding:10mm;background:white;font-family:'Sarabun',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;page-break-after:always;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+  return `<div class="ig-grid-print-wrap" style="width:210mm;height:297mm;box-sizing:border-box;padding:10mm;background:white;font-family:'Sarabun',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;page-break-after:always;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
     <div style="display:flex;align-items:center;gap:4mm;padding-bottom:3mm;border-bottom:0.6mm solid ${pTheme.primary};width:${gridW.toFixed(2)}mm;margin-bottom:4mm;">
       <div style="width:10mm;height:10mm;border-radius:50%;overflow:hidden;flex-shrink:0;background:${pTheme.primaryLight};border:0.4mm solid ${pTheme.primary};-webkit-print-color-adjust:exact;print-color-adjust:exact;">
         ${pLogo?`<img src="${pLogo}" style="width:100%;height:100%;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact;">`:''}

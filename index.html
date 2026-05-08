@@ -709,7 +709,23 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         </div>
         <input type="hidden" id="fThumbData"></div>
       <div class="form-row"><label>Caption</label>
-        <textarea id="fCaption" placeholder="วางแคปชั่นที่นี่..."></textarea></div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            <select id="fCaptionType" style="border:1.5px solid #D0DCE8;border-radius:8px;padding:5px 10px;font-family:'Sarabun',sans-serif;font-size:12px;color:#333;flex:1;min-width:160px;">
+              <option value="">— เลือกประเภท caption —</option>
+              <option value="implant_interview">🔩 รากฟันเทียม — สัมภาษณ์</option>
+              <option value="implant_io">🔩 รากฟันเทียม — io review</option>
+              <option value="braces_interview">😁 จัดฟันเหล็ก — สัมภาษณ์</option>
+              <option value="braces_io">😁 จัดฟันเหล็ก — io/eo</option>
+              <option value="aligner_interview">✨ จัดฟันใส — สัมภาษณ์</option>
+              <option value="aligner_io">✨ จัดฟันใส — io/eo</option>
+              <option value="thankyou">🤍 ขอบคุณคนไข้</option>
+              <option value="general">📝 ทั่วไป</option>
+            </select>
+            <button type="button" onclick="openCaptionGenerator()" style="background:#1A6FB5;color:white;border:none;border-radius:8px;padding:6px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">✨ Generate</button>
+          </div>
+          <textarea id="fCaption" placeholder="วางแคปชั่นที่นี่..."></textarea>
+        </div></div>
       <div class="form-row"><label>Hashtag</label>
         <textarea id="fHashtag" placeholder="#DCDentalClinic #ทำฟันจันทบุรี ..." style="min-height:60px"></textarea></div>
       <div class="form-row"><label>หมายเหตุ / Storyboard</label>
@@ -765,7 +781,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 // ================================================
 // CONSTANTS & GLOBAL STATE
 // ================================================
-const SHEET_URL='https://script.google.com/macros/s/AKfycbw5jLazNMWB7ccnbarEc_Uzp_5Vi6jWIJyC3poUM2ur0U5wHaSR6gdJlEUQnaXWceSllA/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwcyDDRiCQm_fBUxTYswlpFWRAW2y-sEPyKL60cpClk8FRONklHX9gtMJ8rWVmxm-fPhA/exec';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -4386,6 +4402,54 @@ function checkOverduePosts(){
   document.getElementById('overdueCount').textContent=overdue.length;
   document.getElementById('overdueOverlay').style.display='flex';
 }
+function openCaptionGenerator(){
+  const type=document.getElementById('fCaptionType').value;
+  if(!type){showNoti('เลือกประเภท caption ก่อน','#E67E22');return;}
+  document.getElementById('cgResult').style.display='none';
+  document.getElementById('cgLoading').style.display='none';
+  document.getElementById('cgOutput').value='';
+  const title=document.getElementById('fTitle')?.value||'';
+  document.getElementById('cgProblem').value=title;
+  const overlay=document.getElementById('captionGenOverlay');
+  overlay.style.display='flex';
+}
+function closeCaptionGenerator(){
+  document.getElementById('captionGenOverlay').style.display='none';
+}
+async function runCaptionGenerate(){
+  const type=document.getElementById('fCaptionType').value;
+  const problem=document.getElementById('cgProblem').value.trim();
+  if(!problem){showNoti('กรอกปัญหา/หัวข้อก่อน','#E67E22');return;}
+  const btn=document.getElementById('cgBtn');
+  const loading=document.getElementById('cgLoading');
+  const resultBox=document.getElementById('cgResult');
+  btn.style.display='none';loading.style.display='block';resultBox.style.display='none';
+  try{
+    const res=await fetch(SHEET_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'generateCaption',captionType:type,data:{
+        patientName:document.getElementById('cgPatient').value.trim(),
+        problem,
+        result:document.getElementById('cgResultInput').value.trim(),
+        doctor:document.getElementById('cgDoctor').value.trim(),
+        extra:document.getElementById('cgExtra').value.trim()
+      }})
+    });
+    const data=JSON.parse(await res.text());
+    if(data.ok&&data.caption){
+      document.getElementById('cgOutput').value=data.caption;
+      resultBox.style.display='block';
+    } else {
+      showNoti('Generate ไม่สำเร็จ: '+(data.error||'ลองใหม่'),'#E74C3C');
+    }
+  }catch(e){showNoti('เกิดข้อผิดพลาด','#E74C3C');}
+  btn.style.display='block';loading.style.display='none';
+}
+function applyCaptionToForm(){
+  const caption=document.getElementById('cgOutput').value;
+  if(caption) document.getElementById('fCaption').value=caption;
+  closeCaptionGenerator();
+  showNoti('ใส่ caption แล้ว','#27AE60');
+}
 function dismissOverdue(){
   localStorage.setItem('overdueCheckedDate',new Date().toISOString().split('T')[0]);
   document.getElementById('overdueOverlay').style.display='none';
@@ -4406,6 +4470,35 @@ async function confirmOverdue(){
   render();
 }
 </script>
+
+<!-- CAPTION GENERATOR MODAL -->
+<div id="captionGenOverlay" onclick="if(event.target===this)closeCaptionGenerator()" style="display:none;position:fixed;inset:0;background:rgba(13,63,110,0.5);z-index:600;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+  <div style="background:white;border-radius:20px;width:calc(100% - 32px);max-width:520px;max-height:85vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(13,63,110,0.25);animation:slideUp 0.2s ease;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;color:#1A1A2E;">✨ Generate Caption</div>
+      <button onclick="closeCaptionGenerator()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">ชื่อคนไข้ (ถ้ามี)</label>
+        <input id="cgPatient" type="text" placeholder="เช่น คุณธัชชัย" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">ปัญหา / หัวข้อ *</label>
+        <input id="cgProblem" type="text" placeholder="เช่น ฟันยื่น ไม่มั่นใจยิ้ม" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">ผลลัพธ์หลังรักษา</label>
+        <input id="cgResultInput" type="text" placeholder="เช่น เคี้ยวได้ดีขึ้น มั่นใจยิ้มแล้ว" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">หมอที่รักษา</label>
+        <input id="cgDoctor" type="text" placeholder="เช่น หมอนอร์ท @dr.north.judfun" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Quote / รายละเอียดเพิ่ม</label>
+        <input id="cgExtra" type="text" placeholder="เช่น quote จากคนไข้ หรือรายละเอียดอื่น" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
+      <button onclick="runCaptionGenerate()" id="cgBtn" style="background:#1A6FB5;color:white;border:none;border-radius:10px;padding:11px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;">✨ สร้าง Caption</button>
+      <div id="cgLoading" style="display:none;text-align:center;font-size:13px;color:#888;padding:8px;">⏳ กำลังสร้าง...</div>
+      <div id="cgResult" style="display:none;">
+        <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px;">Caption ที่ได้:</label>
+        <textarea id="cgOutput" style="width:100%;min-height:200px;border:1.5px solid #D0DCE8;border-radius:8px;padding:10px 12px;font-family:'Sarabun',sans-serif;font-size:12px;box-sizing:border-box;line-height:1.6;" readonly></textarea>
+        <button onclick="applyCaptionToForm()" style="background:#27AE60;color:white;border:none;border-radius:10px;padding:10px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;">✅ ใช้ Caption นี้</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- OVERDUE POSTS PROMPT -->
 <div id="overdueOverlay" style="display:none;position:fixed;inset:0;background:rgba(13,63,110,0.45);z-index:350;align-items:center;justify-content:center;backdrop-filter:blur(2px);">

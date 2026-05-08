@@ -435,6 +435,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <div id="igGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;"></div>
     </div>
     <div style="text-align:center;margin-top:16px;font-size:12px;color:#aaa">ลากเพื่อสลับตำแหน่ง · คลิกรูปเพื่อแก้ไข/ลบ</div>
+    <div id="collabInGridPanel" style="display:none;margin-top:16px;background:white;border-radius:12px;border:1.5px solid #E4EDF5;overflow:hidden;"></div>
   </div>
 </div>
 
@@ -2334,6 +2335,37 @@ function renderGrid(){
       grid.appendChild(cell);
     });
   });
+  renderCollabInGrid();
+}
+
+function renderCollabInGrid(){
+  const panel=document.getElementById('collabInGridPanel');
+  if(!panel) return;
+  const collabPosts=posts.filter(p=>p.collab===activeChannel&&p.doctor!==activeChannel);
+  if(collabPosts.length===0){panel.style.display='none';return;}
+  panel.style.display='block';
+  const cards=collabPosts.map(p=>{
+    const srcMeta=CHANNEL_META[p.doctor]||{label:p.doctor,emoji:'📱'};
+    const thumb=p.thumbData
+      ?`<img src="${p.thumbData}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0;">`
+      :`<div style="width:40px;height:40px;background:#F4F7FB;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎬</div>`;
+    const dateStr=p.date?(()=>{const d=new Date(p.date+'T00:00:00');return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;})():'ยังไม่มีวัน';
+    const dateColor=p.date?'#27AE60':'#E74C3C';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #F0F4F8;">
+      ${thumb}
+      <div style="min-width:0;flex:1;">
+        <div style="font-size:12px;font-weight:700;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+          <span style="font-size:10px;background:#F4F7FB;border-radius:6px;padding:1px 7px;color:#0D3F6E;font-weight:600;">${srcMeta.emoji} ${srcMeta.label}</span>
+          <span style="font-size:10px;color:${dateColor};font-weight:600;">${dateStr}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  panel.innerHTML=`<div style="background:#F4F7FB;padding:8px 12px;border-bottom:1px solid #E4EDF5;display:flex;align-items:center;gap:8px;">
+    <span style="font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;color:#0D3F6E;">📤 Collab จากช่องอื่น</span>
+    <span style="background:#1A6FB5;color:white;border-radius:10px;padding:1px 7px;font-size:10px;">${collabPosts.length}</span>
+  </div><div>${cards}</div>`;
 }
 
 async function deleteGridSlot(idx){

@@ -4448,9 +4448,9 @@ function buildCaptionPrompt(type,data){
   if(type==='implant_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้รากฟันเทียม\n'+rules+'\nข้อมูล:'+info+footer;
   if(type==='implant_io') return 'เขียน caption Instagram รูป io รากฟันเทียม (before/after หรือระหว่างรักษา)\n'+rules+'\nข้อมูล:'+info+footer;
   if(type==='braces_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันเหล็ก\n'+rules+'\nข้อมูล:'+info+footer;
-  if(type==='braces_io') return 'เขียน caption Instagram รูป io/eo จัดฟันเหล็ก\n'+rules+'\nข้อมูล:'+info+footer;
+  if(type==='braces_io') return buildIoPrompt(type,data,false);
   if(type==='aligner_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันใส DC Aligner\n'+rules+'\nข้อมูล:'+info+'\nก่อน footer ใส่ slogan: "Align Smile Shine" by DC Aligner ✨'+footer;
-  if(type==='aligner_io') return 'เขียน caption Instagram รูป io/eo จัดฟันใส DC Aligner\n'+rules+'\nข้อมูล:'+info+'\nก่อน footer ใส่ slogan: "Align Smile Shine" by DC Aligner ✨'+footer;
+  if(type==='aligner_io') return buildIoPrompt(type,data,false);
   if(type==='thankyou') return 'เขียน caption Instagram ขอบคุณคนไข้ที่ไว้วางใจ DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;
   return 'เขียน caption Instagram ทันตกรรม DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;
 }
@@ -4468,27 +4468,47 @@ function handleCgImage(input){
 function toBase64(file){
   return new Promise(resolve=>{const r=new FileReader();r.onload=e=>resolve(e.target.result);r.readAsDataURL(file);});
 }
-function buildVisionPrompt(type,data){
+function buildIoPrompt(type,data,imageMode){
   const rawName=data.patientName||'';
   const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
   const doctor=data.doctor||'';
   const drTag=doctor?(doctor.startsWith('หมอ')||doctor.startsWith('ดร.')||doctor.startsWith('Dr.')?doctor:'หมอ'+doctor):'ทีมทันตแพทย์ DC Dental Clinic';
-  const rules='เขียนให้เหมือนคนพิมพ์จริง ไม่ใช่ AI ฟีลเล่าเคสรีวิวใน IG\n'
-    +'โทน: อบอุ่น เป็นกันเอง จริงใจ เห็นผลชัด ไม่โฆษณาแรง\n'
-    +'ภาษาพูด ไม่วิชาการ ใช้คำเช่น "ไม่กล้ายิ้ม" "ฟันเริ่มเข้าที่" "กลับมายิ้มได้"\n'
-    +'Structure: (1) Hook ปัญหา/ความรู้สึก → (2) อธิบายปัญหาจากรูปภาษาคน → (3) วิธีรักษา → (4) ✅ bullet ผลลัพธ์ 3-4 ข้อ → (5) Emotional closing → (6) CTA soft sell\n'
-    +'emoji: 1-2 อัน/ย่อหน้า ไม่ใส่ทุกบรรทัด ใช้เฉพาะ ✨ 🤍 😊 🥺 📍 👉🏻 ✅ 😅 🌈\n'
-    +'ห้ามใช้ "เขา/เธอ" ใช้ชื่อคนไข้หรือ "คนไข้" | ห้ามพูดซ้ำชื่อคลินิกเกิน 2 ครั้ง | ชื่อคลินิก: DC Dental Clinic จันทบุรี';
   const typeLabel=type==='braces_io'?'จัดฟันเหล็ก':'จัดฟันใส DC Aligner';
   const slogan=type==='aligner_io'?'\nก่อน footer ใส่ slogan: "Align Smile Shine" by DC Aligner ✨':'';
   const info=(name!=='คนไข้'?'\nชื่อคนไข้: '+name:'')
-    +(data.problem?'\nข้อมูลเพิ่มเติม: '+data.problem:'')
-    +(data.result?'\nผลลัพธ์: '+data.result:'')
-    +(doctor?'\nหมอผู้รักษา: '+drTag:'')
+    +(data.problem?'\nข้อมูล/ปัญหา: '+data.problem:'')
+    +(data.result?'\nผลลัพธ์/timeline: '+data.result:'')
+    +(doctor?'\nหมอผู้รักษา: '+drTag+' (ใช้ชื่อนี้ใน caption)':'')
     +(data.extra?'\nรายละเอียดอื่น: '+data.extra:'');
   const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
-  return 'ดูรูป io/eo '+typeLabel+' นี้ก่อน\nวิเคราะห์สภาพฟันที่เห็นเป็นภาษาคนทั่วไป (ฟันซ้อนเก, ช่องว่าง, ฟันล้ม, แนวฟันเอียง ฯลฯ)\nถ้ามีหลายรูป (before/after หรือกลางรักษา) ระบุความเปลี่ยนแปลงด้วย\nจากนั้นใช้การวิเคราะห์รูปร่วมกับข้อมูลด้านล่างเพื่อ:\n'+rules+'\nข้อมูล:'+info+slogan+footer;
+  const structure='เขียน caption Instagram สำหรับเคส '+typeLabel+' ให้ตรงตาม format นี้ทุกอย่าง:\n\n'
+    +'📣 [Hook — ปัญหาหลักของคนไข้ 1-2 บรรทัด]\n\n'
+    +'[อธิบายปัญหาเพิ่มเติมเป็นภาษาคนทั่วไป ไม่วิชาการ] 😁\n\n'
+    +'✨ แนวทางการรักษา\n'
+    +'[ชื่อหมอ] เลือก[วิธีรักษา] เพื่อ[เหตุผลสั้นๆ]\n\n'
+    +'📌 แผนการรักษา\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 1]\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 2]\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 3]\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 4]\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 5]\n\n'
+    +'🤍 ผลลัพธ์\n'
+    +'[สรุปผลสั้นๆ พร้อม timeline ถ้ามี]\n\n'
+    +'✅ [ผล 1]\n'
+    +'✅ [ผล 2]\n'
+    +'✅ [ผล 3]\n'
+    +'✅ [ผล 4]\n'
+    +'✅ [ผล 5]\n\n'
+    +'✨ [Emotional closing 2 บรรทัด — ความรู้สึก/แรงบันดาลใจ]\n\n'
+    +'📍 [CTA soft sell ชวนทักแบบ relatable ไม่กดดัน] 😊\n\n'
+    +'กฎภาษา: เป็นกันเอง ภาษาพูด ไม่วิชาการ เหมือนคนพิมพ์จริง ไม่ใช่ AI\n'
+    +'ห้ามใช้: "ดีที่สุด" "การันตี" "เปลี่ยนชีวิตทันที" คำโฆษณาแรงๆ\n'
+    +'ห้ามใช้ "เขา/เธอ" แทนคนไข้ | ห้ามพูดซ้ำชื่อคลินิกเกิน 2 ครั้ง | ชื่อคลินิก: DC Dental Clinic จันทบุรี\n'
+    +'ห้ามใส่ข้อมูลที่ไม่ได้รับมา';
+  const imageInstr=imageMode?'ดูรูป io/eo นี้ก่อน วิเคราะห์สภาพฟันที่เห็น (ฟันซ้อนเก, ช่องว่าง, ฟันล้ม, แนวฟัน, ความเปลี่ยนแปลง before/after) แล้วใช้ประกอบกับข้อมูลด้านล่าง\n\n':'';
+  return imageInstr+structure+'\nข้อมูล:'+info+slogan+footer;
 }
+function buildVisionPrompt(type,data){return buildIoPrompt(type,data,true);}
 async function runCaptionGenerate(){
   const type=document.getElementById('fCaptionType').value;
   const problem=document.getElementById('cgProblem').value.trim();

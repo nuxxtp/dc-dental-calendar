@@ -4411,7 +4411,7 @@ function openCaptionGenerator(){
   document.getElementById('cgOutput').value='';
   const title=document.getElementById('fTitle')?.value||'';
   document.getElementById('cgProblem').value=title;
-  const isIo=type==='braces_io'||type==='aligner_io';
+  const isIo=type==='braces_io'||type==='aligner_io'||type==='implant_io';
   document.getElementById('cgImageSection').style.display=isIo?'block':'none';
   document.getElementById('cgImageInput').value='';
   document.getElementById('cgImagePreview').style.display='none';
@@ -4446,7 +4446,7 @@ function buildCaptionPrompt(type,data){
     +(extra?'\nข้อมูลเพิ่มเติม: '+extra:'');
   const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
   if(type==='implant_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้รากฟันเทียม\n'+rules+'\nข้อมูล:'+info+footer;
-  if(type==='implant_io') return 'เขียน caption Instagram รูป io รากฟันเทียม (before/after หรือระหว่างรักษา)\n'+rules+'\nข้อมูล:'+info+footer;
+  if(type==='implant_io') return buildImplantIoPrompt(data,false);
   if(type==='braces_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันเหล็ก\n'+rules+'\nข้อมูล:'+info+footer;
   if(type==='braces_io') return buildIoPrompt(type,data,false);
   if(type==='aligner_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันใส DC Aligner\n'+rules+'\nข้อมูล:'+info+'\nก่อน footer ใส่ slogan: "Align Smile Shine" by DC Aligner ✨'+footer;
@@ -4508,11 +4508,52 @@ function buildIoPrompt(type,data,imageMode){
   const imageInstr=imageMode?'ดูรูป io/eo นี้ก่อน วิเคราะห์สภาพฟันที่เห็น (ฟันซ้อนเก, ช่องว่าง, ฟันล้ม, แนวฟัน, ความเปลี่ยนแปลง before/after) แล้วใช้ประกอบกับข้อมูลด้านล่าง\n\n':'';
   return imageInstr+structure+'\nข้อมูล:'+info+slogan+footer;
 }
-function buildVisionPrompt(type,data){return buildIoPrompt(type,data,true);}
+function buildImplantIoPrompt(data,imageMode){
+  const rawName=data.patientName||'';
+  const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
+  const doctor=data.doctor||'';
+  const drTag=doctor?(doctor.startsWith('หมอ')||doctor.startsWith('ดร.')||doctor.startsWith('Dr.')?doctor:'หมอ'+doctor):'ทีมทันตแพทย์ DC Dental Clinic';
+  const info=(name!=='คนไข้'?'\nชื่อคนไข้: '+name:'')
+    +(data.problem?'\nข้อมูล/ปัญหา: '+data.problem:'')
+    +(data.result?'\nผลลัพธ์/timeline: '+data.result:'')
+    +(doctor?'\nหมอผู้รักษา: '+drTag+' (ใช้ชื่อนี้ใน caption)':'')
+    +(data.extra?'\nรายละเอียดอื่น: '+data.extra:'');
+  const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
+  const structure='เขียน caption Instagram สำหรับเคสรากฟันเทียม ให้ตรงตาม format นี้ทุกอย่าง:\n\n'
+    +'📣 [Hook — ปัญหาหลัก เช่น ฟันหาย เคี้ยวลำบาก ไม่มั่นใจยิ้ม 1-2 บรรทัด]\n\n'
+    +'[อธิบายปัญหาเพิ่มเติมเป็นภาษาคนทั่วไป] 🔩\n\n'
+    +'✨ แนวทางการรักษา\n'
+    +'[ชื่อหมอ] เลือก[วิธีรักษา] เพื่อ[เหตุผลสั้นๆ]\n\n'
+    +'📌 แผนการรักษา\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 1]\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 2]\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 3]\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 4]\n'
+    +'✅ [เป้าหมาย/ขั้นตอน 5]\n\n'
+    +'🤍 ผลลัพธ์\n'
+    +'[สรุปผลสั้นๆ พร้อม timeline ถ้ามี]\n\n'
+    +'✅ [ผล 1]\n'
+    +'✅ [ผล 2]\n'
+    +'✅ [ผล 3]\n'
+    +'✅ [ผล 4]\n'
+    +'✅ [ผล 5]\n\n'
+    +'✨ [Emotional closing 2 บรรทัด — ความรู้สึก เช่น มีฟันครบ เคี้ยวได้ดี กลับมายิ้มได้]\n\n'
+    +'📍 [CTA soft sell ชวนทักแบบ relatable] 😊\n\n'
+    +'กฎภาษา: เป็นกันเอง ภาษาพูด ไม่วิชาการ เหมือนคนพิมพ์จริง ไม่ใช่ AI\n'
+    +'ห้ามใช้: "ดีที่สุด" "การันตี" "เปลี่ยนชีวิตทันที"\n'
+    +'ห้ามใช้ "เขา/เธอ" แทนคนไข้ | ห้ามพูดซ้ำชื่อคลินิกเกิน 2 ครั้ง | ชื่อคลินิก: DC Dental Clinic จันทบุรี\n'
+    +'ห้ามใส่ข้อมูลที่ไม่ได้รับมา';
+  const imageInstr=imageMode?'ดูรูป io รากฟันเทียมนี้ก่อน วิเคราะห์สภาพที่เห็น (ฟันหาย, ช่องว่าง, รากเทียม, ครอบฟัน, ความเปลี่ยนแปลง) แล้วใช้ประกอบกับข้อมูลด้านล่าง\n\n':'';
+  return imageInstr+structure+'\nข้อมูล:'+info+footer;
+}
+function buildVisionPrompt(type,data){
+  if(type==='implant_io') return buildImplantIoPrompt(data,true);
+  return buildIoPrompt(type,data,true);
+}
 async function runCaptionGenerate(){
   const type=document.getElementById('fCaptionType').value;
   const problem=document.getElementById('cgProblem').value.trim();
-  const isIo=type==='braces_io'||type==='aligner_io';
+  const isIo=type==='braces_io'||type==='aligner_io'||type==='implant_io';
   const imageInput=document.getElementById('cgImageInput');
   const hasImage=isIo&&imageInput&&imageInput.files[0];
   if(!problem&&!hasImage){showNoti('กรอกปัญหา/หัวข้อ หรืออัปรูปก่อน','#E67E22');return;}

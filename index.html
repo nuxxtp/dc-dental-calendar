@@ -4699,7 +4699,7 @@ async function runCaptionGenerate(){
   try{
     let res;
     if(hasImage){
-      const files=Array.from(imageInput.files).slice(0,6);
+      const files=Array.from(imageInput.files).slice(0,5);
       const base64List=await Promise.all(files.map(f=>toBase64(f)));
       const imgContent=base64List.map(b=>({type:'image_url',image_url:{url:b}}));
       res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
@@ -4774,7 +4774,7 @@ async function confirmOverdue(){
         <input id="cgExtra" type="text" placeholder="เช่น quote จากคนไข้ หรือรายละเอียดอื่น" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
       <div id="cgImageSection" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <label style="font-size:12px;font-weight:700;color:#1A6FB5;">📷 อัปรูป io/eo (สูงสุด 6 รูป — AI วิเคราะห์จากรูป)</label>
+          <label style="font-size:12px;font-weight:700;color:#1A6FB5;">📷 อัปรูป io/eo (สูงสุด 5 รูป — AI วิเคราะห์จากรูป)</label>
           <span id="cgImageCount" style="font-size:11px;color:#888;font-family:'Sarabun',sans-serif;"></span>
         </div>
         <div onclick="document.getElementById('cgImageInput').click()" style="border:2px dashed #B8D4F0;border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:#F4F9FF;min-height:60px;">

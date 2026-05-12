@@ -4422,6 +4422,32 @@ function closeCaptionGenerator(){
   document.getElementById('captionGenOverlay').style.display='none';
 }
 const CONTACT_FOOTER='\n\n💻 Linktree : https://linktr.ee/dc.dental\n📭 Inbox FB: DC Aligner จัดฟันใส ดีซี จันทบุรี, DC Dental Clinic จันทบุรี\n☎ 063-506-4422 / 039-313131\n📲 Line ID : @dc.dental\n\n✨ DC Dental Clinic 🦷\nYour smile, Our pride';
+function buildImplantTestimonialPrompt(data){
+  const rawName=data.patientName||'';
+  const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('น้อง')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
+  const doctor=data.doctor||'';
+  const drTag=doctor?(doctor.startsWith('หมอ')||doctor.startsWith('ดร.')||doctor.startsWith('Dr.')?doctor:'หมอ'+doctor):'ทีมทันตแพทย์ DC Dental Clinic';
+  const info=(name!=='คนไข้'?'\nชื่อคนไข้: '+name:'')
+    +(data.problem?'\nปัญหา/บริบท: '+data.problem:'')
+    +(data.result?'\nผลลัพธ์: '+data.result:'')
+    +(doctor?'\nหมอผู้รักษา: '+drTag:'')
+    +(data.extra?'\nรายละเอียดเพิ่ม: '+data.extra:'');
+  const footer='\nหลัง closing ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
+  const rules='เขียนให้เหมือนมนุษย์พิมพ์จริง ไม่ใช่ AI ฟีล testimonial คนไข้รากฟันเทียมใน IG\n'
+    +'โทน: อบอุ่น จริงใจ ดูแลดี ให้เกียรติคนไข้ เน้นหมอใจเย็น นุ่มนวล อธิบายละเอียด\n'
+    +'เน้น "กลับมาเคี้ยวได้" "ยิ้มได้มั่นใจ" "เหมือนฟันธรรมชาติ"\n'
+    +'emoji: 💫 🥘 🍤 🦷 👩‍⚕ 😊 📍 ✨ — วางตามตำแหน่งใน format\n'
+    +'ห้ามใช้: "ดีที่สุด" "การันตี" | ห้ามใช้ "เขา/เธอ" | ห้ามพูดซ้ำชื่อคลินิกเกิน 2 ครั้ง\n'
+    +'ชื่อคลินิก: DC Dental Clinic จันทบุรี | ห้ามใส่ข้อมูลที่ไม่ได้รับมา';
+  const structure='เขียนตาม format นี้ทุกอย่าง:\n\n'
+    +'รากฟันเทียมที่ DC Dental Clinic จันทบุรี 💫\n\n'
+    +'[ชื่อคนไข้]เข้ามาปรึกษาด้วยปัญหา[ปัญหา เช่น เคี้ยวลำบาก ฟันหาย ไม่มั่นใจยิ้ม] [emoji อาหาร/ฟัน]\n\n'
+    +'👩‍⚕ [ชื่อหมอ]ให้คำแนะนำอย่างละเอียด และดูแลอย่างนุ่มนวล ทำให้การรักษาเป็นไปอย่างสบายใจ\n\n'
+    +'หลังทำรากฟันเทียม [ชื่อคนไข้][ผลลัพธ์ เช่น เคี้ยวได้ดีขึ้น กลับมายิ้มมั่นใจ] 😊🦷\n\n'
+    +'📍 [CTA — ชวนคนที่มีปัญหาเหมือนกัน mention ทีม] ✨\n\n'
+    +'เพราะรอยยิ้มของคุณคือความภาคภูมิใจของเรา 😊';
+  return rules+'\n'+structure+'\nข้อมูล:'+info+footer;
+}
 function buildBracesTestimonialPrompt(data){
   const rawName=data.patientName||'';
   const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('น้อง')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
@@ -4530,7 +4556,7 @@ function buildCaptionPrompt(type,data){
     +(doctor?'\nหมอผู้รักษา: '+drTag:'')
     +(extra?'\nข้อมูลเพิ่มเติม: '+extra:'');
   const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
-  if(type==='implant_interview') return buildTestimonialPrompt(type,data);
+  if(type==='implant_interview') return buildImplantTestimonialPrompt(data);
   if(type==='implant_io') return buildImplantIoPrompt(data,false);
   if(type==='braces_interview') return buildBracesTestimonialPrompt(data);
   if(type==='braces_io') return buildIoPrompt(type,data,false);

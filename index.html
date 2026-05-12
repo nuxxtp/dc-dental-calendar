@@ -4411,8 +4411,12 @@ function openCaptionGenerator(){
   document.getElementById('cgOutput').value='';
   const title=document.getElementById('fTitle')?.value||'';
   document.getElementById('cgProblem').value=title;
-  const overlay=document.getElementById('captionGenOverlay');
-  overlay.style.display='flex';
+  const isIo=type==='braces_io'||type==='aligner_io';
+  document.getElementById('cgImageSection').style.display=isIo?'block':'none';
+  document.getElementById('cgImageInput').value='';
+  document.getElementById('cgImagePreview').style.display='none';
+  document.getElementById('cgImagePlaceholder').style.display='block';
+  document.getElementById('captionGenOverlay').style.display='flex';
 }
 function closeCaptionGenerator(){
   document.getElementById('captionGenOverlay').style.display='none';
@@ -4450,27 +4454,78 @@ function buildCaptionPrompt(type,data){
   if(type==='thankyou') return 'เขียน caption Instagram ขอบคุณคนไข้ที่ไว้วางใจ DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;
   return 'เขียน caption Instagram ทันตกรรม DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;
 }
+function handleCgImage(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    document.getElementById('cgImageThumb').src=e.target.result;
+    document.getElementById('cgImagePreview').style.display='block';
+    document.getElementById('cgImagePlaceholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+function toBase64(file){
+  return new Promise(resolve=>{const r=new FileReader();r.onload=e=>resolve(e.target.result);r.readAsDataURL(file);});
+}
+function buildVisionPrompt(type,data){
+  const rawName=data.patientName||'';
+  const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
+  const doctor=data.doctor||'';
+  const drTag=doctor?(doctor.startsWith('หมอ')||doctor.startsWith('ดร.')||doctor.startsWith('Dr.')?doctor:'หมอ'+doctor):'ทีมทันตแพทย์ DC Dental Clinic';
+  const rules='เขียนให้เหมือนคนพิมพ์จริง ไม่ใช่ AI ฟีลเล่าเคสรีวิวใน IG\n'
+    +'โทน: อบอุ่น เป็นกันเอง จริงใจ เห็นผลชัด ไม่โฆษณาแรง\n'
+    +'ภาษาพูด ไม่วิชาการ ใช้คำเช่น "ไม่กล้ายิ้ม" "ฟันเริ่มเข้าที่" "กลับมายิ้มได้"\n'
+    +'Structure: (1) Hook ปัญหา/ความรู้สึก → (2) อธิบายปัญหาจากรูปภาษาคน → (3) วิธีรักษา → (4) ✅ bullet ผลลัพธ์ 3-4 ข้อ → (5) Emotional closing → (6) CTA soft sell\n'
+    +'emoji: 1-2 อัน/ย่อหน้า ไม่ใส่ทุกบรรทัด ใช้เฉพาะ ✨ 🤍 😊 🥺 📍 👉🏻 ✅ 😅 🌈\n'
+    +'ห้ามใช้ "เขา/เธอ" ใช้ชื่อคนไข้หรือ "คนไข้" | ห้ามพูดซ้ำชื่อคลินิกเกิน 2 ครั้ง | ชื่อคลินิก: DC Dental Clinic จันทบุรี';
+  const typeLabel=type==='braces_io'?'จัดฟันเหล็ก':'จัดฟันใส DC Aligner';
+  const slogan=type==='aligner_io'?'\nก่อน footer ใส่ slogan: "Align Smile Shine" by DC Aligner ✨':'';
+  const info=(name!=='คนไข้'?'\nชื่อคนไข้: '+name:'')
+    +(data.problem?'\nข้อมูลเพิ่มเติม: '+data.problem:'')
+    +(data.result?'\nผลลัพธ์: '+data.result:'')
+    +(doctor?'\nหมอผู้รักษา: '+drTag:'')
+    +(data.extra?'\nรายละเอียดอื่น: '+data.extra:'');
+  const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
+  return 'ดูรูป io/eo '+typeLabel+' นี้ก่อน\nวิเคราะห์สภาพฟันที่เห็นเป็นภาษาคนทั่วไป (ฟันซ้อนเก, ช่องว่าง, ฟันล้ม, แนวฟันเอียง ฯลฯ)\nถ้ามีหลายรูป (before/after หรือกลางรักษา) ระบุความเปลี่ยนแปลงด้วย\nจากนั้นใช้การวิเคราะห์รูปร่วมกับข้อมูลด้านล่างเพื่อ:\n'+rules+'\nข้อมูล:'+info+slogan+footer;
+}
 async function runCaptionGenerate(){
   const type=document.getElementById('fCaptionType').value;
   const problem=document.getElementById('cgProblem').value.trim();
-  if(!problem){showNoti('กรอกปัญหา/หัวข้อก่อน','#E67E22');return;}
+  const isIo=type==='braces_io'||type==='aligner_io';
+  const imageInput=document.getElementById('cgImageInput');
+  const hasImage=isIo&&imageInput&&imageInput.files[0];
+  if(!problem&&!hasImage){showNoti('กรอกปัญหา/หัวข้อ หรืออัปรูปก่อน','#E67E22');return;}
   const btn=document.getElementById('cgBtn');
   const loading=document.getElementById('cgLoading');
   const resultBox=document.getElementById('cgResult');
   btn.style.display='none';loading.style.display='block';resultBox.style.display='none';
+  const data={
+    patientName:document.getElementById('cgPatient').value.trim(),
+    problem,
+    result:document.getElementById('cgResultInput').value.trim(),
+    doctor:document.getElementById('cgDoctor').value.trim(),
+    extra:document.getElementById('cgExtra').value.trim()
+  };
   try{
-    const prompt=buildCaptionPrompt(type,{
-      patientName:document.getElementById('cgPatient').value.trim(),
-      problem,
-      result:document.getElementById('cgResultInput').value.trim(),
-      doctor:document.getElementById('cgDoctor').value.trim(),
-      extra:document.getElementById('cgExtra').value.trim()
-    });
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
-      body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}]})
-    });
+    let res;
+    if(hasImage){
+      const base64=await toBase64(imageInput.files[0]);
+      res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+        body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',messages:[{role:'user',content:[
+          {type:'image_url',image_url:{url:base64}},
+          {type:'text',text:buildVisionPrompt(type,data)}
+        ]}]})
+      });
+    } else {
+      res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+        body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:buildCaptionPrompt(type,data)}]})
+      });
+    }
     const json=await res.json();
     if(json.choices&&json.choices[0]){
       document.getElementById('cgOutput').value=json.choices[0].message.content;
@@ -4526,6 +4581,14 @@ async function confirmOverdue(){
         <input id="cgDoctor" type="text" placeholder="เช่น หมอนอร์ท @dr.north.judfun" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
       <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Quote / รายละเอียดเพิ่ม</label>
         <input id="cgExtra" type="text" placeholder="เช่น quote จากคนไข้ หรือรายละเอียดอื่น" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
+      <div id="cgImageSection" style="display:none;">
+        <label style="font-size:12px;font-weight:700;color:#1A6FB5;display:block;margin-bottom:6px;">📷 อัปรูป io/eo (AI จะวิเคราะห์ฟันจากรูปเอง)</label>
+        <div onclick="document.getElementById('cgImageInput').click()" style="border:2px dashed #B8D4F0;border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:#F4F9FF;">
+          <div id="cgImagePreview" style="display:none;"><img id="cgImageThumb" style="max-width:100%;max-height:150px;border-radius:8px;object-fit:contain;"></div>
+          <div id="cgImagePlaceholder" style="color:#888;font-size:12px;font-family:'Sarabun',sans-serif;">แตะเพื่อเลือกรูป</div>
+        </div>
+        <input id="cgImageInput" type="file" accept="image/*" style="display:none;" onchange="handleCgImage(this)">
+      </div>
       <button onclick="runCaptionGenerate()" id="cgBtn" style="background:#1A6FB5;color:white;border:none;border-radius:10px;padding:11px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;">✨ สร้าง Caption</button>
       <div id="cgLoading" style="display:none;text-align:center;font-size:13px;color:#888;padding:8px;">⏳ กำลังสร้าง...</div>
       <div id="cgResult" style="display:none;">

@@ -782,7 +782,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 // CONSTANTS & GLOBAL STATE
 // ================================================
 const SHEET_URL='https://script.google.com/macros/s/AKfycbxs7PvHwxCErn6YaT13tghZBluG7ALOezs0XK0m2EBxFGIZCIPBjBZzqjf74Oe4FJ30Cg/exec';
-const GEMINI_KEY='AIzaSyD2XnCFN9rUZjLCZYOC7Feals1pPkn2CfI';
+const GROQ_KEY='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';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -4451,14 +4451,14 @@ async function runCaptionGenerate(){
       doctor:document.getElementById('cgDoctor').value.trim(),
       extra:document.getElementById('cgExtra').value.trim()
     });
-    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY,{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}]})
     });
     const json=await res.json();
-    if(json.candidates&&json.candidates[0]){
-      document.getElementById('cgOutput').value=json.candidates[0].content.parts[0].text;
+    if(json.choices&&json.choices[0]){
+      document.getElementById('cgOutput').value=json.choices[0].message.content;
       resultBox.style.display='block';
     } else {
       showNoti('Generate ไม่สำเร็จ: '+(json.error?.message||'ลองใหม่'),'#E74C3C');

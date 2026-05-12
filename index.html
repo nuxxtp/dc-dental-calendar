@@ -4422,6 +4422,41 @@ function closeCaptionGenerator(){
   document.getElementById('captionGenOverlay').style.display='none';
 }
 const CONTACT_FOOTER='\n\n💻 Linktree : https://linktr.ee/dc.dental\n📭 Inbox FB: DC Aligner จัดฟันใส ดีซี จันทบุรี, DC Dental Clinic จันทบุรี\n☎ 063-506-4422 / 039-313131\n📲 Line ID : @dc.dental\n\n✨ DC Dental Clinic 🦷\nYour smile, Our pride';
+function buildTestimonialPrompt(type,data){
+  const rawName=data.patientName||'';
+  const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
+  const doctor=data.doctor||'';
+  const drTag=doctor?(doctor.startsWith('หมอ')||doctor.startsWith('ดร.')||doctor.startsWith('Dr.')?doctor:'หมอ'+doctor):'ทีมทันตแพทย์ DC Dental Clinic';
+  const info=(name!=='คนไข้'?'\nชื่อคนไข้: '+name:'')
+    +(data.problem?'\nปัญหา/บริบท: '+data.problem:'')
+    +(data.result?'\nผลลัพธ์/timeline: '+data.result:'')
+    +(doctor?'\nหมอผู้รักษา: '+drTag:'')
+    +(data.extra?'\nรายละเอียดเพิ่ม / quote จากคนไข้: '+data.extra:'');
+  const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
+  const baseRules='เขียนให้เหมือนมนุษย์พิมพ์จริง ไม่ใช่ AI ฟีล testimonial / รีวิวคนไข้ใน IG\n'
+    +'โทน: อบอุ่น นุ่มนวล จริงใจ ให้เกียรติคนไข้ ไม่ขายแข็ง\n'
+    +'ภาษาพูด ไม่วิชาการ ไม่แข็ง อ่านลื่น\n'
+    +'เวลาพูดถึงหมอ: ฟีล "ดูแลดี ใจเย็น อธิบายละเอียด มือเบา ใส่ใจ"\n'
+    +'เวลาพูดถึงผลลัพธ์: ใช้คำ "ดีขึ้น" "มั่นใจขึ้น" "ใช้งานได้ดีขึ้น" ไม่พูดเกินจริง\n'
+    +'ถ้ามี timeline ใช้รูปแบบ "เพียง X เดือน ฟัน..."\n'
+    +'emoji: 🤍 ✨ 💫 😊 🦷 💛 😁 — วางท้ายประโยคสำคัญ ไม่ใส่ทุกบรรทัด\n'
+    +'ห้ามใช้: "ดีที่สุด" "การันตี" "หายขาด 100%"\n'
+    +'ห้ามใช้ "เขา/เธอ" แทนคนไข้ | ห้ามพูดซ้ำชื่อคลินิกเกิน 2 ครั้ง | ชื่อคลินิก: DC Dental Clinic จันทบุรี\n'
+    +'ห้ามใส่ข้อมูลที่ไม่ได้รับมา\n'
+    +'CTA ต้องนุ่มๆ ไม่กดดัน เช่น "สามารถเข้ามาปรึกษาได้เลยนะคะ ✨" หรือ "เราพร้อมดูแลรอยยิ้มของคุณเสมอ 💛"';
+  const structure='Structure IG testimonial:\n'
+    +'1. Opening emotional sentence (เปิดด้วยประโยคที่มีความรู้สึก เปลี่ยนทุกครั้ง ห้ามซ้ำกัน)\n'
+    +'2. ชื่อ treatment + DC Dental Clinic จันทบุรี\n'
+    +'3. ปัญหาของคนไข้\n'
+    +'4. สิ่งที่คุณหมอแนะนำและวิธีรักษา\n'
+    +'5. ผลลัพธ์และความรู้สึกหลังรักษา\n'
+    +'6. CTA นุ่มๆ';
+  let typeNote='';
+  if(type==='aligner_interview') typeNote='เคสนี้เป็นจัดฟันใส DC Aligner — เน้น lifestyle, ถอดได้, สะดวก, ไม่ลำบาก, เข้ากับชีวิตประจำวัน ใช้แบรนด์ "DC Aligner" และแนวคิด "Smile Align Shine"';
+  if(type==='braces_interview') typeNote='เคสนี้เป็นจัดฟันเหล็ก — เน้น journey ค่อยๆ เปลี่ยน ฟันเริ่มเข้าที่ ความมั่นใจกลับมา';
+  if(type==='implant_interview') typeNote='เคสนี้เป็นรากฟันเทียม 🔩 — เน้น กลับมาเคี้ยวได้ เหมือนฟันธรรมชาติ มั่นใจเวลายิ้ม ใช้งานระยะยาว';
+  return baseRules+'\n'+structure+(typeNote?'\nหมายเหตุ: '+typeNote:'')+'\nข้อมูล:'+info+footer;
+}
 function buildCaptionPrompt(type,data){
   const rawName=data.patientName||'';
   const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
@@ -4445,11 +4480,11 @@ function buildCaptionPrompt(type,data){
     +(doctor?'\nหมอผู้รักษา: '+drTag:'')
     +(extra?'\nข้อมูลเพิ่มเติม: '+extra:'');
   const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
-  if(type==='implant_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้รากฟันเทียม\n'+rules+'\nข้อมูล:'+info+footer;
+  if(type==='implant_interview') return buildTestimonialPrompt(type,data);
   if(type==='implant_io') return buildImplantIoPrompt(data,false);
-  if(type==='braces_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันเหล็ก\n'+rules+'\nข้อมูล:'+info+footer;
+  if(type==='braces_interview') return buildTestimonialPrompt(type,data);
   if(type==='braces_io') return buildIoPrompt(type,data,false);
-  if(type==='aligner_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันใส DC Aligner\n'+rules+'\nข้อมูล:'+info+'\nก่อน footer ใส่ slogan: "Align Smile Shine" by DC Aligner ✨'+footer;
+  if(type==='aligner_interview') return buildTestimonialPrompt(type,data);
   if(type==='aligner_io') return buildIoPrompt(type,data,false);
   if(type==='thankyou') return 'เขียน caption Instagram ขอบคุณคนไข้ที่ไว้วางใจ DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;
   return 'เขียน caption Instagram ทันตกรรม DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;

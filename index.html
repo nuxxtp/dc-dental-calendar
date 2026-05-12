@@ -782,6 +782,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 // CONSTANTS & GLOBAL STATE
 // ================================================
 const SHEET_URL='https://script.google.com/macros/s/AKfycbxs7PvHwxCErn6YaT13tghZBluG7ALOezs0XK0m2EBxFGIZCIPBjBZzqjf74Oe4FJ30Cg/exec';
+const GEMINI_KEY='AIzaSyD2XnCFN9rUZjLCZYOC7Feals1pPkn2CfI';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -4416,6 +4417,24 @@ function openCaptionGenerator(){
 function closeCaptionGenerator(){
   document.getElementById('captionGenOverlay').style.display='none';
 }
+const CONTACT_FOOTER='\n\n📍 Linktree : https://linktr.ee/dc.dental\n📥 Inbox FB: DC Aligner จัดฟันใส ดีๆ จันทบุรี, DC Dental Clinic จันทบุรี\n📞 063-506-4422 / 039-313131\n🔗 Line ID : @dc.dental\n\n🦷 DC Dental Clinic 🦷\nYour smile, Our pride';
+function buildCaptionPrompt(type,data){
+  const name=data.patientName?'คุณ'+data.patientName:'คนไข้';
+  const problem=data.problem||'';
+  const result=data.result||'';
+  const doctor=data.doctor||'';
+  const extra=data.extra||'';
+  const style='ภาษาไทย เป็นกันเอง อบอุ่น น่าเชื่อถือ ใส่ emoji ทุกหน้า ชื่อคลินิก: DC Dental Clinic จันทบุรี ห้ามใส่ข้อมูลที่ไม่ได้รับมา';
+  const footer='\nท้าย caption ให้ใส่ footer นี้ต่อท้ายทุกครั้ง (ห้ามตัดออก):\n'+CONTACT_FOOTER;
+  if(type==='implant_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้รากฟันเทียม สไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนรักษา: '+problem+(result?'\nผลลัพธ์หลังใส่รากเทียม: '+result:'')+(doctor?'\nหมอผู้รักษา: '+doctor:'')+(extra?'\nข้อมูลเพิ่มเติม: '+extra:'')+footer;
+  if(type==='implant_io') return 'เขียน caption Instagram รูป intraoral รากฟันเทียม สไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+doctor:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  if(type==='braces_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันเหล็ก สไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนจัดฟัน: '+problem+(result?'\nผลลัพธ์หลังจัดฟัน: '+result:'')+(doctor?'\nหมอผู้รักษา: '+doctor:'')+(extra?'\nข้อมูลเพิ่มเติม: '+extra:'')+footer;
+  if(type==='braces_io') return 'เขียน caption Instagram รูป io/eo จัดฟันเหล็ก สไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+doctor:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  if(type==='aligner_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันใส (Aligner) สไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนจัดฟัน: '+problem+(result?'\nผลลัพธ์หลังจัดฟันใส: '+result:'')+(doctor?'\nหมอผู้รักษา: '+doctor:'')+(extra?'\nข้อมูลเพิ่มเติม: '+extra:'')+footer;
+  if(type==='aligner_io') return 'เขียน caption Instagram รูป io/eo จัดฟันใส (Aligner) สไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+doctor:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  if(type==='thankyou') return 'เขียน caption Instagram ขอบคุณคนไข้ที่ไว้วางใจ สไตล์: '+style+'\nชื่อ: '+name+(problem?'\nรายละเอียด: '+problem:'')+(extra?'\nข้อมูลเพิ่มเติม: '+extra:'')+footer;
+  return 'เขียน caption Instagram เกี่ยวกับทันตกรรม สไตล์: '+style+'\nหัวข้อ: '+problem+(result?'\nรายละเอียด: '+result:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+}
 async function runCaptionGenerate(){
   const type=document.getElementById('fCaptionType').value;
   const problem=document.getElementById('cgProblem').value.trim();
@@ -4425,23 +4444,26 @@ async function runCaptionGenerate(){
   const resultBox=document.getElementById('cgResult');
   btn.style.display='none';loading.style.display='block';resultBox.style.display='none';
   try{
-    const res=await fetch(SHEET_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'generateCaption',captionType:type,data:{
-        patientName:document.getElementById('cgPatient').value.trim(),
-        problem,
-        result:document.getElementById('cgResultInput').value.trim(),
-        doctor:document.getElementById('cgDoctor').value.trim(),
-        extra:document.getElementById('cgExtra').value.trim()
-      }})
+    const prompt=buildCaptionPrompt(type,{
+      patientName:document.getElementById('cgPatient').value.trim(),
+      problem,
+      result:document.getElementById('cgResultInput').value.trim(),
+      doctor:document.getElementById('cgDoctor').value.trim(),
+      extra:document.getElementById('cgExtra').value.trim()
     });
-    const data=JSON.parse(await res.text());
-    if(data.ok&&data.caption){
-      document.getElementById('cgOutput').value=data.caption;
+    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+    });
+    const json=await res.json();
+    if(json.candidates&&json.candidates[0]){
+      document.getElementById('cgOutput').value=json.candidates[0].content.parts[0].text;
       resultBox.style.display='block';
     } else {
-      showNoti('Generate ไม่สำเร็จ: '+(data.error||'ลองใหม่'),'#E74C3C');
+      showNoti('Generate ไม่สำเร็จ: '+(json.error?.message||'ลองใหม่'),'#E74C3C');
     }
-  }catch(e){showNoti('เกิดข้อผิดพลาด','#E74C3C');}
+  }catch(e){showNoti('เกิดข้อผิดพลาด: '+e.message,'#E74C3C');}
   btn.style.display='block';loading.style.display='none';
 }
 function applyCaptionToForm(){

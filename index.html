@@ -4512,35 +4512,25 @@ function buildImplantIoPrompt(data,imageMode){
   const rawName=data.patientName||'';
   const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
   const doctor=data.doctor||'';
-  const drTag=doctor?(doctor.startsWith('หมอ')||doctor.startsWith('ดร.')||doctor.startsWith('Dr.')?doctor:'หมอ'+doctor):'ทีมทันตแพทย์ DC Dental Clinic';
+  const drTag=doctor?(doctor.startsWith('หมอ')||doctor.startsWith('ดร.')||doctor.startsWith('Dr.')?doctor:'หมอ'+doctor):'ทีมทันตแพทย์ของ DC Dental Clinic';
   const info=(name!=='คนไข้'?'\nชื่อคนไข้: '+name:'')
     +(data.problem?'\nข้อมูล/ปัญหา: '+data.problem:'')
-    +(data.result?'\nผลลัพธ์/timeline: '+data.result:'')
-    +(doctor?'\nหมอผู้รักษา: '+drTag+' (ใช้ชื่อนี้ใน caption)':'')
+    +(data.result?'\nผลลัพธ์: '+data.result:'')
+    +(doctor?'\nหมอผู้รักษา: '+drTag:'')
     +(data.extra?'\nรายละเอียดอื่น: '+data.extra:'');
   const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
-  const structure='เขียน caption Instagram สำหรับเคสรากฟันเทียม ให้ตรงตาม format นี้ทุกอย่าง:\n\n'
-    +'📣 [Hook — ปัญหาหลัก เช่น ฟันหาย เคี้ยวลำบาก ไม่มั่นใจยิ้ม 1-2 บรรทัด]\n\n'
-    +'[อธิบายปัญหาเพิ่มเติมเป็นภาษาคนทั่วไป] 🔩\n\n'
-    +'✨ แนวทางการรักษา\n'
-    +'[ชื่อหมอ] เลือก[วิธีรักษา] เพื่อ[เหตุผลสั้นๆ]\n\n'
-    +'📌 แผนการรักษา\n'
-    +'✅ [เป้าหมาย/ขั้นตอน 1]\n'
-    +'✅ [เป้าหมาย/ขั้นตอน 2]\n'
-    +'✅ [เป้าหมาย/ขั้นตอน 3]\n'
-    +'✅ [เป้าหมาย/ขั้นตอน 4]\n'
-    +'✅ [เป้าหมาย/ขั้นตอน 5]\n\n'
-    +'🤍 ผลลัพธ์\n'
-    +'[สรุปผลสั้นๆ พร้อม timeline ถ้ามี]\n\n'
-    +'✅ [ผล 1]\n'
-    +'✅ [ผล 2]\n'
-    +'✅ [ผล 3]\n'
-    +'✅ [ผล 4]\n'
-    +'✅ [ผล 5]\n\n'
-    +'✨ [Emotional closing 2 บรรทัด — ความรู้สึก เช่น มีฟันครบ เคี้ยวได้ดี กลับมายิ้มได้]\n\n'
-    +'📍 [CTA soft sell ชวนทักแบบ relatable] 😊\n\n'
+  const structure='เขียน caption Instagram เคสรากฟันเทียม ให้ตรงตาม format นี้ทุกอย่าง (เป็น paragraph ไม่มี bullet ✅):\n\n'
+    +'🔩 [Hook สั้นๆ — รากฟันเทียม + ประโยชน์ เช่น "คืนฟันที่หายไปให้กลับมาเคี้ยวได้อีกครั้ง"] 😊\n\n'
+    +'👉🏻 ก่อนการรักษา\n'
+    +'[อธิบายปัญหาเป็นภาษาคนทั่วไป เช่น ฟันหาย ช่องว่าง เคี้ยวลำบาก ไม่มั่นใจยิ้ม] 🦷\n\n'
+    +'👩‍⚕️ [ชื่อหมอหรือทีมหมอ] วางแผน[วิธีรักษา] เพื่อ[เหตุผล — paragraph สั้นๆ ไม่มี bullet]\n\n'
+    +'👉🏻 หลังการรักษา\n'
+    +'[อธิบายผลลัพธ์เป็นภาษาคนทั่วไป เช่น ฟันกลับมาครบ เคี้ยวได้ดีขึ้น ใช้งานได้เหมือนฟันธรรมชาติ] ✨\n\n'
+    +'🤍 [ขอบคุณคนไข้ที่ไว้วางใจ — 1 ประโยค] 🥰\n\n'
+    +'🌈 [CTA soft sell — ชวนทักแบบ relatable ไม่กดดัน] 🤍\n\n'
     +'กฎภาษา: เป็นกันเอง ภาษาพูด ไม่วิชาการ เหมือนคนพิมพ์จริง ไม่ใช่ AI\n'
     +'ห้ามใช้: "ดีที่สุด" "การันตี" "เปลี่ยนชีวิตทันที"\n'
+    +'ห้ามใช้ bullet ✅ หรือ 📌 ใดๆ ทั้งสิ้น ให้เป็น paragraph ล้วน\n'
     +'ห้ามใช้ "เขา/เธอ" แทนคนไข้ | ห้ามพูดซ้ำชื่อคลินิกเกิน 2 ครั้ง | ชื่อคลินิก: DC Dental Clinic จันทบุรี\n'
     +'ห้ามใส่ข้อมูลที่ไม่ได้รับมา';
   const imageInstr=imageMode?'ดูรูป io รากฟันเทียมนี้ก่อน วิเคราะห์สภาพที่เห็น (ฟันหาย, ช่องว่าง, รากเทียม, ครอบฟัน, ความเปลี่ยนแปลง) แล้วใช้ประกอบกับข้อมูลด้านล่าง\n\n':'';

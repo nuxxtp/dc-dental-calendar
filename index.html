@@ -4568,15 +4568,26 @@ function buildCaptionPrompt(type,data){
   return 'เขียน caption Instagram ทันตกรรม DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;
 }
 function handleCgImage(input){
-  const file=input.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    document.getElementById('cgImageThumb').src=e.target.result;
-    document.getElementById('cgImagePreview').style.display='block';
-    document.getElementById('cgImagePlaceholder').style.display='none';
-  };
-  reader.readAsDataURL(file);
+  const files=Array.from(input.files);
+  if(!files.length)return;
+  const preview=document.getElementById('cgImagePreview');
+  const placeholder=document.getElementById('cgImagePlaceholder');
+  preview.innerHTML='';
+  preview.style.display='flex';
+  preview.style.cssText='display:flex;flex-wrap:wrap;gap:6px;justify-content:center;';
+  placeholder.style.display='none';
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const img=document.createElement('img');
+      img.src=e.target.result;
+      img.style.cssText='width:80px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid #B8D4F0;';
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+  const count=document.getElementById('cgImageCount');
+  if(count) count.textContent=files.length+' รูป';
 }
 function toBase64(file){
   return new Promise(resolve=>{const r=new FileReader();r.onload=e=>resolve(e.target.result);r.readAsDataURL(file);});
@@ -4658,7 +4669,7 @@ async function runCaptionGenerate(){
   const problem=document.getElementById('cgProblem').value.trim();
   const isIo=type==='braces_io'||type==='aligner_io'||type==='implant_io';
   const imageInput=document.getElementById('cgImageInput');
-  const hasImage=isIo&&imageInput&&imageInput.files[0];
+  const hasImage=isIo&&imageInput&&imageInput.files.length>0;
   if(!problem&&!hasImage){showNoti('กรอกปัญหา/หัวข้อ หรืออัปรูปก่อน','#E67E22');return;}
   const btn=document.getElementById('cgBtn');
   const loading=document.getElementById('cgLoading');
@@ -4674,12 +4685,14 @@ async function runCaptionGenerate(){
   try{
     let res;
     if(hasImage){
-      const base64=await toBase64(imageInput.files[0]);
+      const files=Array.from(imageInput.files).slice(0,6);
+      const base64List=await Promise.all(files.map(f=>toBase64(f)));
+      const imgContent=base64List.map(b=>({type:'image_url',image_url:{url:b}}));
       res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
         body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',messages:[{role:'user',content:[
-          {type:'image_url',image_url:{url:base64}},
+          ...imgContent,
           {type:'text',text:buildVisionPrompt(type,data)}
         ]}]})
       });
@@ -4746,12 +4759,15 @@ async function confirmOverdue(){
       <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Quote / รายละเอียดเพิ่ม</label>
         <input id="cgExtra" type="text" placeholder="เช่น quote จากคนไข้ หรือรายละเอียดอื่น" style="width:100%;border:1.5px solid #D0DCE8;border-radius:8px;padding:8px 12px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box;"></div>
       <div id="cgImageSection" style="display:none;">
-        <label style="font-size:12px;font-weight:700;color:#1A6FB5;display:block;margin-bottom:6px;">📷 อัปรูป io/eo (AI จะวิเคราะห์ฟันจากรูปเอง)</label>
-        <div onclick="document.getElementById('cgImageInput').click()" style="border:2px dashed #B8D4F0;border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:#F4F9FF;">
-          <div id="cgImagePreview" style="display:none;"><img id="cgImageThumb" style="max-width:100%;max-height:150px;border-radius:8px;object-fit:contain;"></div>
-          <div id="cgImagePlaceholder" style="color:#888;font-size:12px;font-family:'Sarabun',sans-serif;">แตะเพื่อเลือกรูป</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <label style="font-size:12px;font-weight:700;color:#1A6FB5;">📷 อัปรูป io/eo (สูงสุด 6 รูป — AI วิเคราะห์จากรูป)</label>
+          <span id="cgImageCount" style="font-size:11px;color:#888;font-family:'Sarabun',sans-serif;"></span>
         </div>
-        <input id="cgImageInput" type="file" accept="image/*" style="display:none;" onchange="handleCgImage(this)">
+        <div onclick="document.getElementById('cgImageInput').click()" style="border:2px dashed #B8D4F0;border-radius:10px;padding:14px;text-align:center;cursor:pointer;background:#F4F9FF;min-height:60px;">
+          <div id="cgImagePreview" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;"></div>
+          <div id="cgImagePlaceholder" style="color:#888;font-size:12px;font-family:'Sarabun',sans-serif;">แตะเพื่อเลือกรูป (เลือกได้หลายรูปพร้อมกัน)</div>
+        </div>
+        <input id="cgImageInput" type="file" accept="image/*" multiple style="display:none;" onchange="handleCgImage(this)">
       </div>
       <button onclick="runCaptionGenerate()" id="cgBtn" style="background:#1A6FB5;color:white;border:none;border-radius:10px;padding:11px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;">✨ สร้าง Caption</button>
       <div id="cgLoading" style="display:none;text-align:center;font-size:13px;color:#888;padding:8px;">⏳ กำลังสร้าง...</div>

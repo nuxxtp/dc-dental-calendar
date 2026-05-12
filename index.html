@@ -4417,23 +4417,24 @@ function openCaptionGenerator(){
 function closeCaptionGenerator(){
   document.getElementById('captionGenOverlay').style.display='none';
 }
-const CONTACT_FOOTER='\n\n📍 Linktree : https://linktr.ee/dc.dental\n📥 Inbox FB: DC Aligner จัดฟันใส ดีๆ จันทบุรี, DC Dental Clinic จันทบุรี\n📞 063-506-4422 / 039-313131\n🔗 Line ID : @dc.dental\n\n🦷 DC Dental Clinic 🦷\nYour smile, Our pride';
+const CONTACT_FOOTER='\n\n💻 Linktree : https://linktr.ee/dc.dental\n📭 Inbox FB: DC Aligner จัดฟันใส ดีซี จันทบุรี, DC Dental Clinic จันทบุรี\n☎ 063-506-4422 / 039-313131\n📲 Line ID : @dc.dental\n\n✨ DC Dental Clinic 🦷\nYour smile, Our pride';
 function buildCaptionPrompt(type,data){
   const name=data.patientName?'คุณ'+data.patientName:'คนไข้';
   const problem=data.problem||'';
   const result=data.result||'';
   const doctor=data.doctor||'';
   const extra=data.extra||'';
-  const style='ภาษาไทย เป็นกันเอง อบอุ่น น่าเชื่อถือ ใส่ emoji ทุกหน้า ชื่อคลินิก: DC Dental Clinic จันทบุรี ห้ามใส่ข้อมูลที่ไม่ได้รับมา';
-  const footer='\nท้าย caption ให้ใส่ footer นี้ต่อท้ายทุกครั้ง (ห้ามตัดออก):\n'+CONTACT_FOOTER;
-  if(type==='implant_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้รากฟันเทียม สไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนรักษา: '+problem+(result?'\nผลลัพธ์หลังใส่รากเทียม: '+result:'')+(doctor?'\nหมอผู้รักษา: '+doctor:'')+(extra?'\nข้อมูลเพิ่มเติม: '+extra:'')+footer;
-  if(type==='implant_io') return 'เขียน caption Instagram รูป intraoral รากฟันเทียม สไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+doctor:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
-  if(type==='braces_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันเหล็ก สไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนจัดฟัน: '+problem+(result?'\nผลลัพธ์หลังจัดฟัน: '+result:'')+(doctor?'\nหมอผู้รักษา: '+doctor:'')+(extra?'\nข้อมูลเพิ่มเติม: '+extra:'')+footer;
-  if(type==='braces_io') return 'เขียน caption Instagram รูป io/eo จัดฟันเหล็ก สไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+doctor:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
-  if(type==='aligner_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันใส (Aligner) สไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนจัดฟัน: '+problem+(result?'\nผลลัพธ์หลังจัดฟันใส: '+result:'')+(doctor?'\nหมอผู้รักษา: '+doctor:'')+(extra?'\nข้อมูลเพิ่มเติม: '+extra:'')+footer;
-  if(type==='aligner_io') return 'เขียน caption Instagram รูป io/eo จัดฟันใส (Aligner) สไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+doctor:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
-  if(type==='thankyou') return 'เขียน caption Instagram ขอบคุณคนไข้ที่ไว้วางใจ สไตล์: '+style+'\nชื่อ: '+name+(problem?'\nรายละเอียด: '+problem:'')+(extra?'\nข้อมูลเพิ่มเติม: '+extra:'')+footer;
-  return 'เขียน caption Instagram เกี่ยวกับทันตกรรม สไตล์: '+style+'\nหัวข้อ: '+problem+(result?'\nรายละเอียด: '+result:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  const drTag=doctor?'หมอ'+doctor:'ทีมหมอ DC Dental';
+  const style='ภาษาไทย เป็นกันเอง อบอุ่น ไม่เป็นทางการ | ใช้ emoji น้อยๆ ไม่เกิน 1-2 อัน/paragraph เท่านั้น | ห้ามซ้ำชื่อคนไข้บ่อย ใช้ "เขา/เธอ" แทนได้ | ห้ามพูดซ้ำชื่อคลินิกเกิน 2 ครั้ง | structure: paragraph 1 ปัญหา → paragraph 2 หมอประเมินและแนะนำ → paragraph 3 ผลลัพธ์ | ห้ามใส่ข้อมูลที่ไม่ได้รับมา';
+  const footer='\nก่อน footer ให้ขึ้นบรรทัดใหม่แล้วใส่ footer นี้ต่อท้ายทุกครั้ง (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
+  if(type==='implant_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้รากฟันเทียม\nสไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนรักษา: '+problem+(result?'\nผลลัพธ์: '+result:'')+(doctor?'\nหมอ: '+drTag:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  if(type==='implant_io') return 'เขียน caption Instagram รูป intraoral รากฟันเทียม\nสไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+drTag:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  if(type==='braces_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันเหล็ก\nสไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนจัดฟัน: '+problem+(result?'\nผลลัพธ์: '+result:'')+(doctor?'\nหมอ: '+drTag:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  if(type==='braces_io') return 'เขียน caption Instagram รูป io/eo จัดฟันเหล็ก\nสไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+drTag:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  if(type==='aligner_interview') return 'เขียน caption Instagram สัมภาษณ์คนไข้จัดฟันใส DC Aligner\nสไตล์: '+style+'\nชื่อ: '+name+'\nปัญหาก่อนจัดฟัน: '+problem+(result?'\nผลลัพธ์: '+result:'')+(doctor?'\nหมอ: '+drTag:'')+(extra?'\nเพิ่มเติม: '+extra:'')+'\nก่อน footer ให้ใส่ slogan: "Align Smile Shine" by DC Aligner ✨'+footer;
+  if(type==='aligner_io') return 'เขียน caption Instagram รูป io/eo จัดฟันใส DC Aligner\nสไตล์: '+style+'\nรายละเอียด: '+problem+(result?'\nผล: '+result:'')+(doctor?'\nหมอ: '+drTag:'')+(extra?'\nเพิ่มเติม: '+extra:'')+'\nก่อน footer ให้ใส่ slogan: "Align Smile Shine" by DC Aligner ✨'+footer;
+  if(type==='thankyou') return 'เขียน caption Instagram ขอบคุณคนไข้ที่ไว้วางใจ\nสไตล์: '+style+'\nชื่อ: '+name+(problem?'\nรายละเอียด: '+problem:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
+  return 'เขียน caption Instagram เกี่ยวกับทันตกรรม\nสไตล์: '+style+'\nหัวข้อ: '+problem+(result?'\nรายละเอียด: '+result:'')+(extra?'\nเพิ่มเติม: '+extra:'')+footer;
 }
 async function runCaptionGenerate(){
   const type=document.getElementById('fCaptionType').value;

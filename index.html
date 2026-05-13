@@ -485,10 +485,28 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   <!-- Result count -->
   <div id="plResultCount" style="font-size:12px;color:var(--gray-dark);margin-bottom:10px;"></div>
 
+  <!-- Bulk action bar -->
+  <div id="plBulkBar" style="display:none;background:#EBF5FF;border:1.5px solid #B8D4F0;border-radius:10px;padding:8px 14px;margin-bottom:10px;display:none;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span id="plBulkCount" style="font-size:13px;font-weight:700;color:#1A6FB5;white-space:nowrap;"></span>
+    <span style="font-size:12px;color:#555;">แก้ช่องเป็น:</span>
+    <select id="plBulkChannel" style="border:1.5px solid #B8D4F0;border-radius:8px;padding:5px 10px;font-family:'Sarabun',sans-serif;font-size:12px;outline:none;background:white;">
+      <option value="dc-dental">DC Dental Clinic</option>
+      <option value="dc-aligner">DC Aligner</option>
+      <option value="junfun">judfunreview</option>
+      <option value="implant">implant review</option>
+      <option value="dr-north">dr.north</option>
+      <option value="dr-daran">dr.daran</option>
+      <option value="north-tiktok">TikTok</option>
+    </select>
+    <button onclick="applyBulkChannel()" style="background:#1A6FB5;color:white;border:none;border-radius:8px;padding:6px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">✏️ แก้ช่อง</button>
+    <button onclick="clearPlSelection()" style="background:none;border:1.5px solid #B8D4F0;border-radius:8px;padding:5px 12px;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer;color:#888;">ยกเลิก</button>
+  </div>
+
   <!-- Pipeline table-style list -->
   <div style="background:white;border-radius:12px;border:1.5px solid #E4EDF5;overflow:hidden;">
     <!-- Table header -->
-    <div style="display:grid;grid-template-columns:1fr 100px 340px 28px;gap:0;background:#F4F7FB;border-bottom:1.5px solid #E4EDF5;padding:8px 16px;align-items:center;">
+    <div style="display:grid;grid-template-columns:28px 1fr 100px 340px 28px;gap:0;background:#F4F7FB;border-bottom:1.5px solid #E4EDF5;padding:8px 16px;align-items:center;">
+      <div><input type="checkbox" id="plSelectAll" onchange="togglePlSelectAll(this.checked)" title="เลือกทั้งหมด" style="width:15px;height:15px;cursor:pointer;accent-color:#1A6FB5;"></div>
       <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:8px;">ชื่อคลิป <button onclick="togglePlSort()" id="plSortBtn" title="สลับการเรียง" style="border:1px solid #D0DCE8;background:white;border-radius:12px;padding:2px 8px;font-size:10px;cursor:pointer;color:var(--gray-dark);font-family:'Sarabun',sans-serif;">เรียง: Stage ▾</button></div>
       <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;">ช่อง</div>
       <div style="font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;text-align:center;">
@@ -3578,6 +3596,7 @@ let pipelineItems=[];
 let plStageFilter='all';
 let plChFilter='all';
 let plSortMode='stage';
+let plSelected=new Set();
 
 const PL_STAGES=[
   {key:'storyboard', label:'สตอรี่บอร์ด', short:'Story', icon:'📝', color:'#7F8C8D', bg:'#ECF0F1', ring:'#b0b8bd'},
@@ -3698,8 +3717,67 @@ function togglePlSort(){
   if(btn) btn.textContent=plSortMode==='number'?'เรียง: เลข ▾':'เรียง: Stage ▾';
   renderPipeline();
 }
+function togglePlSelect(id,checked){
+  if(checked) plSelected.add(id); else plSelected.delete(id);
+  updatePlBulkBar();
+  // update row bg without full re-render
+  const row=document.querySelector(`.pl-row[data-id="${id}"]`);
+  if(row) row.style.background=checked?'#EBF5FF':(document.querySelectorAll('.pl-row').length%2===0?'white':'#FAFBFC');
+}
+function togglePlSelectAll(checked){
+  const visible=document.querySelectorAll('.pl-row');
+  visible.forEach(row=>{
+    const id=row.dataset.id;
+    if(checked){plSelected.add(id);row.style.background='#EBF5FF';}
+    else{plSelected.delete(id);row.style.background='';}
+    const cb=row.querySelector('input[type="checkbox"]');
+    if(cb) cb.checked=checked;
+  });
+  updatePlBulkBar();
+}
+function updatePlBulkBar(){
+  const bar=document.getElementById('plBulkBar');
+  const count=document.getElementById('plBulkCount');
+  if(!bar) return;
+  if(plSelected.size>0){
+    bar.style.display='flex';
+    count.textContent=`เลือก ${plSelected.size} คลิป`;
+  } else {
+    bar.style.display='none';
+  }
+  const allCb=document.getElementById('plSelectAll');
+  if(allCb){
+    const visibleIds=Array.from(document.querySelectorAll('.pl-row')).map(r=>r.dataset.id);
+    allCb.checked=visibleIds.length>0&&visibleIds.every(id=>plSelected.has(id));
+    allCb.indeterminate=plSelected.size>0&&!allCb.checked;
+  }
+}
+function clearPlSelection(){
+  plSelected.clear();
+  renderPipeline();
+}
+function applyBulkChannel(){
+  const ch=document.getElementById('plBulkChannel').value;
+  if(!ch||plSelected.size===0) return;
+  plSelected.forEach(id=>{
+    const idx=pipelineItems.findIndex(p=>p.id===id);
+    if(idx>=0) pipelineItems[idx].channel=ch;
+  });
+  try{ localStorage.setItem('dcPipeline',JSON.stringify(pipelineItems)); }catch(e){}
+  // sync to sheet
+  const saveIds=[...plSelected];
+  Promise.all(saveIds.map(id=>{
+    const item=pipelineItems.find(p=>p.id===id);
+    return item?savePipelineToSheet(item):Promise.resolve();
+  }));
+  const n=plSelected.size;
+  plSelected.clear();
+  renderPipeline();
+  showNoti(`✅ แก้ช่องแล้ว ${n} คลิป`,'#27AE60');
+}
 function setPipelineStageFilter(stage,btn){
   plStageFilter=stage;
+  plSelected.clear();
   document.querySelectorAll('.pl-stage-btn').forEach(b=>{
     const active=b.dataset.stage===stage;
     b.style.background=active?'var(--blue)':'white';
@@ -3712,6 +3790,7 @@ function setPipelineStageFilter(stage,btn){
 
 function setPipelineChFilter(ch,btn){
   plChFilter=ch;
+  plSelected.clear();
   document.querySelectorAll('.pl-ch-btn').forEach(b=>{
     const active=b.dataset.ch===ch;
     b.style.background=active?'var(--blue)':'white';
@@ -3809,7 +3888,11 @@ function renderPipeline(){
       else{ dlBadge=`<span style="background:#EBF5FB;color:#2980B9;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:600;margin-left:6px;">📅 ${item.deadline}</span>`; }
     }
     const bg=rowIdx%2===0?'white':'#FAFBFC';
-    return `<div class="pl-row" data-id="${item.id}" style="display:grid;grid-template-columns:1fr 100px 340px 28px;gap:0;background:${bg};border-bottom:${rowBorder};padding:10px 16px;align-items:center;transition:background 0.1s;" onmouseover="this.style.background='#EEF5FB'" onmouseout="this.style.background='${bg}'">
+    const checked=plSelected.has(item.id);
+    const rowBg=checked?'#EBF5FF':bg;
+    return `<div class="pl-row" data-id="${item.id}" style="display:grid;grid-template-columns:28px 1fr 100px 340px 28px;gap:0;background:${rowBg};border-bottom:${rowBorder};padding:10px 16px;align-items:center;transition:background 0.1s;" onmouseover="this.style.background='${checked?'#D6EEFF':'#EEF5FB'}'" onmouseout="this.style.background='${rowBg}'">
+      <!-- checkbox -->
+      <div><input type="checkbox" ${checked?'checked':''} onchange="togglePlSelect('${item.id}',this.checked)" style="width:15px;height:15px;cursor:pointer;accent-color:#1A6FB5;"></div>
       <!-- ชื่อ -->
       <div style="min-width:0;">
         <div style="font-size:13px;font-weight:600;color:#1A1A2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${item.title}">${item.title}${dlBadge}</div>

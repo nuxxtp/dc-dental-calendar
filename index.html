@@ -4126,7 +4126,7 @@ function openPipelinePage(){
   parts.push('<button class="btn-save" onclick="saveItem()">\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button></div>');
   parts.push('</div></div></div>');
   parts.push('<div class="noti" id="noti"></div>');
-  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
+  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option><option value="dc-dental">DC Dental</option><option value="dc-aligner">DC Aligner</option><option value="junfun">junfun</option><option value="implant">implant</option><option value="dr-north">dr.north</option><option value="dr-daran">dr.daran</option><option value="north-tiktok">TikTok</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
 
   // script — inject data as JSON, ไม่มี quote ซ้อน
   parts.push('<script>');
@@ -4267,6 +4267,22 @@ function openPipelinePage(){
   parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
   parts.push('  selectedIds.clear();renderPL();updateBulkBar();');
   parts.push('  showNoti("✅ อัปเดต "+ok+"/"+ids.length+" คลิปแล้ว!","#27AE60");');
+  parts.push('}');
+  parts.push('async function doBulkSetChannel(){');
+  parts.push('  var ch=document.getElementById("bulkChannel").value;');
+  parts.push('  if(!ch){showNoti("⚠️ เลือกช่องก่อน","#E67E22");return;}');
+  parts.push('  var ids=Array.from(selectedIds);');
+  parts.push('  showNoti("⏳ กำลังอัปเดต "+ids.length+" คลิป...","#8B6F5E");');
+  parts.push('  var ok=0;');
+  parts.push('  for(var i=0;i<ids.length;i++){');
+  parts.push('    var it=items.find(function(p){return p.id===ids[i];});');
+  parts.push('    if(!it)continue;');
+  parts.push('    it.channel=ch;it.updatedAt=new Date().toISOString();');
+  parts.push('    try{var r=await fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:it})});var d=JSON.parse(await r.text());if(d&&d.ok)ok++;}catch(e){}');
+  parts.push('  }');
+  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
+  parts.push('  selectedIds.clear();renderPL();updateBulkBar();');
+  parts.push('  showNoti("✅ แก้ช่องแล้ว "+ok+"/"+ids.length+" คลิป!","#27AE60");');
   parts.push('}');
   parts.push('function buildBulkStageOptions(){');
   parts.push('  var sel=document.getElementById("bulkStage");if(!sel)return;');

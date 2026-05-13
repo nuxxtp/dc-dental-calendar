@@ -4634,6 +4634,52 @@ function buildTestimonialPrompt(type,data){
   if(type==='implant_interview') typeNote='เคสนี้เป็นรากฟันเทียม 🔩 — เน้น กลับมาเคี้ยวได้ เหมือนฟันธรรมชาติ มั่นใจเวลายิ้ม ใช้งานระยะยาว';
   return baseRules+'\n'+structure+(typeNote?'\nหมายเหตุ: '+typeNote:'')+'\nข้อมูล:'+info+footer;
 }
+function buildThankyouPrompt(data){
+  const rawName=data.patientName||'';
+  const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
+  const doctor=data.doctor||'';
+  const drTag=doctor?(doctor.startsWith('หมอ')||doctor.startsWith('ดร.')||doctor.startsWith('Dr.')?doctor:'หมอ'+doctor):'';
+  const info=(name!=='คนไข้'?'\nชื่อคนไข้: '+name:'')
+    +(data.problem?'\nรายละเอียด/บริการ: '+data.problem:'')
+    +(data.result?'\nผลลัพธ์/ความรู้สึก: '+data.result:'')
+    +(drTag?'\nหมอผู้รักษา: '+drTag:'')
+    +(data.extra?'\nข้อมูลเพิ่มเติม: '+data.extra:'');
+  const footer='\nหลัง CTA ใส่ footer นี้ต่อท้าย (ห้ามตัด ห้ามแก้):\n'+CONTACT_FOOTER;
+  return `เขียน caption Instagram "ขอบคุณคนไข้" สำหรับ DC Aligner / DC Dental Clinic
+
+โทนหลัก: อบอุ่น เป็นธรรมชาติ อ่านลื่น เหมือนคนพิมพ์เล่าเรื่องจริงๆ ไม่เป็นทางการเกิน friendly สุภาพ ไม่แข็ง ไม่วิชาการ ไม่ขายตรงจนเกิน
+เน้นความรู้สึก "ขอบคุณ + ดีใจที่ได้ดูแล" มากกว่าการโฆษณา ให้ฟีลคลินิกใส่ใจคนไข้จริง ไม่ใช่โพสต์ขายบริการ
+
+โครงสร้าง (เขียนตามลำดับนี้):
+1. Opening สั้น อบอุ่น สร้าง mood ทันที เช่น:
+   "ขอบคุณสำหรับความไว้วางใจนะคะ 😊"
+   "ขอบคุณที่เลือกจัดฟันใสกับ DC Aligner นะคะ 😊"
+   "ขอบคุณที่ให้ DC Aligner ดูแลนะคะ 😊✨"
+2. พูดถึงการเปลี่ยนแปลงของรอยยิ้ม (ฟันเรียงสวยขึ้น / ยิ้มได้เต็มที่ / ความมั่นใจกลับมา)
+3. พูดถึงความรู้สึกที่ดีขึ้น หรือ impact ในชีวิตประจำวัน
+4. ปิดด้วยประโยคอบอุ่น และ/หรือ slogan: "𝑨𝒍𝒊𝒈𝒏 𝑺𝒎𝒊𝒍𝒆 𝑺𝒉𝒊𝒏𝒆" 𝒃𝒚 𝑫𝑪 𝑨𝒍𝒊𝒈𝒏𝒆𝒓 ✨
+5. CTA เบาๆ soft sell ไม่ aggressive เช่น:
+   "สนใจจัดฟันใส สามารถทักเข้ามาปรึกษากับคุณหมอได้เลยนะคะ 😊"
+   "สอบถามรายละเอียดเพิ่มเติมได้ทาง inbox เลยนะคะ 🦷✨"
+   "เริ่มต้นรอยยิ้มใหม่กับ DC Aligner ได้แล้ววันนี้ 💙"
+
+Core message ที่ควรมี (เลือกที่เหมาะกับเคส): ฟันเรียงสวยขึ้น / ยิ้มมั่นใจขึ้น / ยิ้มได้เต็มที่ / ความมั่นใจที่กลับมา / รอยยิ้มเปลี่ยนชีวิต / การเปลี่ยนแปลงแบบค่อยเป็นค่อยไป / ใส่ง่าย ไม่เจ็บ ไม่รบกวนชีวิต
+
+Key phrases ที่ใช้บ่อย (เลือกให้เหมาะ): "ฟันเรียงสวยขึ้น" / "ยิ้มได้เต็มที่" / "ค่อยๆ เปลี่ยนไปในทางที่ดีขึ้น" / "รอยยิ้มที่ดี เปลี่ยนความรู้สึกดีๆ ได้ในทุกวัน" / "อีกหนึ่งรอยยิ้มที่เราได้ดูแล"
+
+Emoji: 😊 (อบอุ่น) ✨ (เปลี่ยนแปลง) 🦷 (dental) 💙 (ใส่ใจ) 🙏 (ขอบคุณ) — ใช้ 1-2 ต่อ paragraph ไม่เยอะเกิน
+รูปแบบ: เว้นบรรทัด ประโยคสั้น ไม่อัดข้อมูล ให้ฟีล clean / luxury clinic
+
+ห้าม: "ดีที่สุด" "การันตี" "เห็นผล 100%" "เปลี่ยนชีวิตทันที" ภาษาขายตรงแรงๆ
+ห้าม: ใช้ "เขา/เธอ" แทนคนไข้ — ใช้ชื่อคนไข้หรือ "คนไข้" เท่านั้น
+ห้าม: ใส่ข้อมูลที่ไม่ได้รับมา
+
+หลังแคปชั่น ใส่ hashtag สำหรับ IG 30 tags รวมกันเป็น block เดียว
+ต้องมี: #DCdentalclinic #DCaligner #SmileAlignShine #จัดฟันจันทบุรี #คลินิกทำฟันใกล้โรบินสัน #chanthaburi
+เพิ่มแท็กเกี่ยวกับ: ฟันเรียงสวย ยิ้มมั่นใจ รีวิวจริง จัดฟันใส ความสวยงาม location จนครบ 30
+
+ข้อมูล:${info}${footer}`;
+}
 function buildCaptionPrompt(type,data){
   const rawName=data.patientName||'';
   const name=rawName?(rawName.startsWith('คุณ')||rawName.startsWith('ด.ช.')||rawName.startsWith('ด.ญ.')?rawName:'คุณ'+rawName):'คนไข้';
@@ -4663,7 +4709,7 @@ function buildCaptionPrompt(type,data){
   if(type==='braces_io') return buildIoPrompt(type,data,false);
   if(type==='aligner_interview') return buildAlignerTestimonialPrompt(data);
   if(type==='aligner_io') return buildIoPrompt(type,data,false);
-  if(type==='thankyou') return 'เขียน caption Instagram ขอบคุณคนไข้ที่ไว้วางใจ DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;
+  if(type==='thankyou') return buildThankyouPrompt(data);
   return 'เขียน caption Instagram ทันตกรรม DC Dental Clinic\n'+rules+'\nข้อมูล:'+info+footer;
 }
 function handleCgImage(input){

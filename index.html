@@ -4382,7 +4382,7 @@ function openPipelinePage(){
   parts.push('function renderImpTable(rows){');
   parts.push('  var exMap={};items.forEach(function(p){exMap[p.id]=p;});');
   parts.push('  function findEx(num){var prefix="prog_"+num+"_"+num+"_";for(var k in exMap){if(k.indexOf(prefix)===0)return exMap[k];}return null;}');
-  parts.push('  var SL={storyboard:"📋 Story",thumbnail:"🖼 Thumbnail",scheduling:"📅 Scheduling",complete:"✅ Complete"};');
+  parts.push('  var SL={storyboard:"📝 สตอรี่บอร์ด",shooting:"🎥 ถ่ายทำ",editing:"✂️ ตัดต่อ",thumbnail:"🖼 ปกคลิป",caption:"✍️ แคปชั่น",scheduling:"📅 ลงแพลน",complete:"✅ Complete"};');
   parts.push('  var CL={"dc-dental":"DC Dental","dc-aligner":"DC Aligner","dr-north":"dr.north","check-in":"Check In"};');
   parts.push('  var newC=0,upC=0,tb=document.getElementById("impTbody");tb.innerHTML="";');
   parts.push('  rows.forEach(function(row,i){');

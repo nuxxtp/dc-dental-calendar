@@ -450,6 +450,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <input id="plSearchInput" type="text" placeholder="🔍 ค้นหาชื่อคลิป..." oninput="debouncedRenderPipeline()" style="border:1.5px solid #D0DCE8;border-radius:20px;padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;width:220px;transition:border-color 0.2s;">
+      <button onclick="openImportDraft()" style="background:#16A085;color:white;border:none;border-radius:10px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;">📥 Import จาก Draft</button>
       <button onclick="openAddPipeline()" style="background:var(--accent);color:white;border:none;border-radius:10px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">＋ เพิ่มคลิป</button>
     </div>
   </div>
@@ -806,6 +807,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 // CONSTANTS & GLOBAL STATE
 // ================================================
 const SHEET_URL='https://script.google.com/macros/s/AKfycbxs7PvHwxCErn6YaT13tghZBluG7ALOezs0XK0m2EBxFGIZCIPBjBZzqjf74Oe4FJ30Cg/exec';
+const DRAFT_API_URL='https://script.google.com/macros/s/AKfycby-yNkxiIFgJcDiRQqT2_WbeBn_Q-ctw7lvIDTsSc8HqUSzfmhXGjhabExVDfVpOy6tkg/exec';
 const GROQ_KEY='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';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
@@ -4986,5 +4988,144 @@ async function confirmOverdue(){
     </div>
   </div>
 </div>
+
+<!-- Import Draft Modal -->
+<div id="importDraftModal" class="modal-overlay" style="display:none;">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <h2>📥 Import จาก Draft Sheet</h2>
+      <button class="modal-close" onclick="closeImportDraft()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:16px 20px 20px;">
+      <div id="importDraftLoading" style="text-align:center;padding:40px;color:var(--gray-dark);font-size:14px;">⏳ กำลังโหลดข้อมูลจาก Draft...</div>
+      <div id="importDraftContent" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span id="importDraftSummary" style="font-size:12px;color:var(--gray-dark);"></span>
+          <label style="font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <input type="checkbox" id="importSelectAll" onchange="toggleImportSelectAll(this)"> เลือกทั้งหมด
+          </label>
+        </div>
+        <div style="max-height:380px;overflow-y:auto;border:1.5px solid #E4EDF5;border-radius:10px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#F4F7FB;position:sticky;top:0;">
+                <th style="padding:8px 10px;width:36px;"></th>
+                <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-dark);">#</th>
+                <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-dark);">ชื่อคลิป</th>
+                <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-dark);">ช่อง</th>
+                <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-dark);">Stage</th>
+                <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-dark);">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="importDraftTableBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:11px;color:var(--gray-dark);">🟢 ใหม่ = ยังไม่มีใน Pipeline &nbsp;|&nbsp; 🔄 อัปเดต = มีแล้วแต่ stage เปลี่ยน</span>
+          <div style="display:flex;gap:8px;">
+            <button onclick="closeImportDraft()" style="background:white;border:1.5px solid #D0DCE8;color:var(--gray-dark);border-radius:10px;padding:8px 16px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;">ยกเลิก</button>
+            <button onclick="confirmImportDraft()" id="btnConfirmImport" style="background:#16A085;color:white;border:none;border-radius:10px;padding:8px 20px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">📥 Import (<span id="importSelectedCount">0</span> รายการ)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let _importRows=[];
+
+async function openImportDraft(){
+  document.getElementById('importDraftModal').style.display='flex';
+  document.getElementById('importDraftLoading').style.display='block';
+  document.getElementById('importDraftContent').style.display='none';
+  document.getElementById('importDraftLoading').textContent='⏳ กำลังโหลดข้อมูลจาก Draft...';
+  try{
+    const res=await fetch(DRAFT_API_URL+'?t='+Date.now(),{redirect:'follow'});
+    const json=await res.json();
+    if(!json.ok) throw new Error('api error');
+    _importRows=json.rows;
+    renderImportTable(_importRows);
+  }catch(e){
+    document.getElementById('importDraftLoading').textContent='❌ โหลดไม่ได้ กรุณาลองใหม่';
+  }
+}
+
+function closeImportDraft(){
+  document.getElementById('importDraftModal').style.display='none';
+}
+
+function renderImportTable(rows){
+  const existingMap={};
+  (pipelineItems||[]).forEach(p=>{ existingMap[p.id]=p; });
+  const STAGE_LABEL={storyboard:'📋 Storyboard',thumbnail:'🖼 Thumbnail',scheduling:'📅 Scheduling',complete:'✅ Complete'};
+  const CH_LABEL={'dc-dental':'DC Dental','dc-aligner':'DC Aligner','dr-north':'dr.north','check-in':'Check In'};
+  let newCount=0,updateCount=0;
+  const tbody=document.getElementById('importDraftTableBody');
+  tbody.innerHTML='';
+  rows.forEach((row,i)=>{
+    const existing=existingMap[row.id];
+    const isNew=!existing;
+    const isUpdate=existing&&existing.stage!==row.stage;
+    const isSame=existing&&existing.stage===row.stage;
+    if(isNew) newCount++;
+    if(isUpdate) updateCount++;
+    const checked=(isNew||isUpdate)?'checked':'';
+    const badge=isNew
+      ?'<span style="background:#D5F5E3;color:#27AE60;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;">🟢 ใหม่</span>'
+      :isUpdate
+      ?'<span style="background:#FEF9E7;color:#F0A500;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;">🔄 อัปเดต</span>'
+      :'<span style="background:#F2F3F4;color:#95A5A6;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;">✓ เหมือนเดิม</span>';
+    const tr=document.createElement('tr');
+    tr.style.cssText='border-top:1px solid #F0F4F8;background:'+(isSame?'#FAFBFC':'white');
+    tr.innerHTML=`<td style="padding:7px 10px;text-align:center;"><input type="checkbox" class="import-check" data-idx="${i}" ${checked} onchange="updateImportCount()"></td>
+      <td style="padding:7px 10px;font-size:11px;color:var(--gray-dark);">${row.num}</td>
+      <td style="padding:7px 10px;font-size:12px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${row.title}">${row.title}</td>
+      <td style="padding:7px 10px;font-size:11px;">${CH_LABEL[row.channel]||row.channel}</td>
+      <td style="padding:7px 10px;font-size:11px;">${STAGE_LABEL[row.stage]||row.stage}</td>
+      <td style="padding:7px 10px;">${badge}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('importDraftSummary').textContent=`พบ ${rows.length} รายการ · ใหม่ ${newCount} · อัปเดต ${updateCount}`;
+  document.getElementById('importDraftLoading').style.display='none';
+  document.getElementById('importDraftContent').style.display='block';
+  updateImportCount();
+}
+
+function updateImportCount(){
+  const n=document.querySelectorAll('.import-check:checked').length;
+  document.getElementById('importSelectedCount').textContent=n;
+  document.getElementById('importSelectAll').checked=n>0&&n===document.querySelectorAll('.import-check').length;
+}
+
+function toggleImportSelectAll(cb){
+  document.querySelectorAll('.import-check').forEach(c=>{c.checked=cb.checked;});
+  updateImportCount();
+}
+
+async function confirmImportDraft(){
+  const checks=document.querySelectorAll('.import-check:checked');
+  if(!checks.length){showNoti('⚠️ ยังไม่ได้เลือกรายการ','#E67E22');return;}
+  const btn=document.getElementById('btnConfirmImport');
+  btn.disabled=true; btn.textContent='⏳ กำลัง Import...';
+  let ok=0,fail=0;
+  for(const cb of checks){
+    const row=_importRows[+cb.dataset.idx];
+    const post={id:row.id,title:row.title,folder:'DC Dental Media',channel:row.channel,stage:row.stage,note:'',updatedAt:new Date().toISOString()};
+    try{
+      const r=await fetch(SHEET_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'save',sheetName:'Pipeline',post})});
+      const d=await r.json();
+      if(d&&d.ok) ok++; else fail++;
+    }catch(e){fail++;}
+  }
+  btn.disabled=false;
+  btn.innerHTML='📥 Import (<span id="importSelectedCount">0</span> รายการ)';
+  closeImportDraft();
+  if(fail===0) showNoti('✅ Import สำเร็จ '+ok+' รายการ','#27AE60');
+  else showNoti('⚠️ สำเร็จ '+ok+' / ล้มเหลว '+fail,'#E67E22');
+  loadPipelineFromSheet();
+}
+</script>
+
 </body>
 </html>

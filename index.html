@@ -4381,11 +4381,13 @@ function openPipelinePage(){
   parts.push('function closeImportDraft(){document.getElementById("impModal").style.display="none";}');
   parts.push('function renderImpTable(rows){');
   parts.push('  var exMap={};items.forEach(function(p){exMap[p.id]=p;});');
+  parts.push('  function findEx(num){var prefix="prog_"+num+"_"+num+"_";for(var k in exMap){if(k.indexOf(prefix)===0)return exMap[k];}return null;}');
   parts.push('  var SL={storyboard:"📋 Story",thumbnail:"🖼 Thumbnail",scheduling:"📅 Scheduling",complete:"✅ Complete"};');
   parts.push('  var CL={"dc-dental":"DC Dental","dc-aligner":"DC Aligner","dr-north":"dr.north","check-in":"Check In"};');
   parts.push('  var newC=0,upC=0,tb=document.getElementById("impTbody");tb.innerHTML="";');
   parts.push('  rows.forEach(function(row,i){');
-  parts.push('    var ex=exMap[row.id],isNew=!ex,isUp=ex&&ex.stage!==row.stage;');
+  parts.push('    var ex=findEx(row.num),isNew=!ex,isUp=ex&&ex.stage!==row.stage;');
+  parts.push('    if(ex)row._existingId=ex.id;');
   parts.push('    if(isNew)newC++;if(isUp)upC++;');
   parts.push('    var chk=(isNew||isUp)?"checked":"";');
   parts.push('    var badge=isNew?"<span style=\'background:#D5F5E3;color:#27AE60;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;\'>🟢 ใหม่</span>":isUp?"<span style=\'background:#FEF9E7;color:#F0A500;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;\'>🔄 อัปเดต</span>":"<span style=\'background:#F2F3F4;color:#95A5A6;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;\'>✓ เหมือนเดิม</span>";');
@@ -4412,7 +4414,7 @@ function openPipelinePage(){
   parts.push('  var ok=0,fail=0;');
   parts.push('  for(var i=0;i<checks.length;i++){');
   parts.push('    var row=_impRows[+checks[i].dataset.idx];');
-  parts.push('    var post={id:row.id,title:row.title,folder:"DC Dental Media",channel:row.channel,stage:row.stage,note:"",updatedAt:new Date().toISOString()};');
+  parts.push('    var post={id:row._existingId||row.id,title:row.title,folder:"DC Dental Media",channel:row.channel,stage:row.stage,note:"",updatedAt:new Date().toISOString()};');
   parts.push('    try{var res=await fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:post})});var d=JSON.parse(await res.text());if(d&&d.ok)ok++;else fail++;}catch(e){fail++;}');
   parts.push('  }');
   parts.push('  btn.disabled=false;btn.innerHTML="📥 Import (<span id=\'impCnt\'>0</span> รายการ)";');

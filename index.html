@@ -4103,7 +4103,7 @@ function openPipelinePage(){
   // channel filter
   parts.push('<div class="filter-row">');
   parts.push('<span>\u0e0a\u0e48\u0e2d\u0e07:</span>');
-  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['dc-dental','DC Dental'],['dc-aligner','DC Aligner'],['junfun','junfun'],['implant','implant'],['dr-north','dr.north'],['dr-daran','dr.daran'],['north-tiktok','TikTok']].forEach(function(pair){
+  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['dc-dental','DC Dental'],['dc-aligner','DC Aligner'],['junfun','junfun'],['implant','implant'],['dr-north','dr.north'],['dr-daran','dr.daran'],['north-tiktok','TikTok'],['check-in','Check In']].forEach(function(pair){
     parts.push('<button class="pill'+(pair[0]==='all'?' active':'')+'" data-ch="'+pair[0]+'" onclick="setChF(\''+pair[0]+'\',this)">'+pair[1]+'</button>');
   });
   parts.push('</div>');

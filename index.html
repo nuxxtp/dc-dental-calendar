@@ -808,7 +808,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 // ================================================
 const SHEET_URL='https://script.google.com/macros/s/AKfycbxs7PvHwxCErn6YaT13tghZBluG7ALOezs0XK0m2EBxFGIZCIPBjBZzqjf74Oe4FJ30Cg/exec';
 const DRAFT_API_URL='https://script.google.com/macros/s/AKfycbw0QkWgxFLjsNXyCXj2AtULNTtrfGsSPeDUhEoFcDZotGyGx9jiRtaW_xaRPQZ8yPixwg/exec';
-const GROQ_KEY='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';
+const GROQ_KEY='';
 const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
@@ -4604,6 +4604,8 @@ function openCaptionGenerator(){
   if(!type){showNoti('เลือกประเภท caption ก่อน','#E67E22');return;}
   document.getElementById('cgResult').style.display='none';
   document.getElementById('cgLoading').style.display='none';
+  document.getElementById('cgError').style.display='none';
+  document.getElementById('cgBtn').style.display='block';
   document.getElementById('cgOutput').value='';
   const title=document.getElementById('fTitle')?.value||'';
   document.getElementById('cgProblem').value=title;
@@ -4616,6 +4618,19 @@ function openCaptionGenerator(){
 }
 function closeCaptionGenerator(){
   document.getElementById('captionGenOverlay').style.display='none';
+}
+function setGroqKey(){
+  const current=localStorage.getItem('groqKey')||'';
+  const key=prompt('ใส่ Groq API Key ใหม่:\n(รับฟรีได้ที่ console.groq.com → API Keys)',current);
+  if(key===null) return;
+  if(key.trim()){
+    localStorage.setItem('groqKey',key.trim());
+    document.getElementById('cgError').style.display='none';
+    showNoti('✅ บันทึก API Key แล้ว','#27AE60');
+  } else {
+    localStorage.removeItem('groqKey');
+    showNoti('ลบ API Key แล้ว (ใช้ค่า default)','#E67E22');
+  }
 }
 const CONTACT_FOOTER='\n\n💻 Linktree : https://linktr.ee/dc.dental\n📭 Inbox FB: DC Aligner จัดฟันใส ดีซี จันทบุรี, DC Dental Clinic จันทบุรี\n☎ 063-506-4422 / 039-313131\n📲 Line ID : @dc.dental\n\n✨ DC Dental Clinic 🦷\nYour smile, Our pride';
 function buildImplantTestimonialPrompt(data){
@@ -4832,7 +4847,7 @@ function handleCgImage(input){
   if(count) count.textContent=files.length+' รูป';
 }
 function toBase64(file){
-  return new Promise(resolve=>{
+  return new Promise((resolve,reject)=>{
     const img=new Image();
     const url=URL.createObjectURL(file);
     img.onload=function(){
@@ -4845,6 +4860,7 @@ function toBase64(file){
       URL.revokeObjectURL(url);
       resolve(canvas.toDataURL('image/jpeg',0.8));
     };
+    img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('โหลดรูปภาพไม่ได้: '+file.name));};
     img.src=url;
   });
 }
@@ -4938,6 +4954,15 @@ async function runCaptionGenerate(){
     doctor:document.getElementById('cgDoctor').value.trim(),
     extra:document.getElementById('cgExtra').value.trim()
   };
+  const activeKey=localStorage.getItem('groqKey')||GROQ_KEY;
+  if(!activeKey){
+    const k=prompt('ยังไม่มี Groq API Key\nใส่ key ก่อนนะคะ (รับฟรีได้ที่ console.groq.com → API Keys):');
+    if(!k||!k.trim()){showNoti('ต้องใส่ API Key ก่อน','#E67E22');btn.style.display='block';loading.style.display='none';return;}
+    localStorage.setItem('groqKey',k.trim());
+  }
+  const finalKey=localStorage.getItem('groqKey')||GROQ_KEY;
+  const errBox=document.getElementById('cgError');
+  errBox.style.display='none';
   try{
     let res;
     if(hasImage){
@@ -4946,7 +4971,7 @@ async function runCaptionGenerate(){
       const imgContent=base64List.map(b=>({type:'image_url',image_url:{url:b}}));
       res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+finalKey},
         body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',messages:[{role:'user',content:[
           ...imgContent,
           {type:'text',text:buildVisionPrompt(type,data)}
@@ -4955,7 +4980,7 @@ async function runCaptionGenerate(){
     } else {
       res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+finalKey},
         body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:buildCaptionPrompt(type,data)}]})
       });
     }
@@ -4964,9 +4989,16 @@ async function runCaptionGenerate(){
       document.getElementById('cgOutput').value=json.choices[0].message.content;
       resultBox.style.display='block';
     } else {
-      showNoti('Generate ไม่สำเร็จ: '+(json.error?.message||'ลองใหม่'),'#E74C3C');
+      const errMsg='Generate ไม่สำเร็จ: '+(json.error?.message||'ลองใหม่');
+      errBox.textContent='⚠️ '+errMsg+(json.error?.message?.includes('API Key')||json.error?.code==='invalid_api_key'?'\n\n👉 กด ⚙️ API Key เพื่อใส่ key ใหม่':'');
+      errBox.style.display='block';
+      showNoti(errMsg,'#E74C3C');
     }
-  }catch(e){showNoti('เกิดข้อผิดพลาด: '+e.message,'#E74C3C');}
+  }catch(e){
+    errBox.textContent='⚠️ เกิดข้อผิดพลาด: '+e.message;
+    errBox.style.display='block';
+    showNoti('เกิดข้อผิดพลาด: '+e.message,'#E74C3C');
+  }
   btn.style.display='block';loading.style.display='none';
 }
 function applyCaptionToForm(){
@@ -5001,7 +5033,10 @@ async function confirmOverdue(){
   <div style="background:white;border-radius:20px;width:calc(100% - 32px);max-width:520px;max-height:85vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(13,63,110,0.25);animation:slideUp 0.2s ease;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;color:#1A1A2E;">✨ Generate Caption</div>
-      <button onclick="closeCaptionGenerator()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;">✕</button>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button onclick="setGroqKey()" title="ตั้งค่า API Key" style="background:none;border:1.5px solid #D0DCE8;border-radius:8px;font-size:13px;padding:3px 8px;cursor:pointer;color:#888;font-family:'Sarabun',sans-serif;">⚙️ API Key</button>
+        <button onclick="closeCaptionGenerator()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;">✕</button>
+      </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">ชื่อคนไข้ (ถ้ามี)</label>
@@ -5027,6 +5062,7 @@ async function confirmOverdue(){
       </div>
       <button onclick="runCaptionGenerate()" id="cgBtn" style="background:#1A6FB5;color:white;border:none;border-radius:10px;padding:11px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;">✨ สร้าง Caption</button>
       <div id="cgLoading" style="display:none;text-align:center;font-size:13px;color:#888;padding:8px;">⏳ กำลังสร้าง...</div>
+      <div id="cgError" style="display:none;background:#FFF0F0;border:1.5px solid #E74C3C;border-radius:8px;padding:10px 12px;font-family:'Sarabun',sans-serif;font-size:13px;color:#C0392B;word-break:break-word;"></div>
       <div id="cgResult" style="display:none;">
         <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px;">Caption ที่ได้:</label>
         <textarea id="cgOutput" style="width:100%;min-height:200px;border:1.5px solid #D0DCE8;border-radius:8px;padding:10px 12px;font-family:'Sarabun',sans-serif;font-size:12px;box-sizing:border-box;line-height:1.6;" readonly></textarea>

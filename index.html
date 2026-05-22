@@ -4138,6 +4138,7 @@ function openPipelinePage(){
   parts.push('<option value="dr-north">dr.north</option>');
   parts.push('<option value="dr-daran">dr.daran</option>');
   parts.push('<option value="north-tiktok">TikTok</option>');
+  parts.push('<option value="check-in">Check In</option>');
   parts.push('</select></div>');
   parts.push('<div class="form-row"><label>\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07 (Deadline)</label><input type="date" id="plDl"></div>');
   parts.push('<div class="form-row"><label>\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38</label><textarea id="plNt" placeholder="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21..."></textarea></div>');
@@ -4146,7 +4147,7 @@ function openPipelinePage(){
   parts.push('<button class="btn-save" onclick="saveItem()">\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button></div>');
   parts.push('</div></div></div>');
   parts.push('<div class="noti" id="noti"></div>');
-  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option><option value="dc-dental">DC Dental</option><option value="dc-aligner">DC Aligner</option><option value="junfun">junfun</option><option value="implant">implant</option><option value="dr-north">dr.north</option><option value="dr-daran">dr.daran</option><option value="north-tiktok">TikTok</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
+  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option><option value="dc-dental">DC Dental</option><option value="dc-aligner">DC Aligner</option><option value="junfun">junfun</option><option value="implant">implant</option><option value="dr-north">dr.north</option><option value="dr-daran">dr.daran</option><option value="north-tiktok">TikTok</option><option value="check-in">Check In</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
 
   // script — inject data as JSON, ไม่มี quote ซ้อน
   parts.push('<script>');

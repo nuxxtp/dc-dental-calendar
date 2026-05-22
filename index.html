@@ -1918,6 +1918,7 @@ async function savePost(){
     else posts.push(post);
   }
   closeModal('addModal');render();
+  if(doctorCh!==activeChannel) showNoti('💾 บันทึกลงช่อง '+(CHANNEL_META[doctorCh]?.label||doctorCh)+' แล้ว (ไม่แสดงในช่องนี้)','#1A6FB5');
   showNoti('⏳ กำลังบันทึก...','#1A6FB5');
   const ok=await apiCall({action:'save',post},doctorCh);
   if(!ok||!ok.ok){showNoti('❌ บันทึกไม่สำเร็จ ลองใหม่','#E74C3C');return;}
@@ -2026,7 +2027,9 @@ async function previewThumb(input){
   try{
     const formData=new FormData();
     formData.append('file',file);formData.append('upload_preset',CLOUDINARY_PRESET);formData.append('folder','dc-dental');
-    const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:formData});
+    const _cldAbort1=new AbortController();const _cldT1=setTimeout(()=>_cldAbort1.abort(),30000);
+    const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:formData,signal:_cldAbort1.signal});
+    clearTimeout(_cldT1);
     const data=await res.json();
     if(data.secure_url){
       document.getElementById('fThumbData').value=data.secure_url;
@@ -2217,7 +2220,7 @@ function renderGrid(){
     return slotMonth===curMonthKey;
   });
   const scheduledInMonth=monthSlots.filter(s=>s.date).length;
-  document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date&&s.type!=='blank').length+' รอจัดวัน';
+  document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date&&s.type!=='blank'&&(s.createdMonth||curMonthKey)===curMonthKey).length+' รอจัดวัน';
   const grid=document.getElementById('igGrid');grid.innerHTML='';
 
   if(monthSlots.length===0){
@@ -2503,7 +2506,8 @@ function renderUnscheduled(){
 // =====================================================
 async function openGridModal(editIdx){
   if(editIdx===null){openBulkUpload();return;}
-  let slot=gridSlots[editIdx];if(!slot) return;
+  if(!gridSlots[editIdx]) return;
+  let slot={...gridSlots[editIdx]};
   const calPost=posts.find(p=>p.id===slot.id);
   if(calPost&&calPost.date) slot.date=calPost.date;
   let uploadedUrl=slot.img||'';
@@ -2568,7 +2572,9 @@ async function openGridModal(editIdx){
     document.getElementById('gmSave').disabled=true;
     try{
       const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);fd.append('folder','dc-dental-grid');
-      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
+      const _cldAbort2=new AbortController();const _cldT2=setTimeout(()=>_cldAbort2.abort(),30000);
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd,signal:_cldAbort2.signal});
+      clearTimeout(_cldT2);
       const data=await res.json();
       if(data.secure_url){
         uploadedUrl=data.secure_url;
@@ -2660,14 +2666,14 @@ function openBulkUpload(){
     selectedFiles.forEach((file,i)=>{
       const wrap=document.createElement('div');
       wrap.style.cssText='position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;background:#eee;';
-      wrap.innerHTML=`<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover;"><div id="bm_s_${i}" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);font-size:18px;"></div><button onclick="rmFile(${i})" style="position:absolute;top:3px;right:3px;background:rgba(231,76,60,0.85);border:none;border-radius:50%;width:20px;height:20px;color:white;font-size:12px;cursor:pointer;line-height:1;padding:0;">×</button>`;
+      wrap.innerHTML=`<img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover;"><div id="bm_s_${i}" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);font-size:18px;"></div><button onclick="_bmRmFile(${i})" style="position:absolute;top:3px;right:3px;background:rgba(231,76,60,0.85);border:none;border-radius:50%;width:20px;height:20px;color:white;font-size:12px;cursor:pointer;line-height:1;padding:0;">×</button>`;
       pg.appendChild(wrap);
     });
     const btn=document.getElementById('bmUpload');
     btn.disabled=selectedFiles.length===0;btn.style.opacity=selectedFiles.length>0?'1':'0.5';
     document.getElementById('bmStatus').textContent=selectedFiles.length>0?`เลือก ${selectedFiles.length} รูป`:'';
   }
-  window.rmFile=function(i){selectedFiles.splice(i,1);renderPreviews();};
+  window._bmRmFile=function(i){selectedFiles.splice(i,1);renderPreviews();};
   document.getElementById('bmUpload').onclick=async function(){
     if(!selectedFiles.length) return;
     this.disabled=true;this.textContent='⬆️ กำลังอัปโหลด...';
@@ -2680,7 +2686,9 @@ function openBulkUpload(){
       try{
         const fd=new FormData();
         fd.append('file',selectedFiles[i]);fd.append('upload_preset',CLOUDINARY_PRESET);fd.append('folder','dc-dental-grid');
-        const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
+        const _cldAbort3=new AbortController();const _cldT3=setTimeout(()=>_cldAbort3.abort(),30000);
+        const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd,signal:_cldAbort3.signal});
+        clearTimeout(_cldT3);
         const data=await res.json();
         if(data.secure_url){
           newSlots.push({id:activeChannel+'-'+Date.now()+'-'+i,img:data.secure_url,title:selectedFiles[i].name.replace(/\.[^.]+$/,''),date:'',caption:'',hashtag:'',note:''});
@@ -2730,7 +2738,9 @@ async function igSectionDrop(e){
   for(const file of files){
     try{
       const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);fd.append('folder','dc-dental-grid');
-      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
+      const _cldAbort4=new AbortController();const _cldT4=setTimeout(()=>_cldAbort4.abort(),30000);
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd,signal:_cldAbort4.signal});
+      clearTimeout(_cldT4);
       const data=await res.json();
       if(data.secure_url){
         gridSlots.unshift({
@@ -2808,7 +2818,9 @@ async function handleSandboxFiles(files){
   for(const file of arr){
     try{
       const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);fd.append('folder','dc-dental-sandbox');
-      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
+      const _cldAbort5=new AbortController();const _cldT5=setTimeout(()=>_cldAbort5.abort(),30000);
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd,signal:_cldAbort5.signal});
+      clearTimeout(_cldT5);
       const data=await res.json();
       if(data.secure_url){sandboxSlots.push({id:activeChannel+'-sb-'+Date.now()+'-'+done,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,'')});done++;renderSandbox();}
     }catch(e){console.error(e);}
@@ -3628,6 +3640,9 @@ const PL_CHANNEL_COLORS={
   'dr-north':    {bg:'#FEF5EC',fg:'#E67E22',label:'dr.north'},
   'dr-daran':    {bg:'#EAFAF1',fg:'#27AE60',label:'dr.daran'},
   'north-tiktok':{bg:'#F0F0F0',fg:'#010101',label:'TikTok'},
+  'tiktok-dc':   {bg:'#F0F0F0',fg:'#010101',label:'DC TikTok'},
+  'tiktok-aligner':{bg:'#E8F4FB',fg:'#2E86C1',label:'Aligner TikTok'},
+  'check-in':    {bg:'#FDE7F3',fg:'#D81B60',label:'Check In'},
 };
 
 // ================================================
@@ -3642,7 +3657,10 @@ async function loadPipelineItems(){
     if(cached) pipelineItems=JSON.parse(cached);
   }catch(e){ pipelineItems=[]; }
   try{
-    const res=await fetch(SHEET_URL+'?t='+Date.now()+'&sheet=Pipeline',{method:'GET',redirect:'follow'});
+    const plAbort=new AbortController();
+    const plTimeout=setTimeout(()=>plAbort.abort(),12000);
+    const res=await fetch(SHEET_URL+'?t='+Date.now()+'&sheet=Pipeline',{method:'GET',redirect:'follow',signal:plAbort.signal});
+    clearTimeout(plTimeout);
     const data=JSON.parse(await res.text());
     if(Array.isArray(data)&&data.length>0){
       pipelineItems=data.map(r=>({

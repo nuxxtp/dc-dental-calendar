@@ -5232,8 +5232,8 @@ function renderImportTable(rows){
   rows.forEach((row,i)=>{
     const existing=existingMap[row.id];
     const isNew=!existing;
-    const isUpdate=existing&&existing.stage!==row.stage;
-    const isSame=existing&&existing.stage===row.stage;
+    const isUpdate=existing&&(existing.stage!==row.stage||existing.title!==row.title||existing.channel!==row.channel);
+    const isSame=existing&&!isUpdate;
     if(isNew) newCount++;
     if(isUpdate) updateCount++;
     const checked=(isNew||isUpdate)?'checked':'';
@@ -5277,7 +5277,8 @@ async function confirmImportDraft(){
   let ok=0,fail=0;
   for(const cb of checks){
     const row=_importRows[+cb.dataset.idx];
-    const post={id:row.id,title:row.title,folder:'DC Dental Media',channel:row.channel,stage:row.stage,note:'',updatedAt:new Date().toISOString()};
+    const existingItem=(pipelineItems||[]).find(p=>p.id===row.id);
+    const post={id:row.id,title:row.title,folder:existingItem?.folder||'DC Dental Media',channel:row.channel,stage:row.stage,note:existingItem?.note||'',updatedAt:new Date().toISOString()};
     try{
       const _ab=new AbortController();const _t=setTimeout(()=>_ab.abort(),15000);
       const r=await fetch(SHEET_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'save',sheetName:'Pipeline',post}),signal:_ab.signal});

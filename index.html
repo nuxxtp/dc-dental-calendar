@@ -1064,6 +1064,18 @@ function saveToLocalCache(){
   catch(e){ console.warn('localStorage write failed:',e); }
 }
 
+// ตัด slot ที่ id ซ้ำออก เก็บไว้แค่ตัวแรกที่เจอ (กันกรณี sheet มี row id ซ้ำ)
+function dedupeSlotsById(arr){
+  const seen=new Set();
+  const out=[];
+  for(const s of arr){
+    if(seen.has(s.id)) continue;
+    seen.add(s.id);
+    out.push(s);
+  }
+  return out;
+}
+
 function showGridLoading(show){
   const el=document.getElementById('gridLoadingBanner');
   if(el) el.style.display=show?'block':'none';
@@ -1074,7 +1086,7 @@ async function loadGridSlots(){
     const cached=localStorage.getItem(getGridStorageKey());
     if(cached){
       const parsed=JSON.parse(cached);
-      gridSlots=parsed.filter(s=>(s.img||s.type==='pending'||s.type==='blank')&&(!s.channel||s.channel===activeChannel));
+      gridSlots=dedupeSlotsById(parsed.filter(s=>(s.img||s.type==='pending'||s.type==='blank')&&(!s.channel||s.channel===activeChannel)));
     }
   }catch(e){ gridSlots=[]; }
 
@@ -1114,10 +1126,12 @@ async function loadGridSlots(){
           return t||'image';
         })(),
       })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank')&&(!r.channel||r.channel===activeChannel||r.channel===''));
-      if(sheetSlots.length===0 && gridSlots.length>0){
+      const sheetSlotsDeduped=dedupeSlotsById(sheetSlots);
+      if(sheetSlotsDeduped.length===0 && gridSlots.length>0){
         await saveGridSlotsToSheet();
       } else {
-      gridSlots=sheetSlots;
+      gridSlots=sheetSlotsDeduped;
+      if(sheetSlotsDeduped.length<sheetSlots.length) saveGridSlotsToSheet(); // เขียนทับ sheet เพื่อล้าง row ซ้ำ
         // auto-fill createdMonth ให้ slot ที่ยังไม่มีค่า — ใช้วันที่จริงของ slot ถ้ามี
         let needsSave=false;
         gridSlots=gridSlots.map(s=>{

@@ -1,0 +1,5 @@
+# Claude Code local settings
+.claude/
+
+# Google Apps Script working copies (มี API key — เก็บไว้ในเครื่องเท่านั้น)
+*.gs

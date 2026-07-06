@@ -1064,14 +1064,17 @@ function saveToLocalCache(){
   catch(e){ console.warn('localStorage write failed:',e); }
 }
 
-// ตัด slot ที่ id ซ้ำออก เก็บไว้แค่ตัวแรกที่เจอ (กันกรณี sheet มี row id ซ้ำ)
+// ตัด slot ที่ id ซ้ำออก — ถ้าเจอ id ซ้ำใช้ตัวหลังสุด (ข้อมูลใหม่กว่า) แต่คงตำแหน่งเดิมไว้
 function dedupeSlotsById(arr){
-  const seen=new Set();
+  const idxById=new Map();
   const out=[];
   for(const s of arr){
-    if(seen.has(s.id)) continue;
-    seen.add(s.id);
-    out.push(s);
+    if(idxById.has(s.id)){
+      out[idxById.get(s.id)]=s;
+    } else {
+      idxById.set(s.id,out.length);
+      out.push(s);
+    }
   }
   return out;
 }
@@ -1082,6 +1085,9 @@ function showGridLoading(show){
 }
 
 async function loadGridSlots(){
+  // ข้อมูลกำลังจะถูกโหลดใหม่ทั้งชุด — index ที่แคชไว้ (เลือก/ลาก) จะไม่ตรงกับข้อมูลใหม่แล้ว ล้างทิ้งกันลบ/ลากผิดรูป
+  gridSelected.clear();
+  dragSrcIdx=null;
   try{
     const cached=localStorage.getItem(getGridStorageKey());
     if(cached){
@@ -1131,9 +1137,8 @@ async function loadGridSlots(){
         await saveGridSlotsToSheet();
       } else {
       gridSlots=sheetSlotsDeduped;
-      if(sheetSlotsDeduped.length<sheetSlots.length) saveGridSlotsToSheet(); // เขียนทับ sheet เพื่อล้าง row ซ้ำ
+      let needsSave=sheetSlotsDeduped.length<sheetSlots.length; // เจอ row ซ้ำ ต้องเขียนทับ sheet เพื่อล้างทิ้ง
         // auto-fill createdMonth ให้ slot ที่ยังไม่มีค่า — ใช้วันที่จริงของ slot ถ้ามี
-        let needsSave=false;
         gridSlots=gridSlots.map(s=>{
           if(!s.createdMonth){
             needsSave=true;
@@ -1145,7 +1150,7 @@ async function loadGridSlots(){
           }
           return s;
         });
-        if(needsSave) saveGridSlotsToSheet();
+        if(needsSave) saveGridSlotsToSheet(); // เซฟครั้งเดียวหลังแก้ครบ กันยิงซ้อนกันสอง request
       }
     }
   }catch(e){
@@ -1235,6 +1240,7 @@ async function saveGridSlots(showLoading=false){
 
 async function saveGridSlotsToSheet(){
   try{
+    gridSlots=dedupeSlotsById(gridSlots); // กันซ้ำก่อนเขียนขึ้น sheet เผื่อ id ซ้ำหลุดเข้ามาจากทางอื่น
     const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
     const monthSlots=gridSlots.filter(s=>{
       if(s.date){

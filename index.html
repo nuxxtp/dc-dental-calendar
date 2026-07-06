@@ -1030,6 +1030,7 @@ const CH_META={
 // GRID STORAGE
 // =====================================================
 let gridSlots=[];
+let _gridSaveChain=Promise.resolve();
 let dragSrcIdx=null;
 let gridSelectMode=false;
 let gridSelected=new Set();
@@ -1238,42 +1239,49 @@ async function saveGridSlots(showLoading=false){
   return true;
 }
 
+// เซฟกริดขึ้น sheet เข้าคิวทีละครั้งเสมอ (ไม่ยิงซ้อนกัน) กันกรณีเซฟอัตโนมัติ (auto-heal ตอนโหลด)
+// กับเซฟที่ผู้ใช้กดเอง มาชนกันแล้ว response กลับมาไม่ตามลำดับ จนของที่ผู้ใช้เพิ่งแก้โดนเขียนทับหาย
 async function saveGridSlotsToSheet(){
-  try{
-    gridSlots=dedupeSlotsById(gridSlots); // กันซ้ำก่อนเขียนขึ้น sheet เผื่อ id ซ้ำหลุดเข้ามาจากทางอื่น
-    const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
-    const monthSlots=gridSlots.filter(s=>{
-      if(s.date){
-        const d=new Date(s.date+'T00:00:00');
-        return d.getFullYear()===cy&&d.getMonth()===cm;
-      }
-      return (s.createdMonth||curMonthKey)===curMonthKey;
-    });
-    const cleanSlots=monthSlots.map(s=>{
-      // normalize createdMonth ให้เป็น YYYY-MM เสมอ
-      let cm2=String(s.createdMonth||curMonthKey).trim();
-      // ถ้าหลุดมาเป็น "1/4/2026" format ให้แปลงกลับ
-      if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(cm2)){
-        const p=cm2.split('/');cm2=p[2]+'-'+String(parseInt(p[1])).padStart(2,'0');
-      } else if(/^\d{4}-\d{2}-\d{2}/.test(cm2)){
-        cm2=cm2.slice(0,7);
-      }
-      return {
-        id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
-        caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
-        type:s.type==='blank'?'blank':s.type==='pending'?'pending':(s.img&&s.img.trim()!=='')?'image':'pending',
-        createdMonth:cm2,
-      };
-    });
-    const _sgAbort=new AbortController();const _sgT=setTimeout(()=>_sgAbort.abort(),30000);
-    const res=await fetch(SHEET_URL,{
-      method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'saveGrid',sheetName:getGridSheetName(activeChannel),slots:cleanSlots,monthKey:curMonthKey}),
-      signal:_sgAbort.signal,
-    });
-    clearTimeout(_sgT);
-    return JSON.parse(await res.text());
-  }catch(e){ console.error('saveGridSlotsToSheet error:',e); return null; }
+  const run=async()=>{
+    try{
+      gridSlots=dedupeSlotsById(gridSlots); // กันซ้ำก่อนเขียนขึ้น sheet เผื่อ id ซ้ำหลุดเข้ามาจากทางอื่น
+      const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
+      const monthSlots=gridSlots.filter(s=>{
+        if(s.date){
+          const d=new Date(s.date+'T00:00:00');
+          return d.getFullYear()===cy&&d.getMonth()===cm;
+        }
+        return (s.createdMonth||curMonthKey)===curMonthKey;
+      });
+      const cleanSlots=monthSlots.map(s=>{
+        // normalize createdMonth ให้เป็น YYYY-MM เสมอ
+        let cm2=String(s.createdMonth||curMonthKey).trim();
+        // ถ้าหลุดมาเป็น "1/4/2026" format ให้แปลงกลับ
+        if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(cm2)){
+          const p=cm2.split('/');cm2=p[2]+'-'+String(parseInt(p[1])).padStart(2,'0');
+        } else if(/^\d{4}-\d{2}-\d{2}/.test(cm2)){
+          cm2=cm2.slice(0,7);
+        }
+        return {
+          id:s.id||'',img:s.img||'',title:s.title||'',date:s.date||'',channel:activeChannel,
+          caption:s.caption||'',hashtag:s.hashtag||'',note:s.note||'',
+          type:s.type==='blank'?'blank':s.type==='pending'?'pending':(s.img&&s.img.trim()!=='')?'image':'pending',
+          createdMonth:cm2,
+        };
+      });
+      const _sgAbort=new AbortController();const _sgT=setTimeout(()=>_sgAbort.abort(),30000);
+      const res=await fetch(SHEET_URL,{
+        method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({action:'saveGrid',sheetName:getGridSheetName(activeChannel),slots:cleanSlots,monthKey:curMonthKey}),
+        signal:_sgAbort.signal,
+      });
+      clearTimeout(_sgT);
+      return JSON.parse(await res.text());
+    }catch(e){ console.error('saveGridSlotsToSheet error:',e); return null; }
+  };
+  const result=_gridSaveChain.then(run,run);
+  _gridSaveChain=result.catch(()=>{});
+  return result;
 }
 
 // =====================================================

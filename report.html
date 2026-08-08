@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DC Dental — Day Work Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Prompt:wght@600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+:root {
+  --blue:#1A6FB5;--blue-dark:#0D3F6E;--blue-light:#E8F4FD;--blue-mid:#2980C4;
+  --accent:#F0A500;--green:#27AE60;--red:#E74C3C;--orange:#E67E22;--purple:#8E44AD;
+  --gray:#ECF0F1;--gray-dark:#7F8C8D;--text:#1A1A2E;--white:#FFFFFF;--bg:#F4F7FB;
+  --shadow:0 2px 12px rgba(26,111,181,0.10);--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);color:white;
+  padding:12px 24px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 4px 20px rgba(13,63,110,0.25);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px;}
+.hd-title{font-family:'Prompt',sans-serif;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.hd-sub{font-size:11px;opacity:0.65;}
+.hd-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hd-right input[type=date],.hd-right select{border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.15);
+  color:white;border-radius:8px;padding:6px 10px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;}
+.hd-right input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
+.hd-right select option{color:var(--text);}
+.hd-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:8px;
+  padding:6px 12px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background 0.2s;}
+.hd-btn:hover{background:rgba(255,255,255,0.28);}
+.carry-hint{font-size:11px;opacity:0.75;}
+.sync-chip{font-size:12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);
+  border-radius:8px;padding:4px 9px;cursor:default;user-select:none;}
+
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 500px;gap:18px;padding:18px 24px 60px;max-width:1500px;margin:0 auto;align-items:start;}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr;}.preview-pane{position:static !important;}}
+
+.card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid #E4EDF5;margin-bottom:14px;overflow:hidden;}
+.card-head{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--blue-light);
+  font-family:'Prompt',sans-serif;font-weight:700;font-size:14px;color:var(--blue-dark);cursor:pointer;user-select:none;}
+.card-head .arrow{margin-left:auto;font-size:11px;color:var(--gray-dark);transition:transform 0.2s;}
+.card.closed .arrow{transform:rotate(-90deg);}
+.card.closed .card-body{display:none;}
+.card-body{padding:14px 16px;}
+
+.row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.row label{font-size:13px;font-weight:600;}
+.sub-row{margin-left:22px;}
+.tg{border:1.5px solid #D0DCE8;background:white;border-radius:8px;min-width:44px;padding:4px 10px;
+  font-size:15px;cursor:pointer;transition:all 0.15s;font-family:'Sarabun',sans-serif;}
+.tg.on{border-color:var(--green);background:#EAFAF1;}
+.tg:not(.on){border-color:#E8B4B0;background:#FDF3F2;}
+.tg:hover{transform:translateY(-1px);}
+
+input[type=number],input[type=text],textarea{border:1.5px solid #D0DCE8;border-radius:8px;padding:6px 10px;
+  font-family:'Sarabun',sans-serif;font-size:13px;color:var(--text);background:white;}
+input[type=number]{width:74px;text-align:center;}
+input[type=text]{width:100%;}
+textarea{width:100%;resize:vertical;min-height:44px;}
+input:focus,textarea:focus{outline:none;border-color:var(--blue-mid);}
+.num-grid{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;}
+.num-item{display:flex;flex-direction:column;gap:4px;}
+.num-item span{font-size:12px;color:var(--gray-dark);font-weight:600;}
+.auto-val{font-size:15px;font-weight:700;color:var(--blue);padding:6px 0;}
+.mismatch{font-size:11px;color:var(--orange);font-weight:600;}
+
+.sec-label{font-size:12.5px;font-weight:700;color:var(--blue-dark);margin:12px 0 6px;display:flex;align-items:center;gap:6px;}
+.sec-label .cnt{background:var(--blue-light);color:var(--blue);border-radius:10px;padding:1px 8px;font-size:11px;}
+.list-box{display:flex;flex-direction:column;gap:5px;}
+.li-row{display:flex;align-items:center;gap:6px;}
+.li-row input[type=text]{flex:1;}
+.li-btn{border:none;background:var(--gray);border-radius:7px;padding:5px 8px;font-size:12px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.li-btn:hover{transform:translateY(-1px);}
+.li-btn.done{background:#EAFAF1;color:var(--green);font-weight:700;}
+.li-btn.del{background:#FDF3F2;color:var(--red);}
+.li-btn.st{min-width:38px;background:white;border:1.5px solid #D0DCE8;font-size:14px;}
+.add-btn{align-self:flex-start;border:1.5px dashed #B8CCDD;background:transparent;color:var(--blue);
+  border-radius:8px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;margin-top:4px;}
+.add-btn:hover{background:var(--blue-light);}
+
+.step-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.step-row .idx{font-size:12px;font-weight:700;color:var(--gray-dark);width:18px;}
+.step-row input[type=text]{flex:1;}
+.step-row input[type=radio]{cursor:pointer;width:15px;height:15px;accent-color:var(--accent);}
+.step-hint{font-size:11px;color:var(--gray-dark);margin:4px 0 10px;}
+.note-label{font-size:12px;color:var(--gray-dark);font-weight:600;margin:10px 0 4px;}
+
+.preview-pane{position:sticky;top:96px;}
+.pv-actions{display:flex;gap:8px;margin-bottom:10px;}
+.pv-btn{flex:1;border:none;border-radius:10px;padding:11px 14px;font-family:'Sarabun',sans-serif;
+  font-size:13.5px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.pv-btn.copy{background:var(--blue);color:white;box-shadow:0 2px 10px rgba(26,111,181,0.35);}
+.pv-btn.copy:hover{background:var(--blue-dark);}
+.pv-btn.img{background:var(--accent);color:white;box-shadow:0 2px 10px rgba(240,165,0,0.35);}
+.pv-btn.img:hover{background:#d4920a;}
+.pv-btn:active{transform:translateY(1px);}
+.pv-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid #E4EDF5;overflow:hidden;}
+.pv-strip{height:5px;background:linear-gradient(90deg,var(--blue-dark),var(--blue),var(--accent));}
+.pv-text{padding:18px 20px;font-size:13.5px;line-height:1.75;white-space:pre-wrap;word-break:break-word;}
+.save-flash{position:fixed;bottom:18px;right:22px;background:var(--green);color:white;border-radius:10px;
+  padding:8px 16px;font-size:12.5px;font-weight:700;box-shadow:0 4px 14px rgba(39,174,96,0.4);
+  opacity:0;transition:opacity 0.25s;pointer-events:none;z-index:200;}
+.save-flash.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="hd-title">📝 Day Work Report</div>
+    <div class="hd-sub">อัพเดทงานประจำวัน — กรอกแล้ว copy ส่งได้เลย</div>
+  </div>
+  <div class="hd-right">
+    <span class="carry-hint" id="carryHint"></span>
+    <span class="sync-chip" id="syncChip" title="สถานะซิงค์ Google Sheets">📴</span>
+    <select id="histSelect" title="เปิด report วันก่อนหน้า"></select>
+    <input type="date" id="datePick" title="วันที่ของ report">
+    <button class="hd-btn" onclick="resetToday()" title="ล้างค่าวันนี้แล้วยกยอดจากวันก่อนหน้าใหม่">↺ รีเซ็ตวันนี้</button>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="form-pane">
+
+  <!-- ── 1. ลงคลิปประจำวัน ─────────────────────── -->
+  <div class="card" id="cardPost">
+    <div class="card-head" onclick="toggleCard(this)">🎬 ลงคลิปประจำวัน <span class="arrow">▾</span></div>
+    <div class="card-body">
+      <div class="row"><button class="tg" id="tgYt"></button><label>ลงคลิป yt (Daily)</label></div>
+      <div class="row" style="margin-top:10px"><button class="tg" id="tgFbig"></button><label>ลงคลิป fb + ig (Daily)</label></div>
+      <div class="row sub-row"><button class="tg" id="tgFbAligner"></button><label>dc aligner</label></div>
+      <div class="row sub-row"><button class="tg" id="tgFbDental"></button><label>dc dental</label></div>
+      <div class="row" style="margin-top:10px"><button class="tg" id="tgTt"></button><label>ลง tiktok ทั้ง 3 ช่อง 1 คลิป</label></div>
+      <div class="row sub-row"><button class="tg" id="tgTtNorth"></button><label>tt dr.north</label></div>
+      <div class="row sub-row"><button class="tg" id="tgTtDental"></button><label>tt dc dental</label></div>
+      <div class="row sub-row"><button class="tg" id="tgTtAligner"></button><label>tt dc aligner</label></div>
+      <div class="note-label">หมายเหตุ</div>
+      <textarea id="postNote" rows="2" placeholder="เช่น ช่องไหนไม่มีคลิปลง เพราะอะไร..."></textarea>
+    </div>
+  </div>
+
+  <!-- ── 2. ตัดต่อรูปภาพ + แก้ไข ─────────────────── -->
+  <div class="card" id="cardEdit">
+    <div class="card-head" onclick="toggleCard(this)">📌 ตัดต่อรูปภาพ + แก้ไข <span class="arrow">▾</span></div>
+    <div class="card-body">
+      <div class="num-grid">
+        <div class="num-item"><span>งานค้างต้นวัน</span><input type="number" id="edCarry" min="0"></div>
+        <div class="num-item"><span>งานใหม่เข้า</span><input type="number" id="edNew" min="0"></div>
+        <div class="num-item"><span>ตัดเสร็จวันนี้</span><input type="number" id="edDone" min="0"></div>
+        <div class="num-item"><span>คงเหลือ (อัตโนมัติ)</span><div class="auto-val" id="edRemainVal">0 เซต</div></div>
+      </div>
+      <div class="sec-label">งานแก้ไขวันนี้ <span class="cnt" id="cntFixes">0</span></div>
+      <div class="list-box" id="listFixes"></div>
+      <button class="add-btn" onclick="addItem('fixes')">＋ เพิ่มงานแก้ไข</button>
+      <div class="sec-label">รายการคลิปคงเหลือ <span class="cnt" id="cntRemain">0</span></div>
+      <div class="mismatch" id="remainMismatch" style="display:none;margin-bottom:5px;"></div>
+      <div class="list-box" id="listRemain"></div>
+      <button class="add-btn" onclick="addItem('remain')">＋ เพิ่มคลิปคงเหลือ</button>
+      <div class="note-label">หมายเหตุ</div>
+      <textarea id="edNote" rows="2" placeholder="เช่น วันนี้โฟกัสกับงานไหน..."></textarea>
+    </div>
+  </div>
+
+  <!-- ── 3. วางแพลน ─────────────────────────────── -->
+  <div class="card" id="cardPlan">
+    <div class="card-head" onclick="toggleCard(this)">🐵 วางแพลน <span class="arrow">▾</span></div>
+    <div class="card-body">
+      <div class="step-hint">กดปุ่มสถานะเพื่อสลับ 🔄 → ✅ → ❌</div>
+      <div class="list-box" id="listPlan"></div>
+      <button class="add-btn" onclick="addItem('plan')">＋ เพิ่มแพลน</button>
+      <div class="note-label">หมายเหตุ</div>
+      <textarea id="planNote" rows="2"></textarea>
+    </div>
+  </div>
+
+  <!-- ── 4. เว็บไซต์ ─────────────────────────────── -->
+  <div class="card" id="cardWeb">
+    <div class="card-head" onclick="toggleCard(this)">🌐 Project (เว็บไซต์) <span class="arrow">▾</span></div>
+    <div class="card-body">
+      <div class="step-hint">กดปุ่มสถานะเพื่อสลับ ✅ → 🔄 → ว่าง · เลือกวงกลมท้ายแถว = "อยู่ขั้นตอนนี้"</div>
+      <div id="webSteps"></div>
+      <div class="num-grid" style="margin-top:12px">
+        <div class="num-item"><span>Progress %</span><input type="number" id="webProg" min="0" max="100"></div>
+        <div class="num-item"><span>ภาพทั้งหมด</span><input type="number" id="webImgTotal" min="0"></div>
+        <div class="num-item"><span>เสร็จแล้ว</span><input type="number" id="webImgDone" min="0"></div>
+        <div class="num-item"><span>คงเหลือ (อัตโนมัติ)</span><div class="auto-val" id="webImgRemain">0 ภาพ</div></div>
+        <div class="num-item"><span>ใส่ภาพแล้ว (หน้า)</span><input type="number" id="webPages" min="0"></div>
+      </div>
+      <div class="sec-label">รายชื่อหน้าที่ใส่ภาพแล้ว</div>
+      <textarea id="webPagesList" rows="3" placeholder="จัดฟันเหล็ก, วีเนียร์, ..."></textarea>
+      <div class="sec-label">บรรทัดเพิ่มเติมท้าย section</div>
+      <textarea id="webExtra" rows="2" placeholder="เช่น เหลือรีวิว / หน้าบทความ blog ยังไม่มีภาพ..."></textarea>
+      <div class="note-label">หมายเหตุ</div>
+      <textarea id="webNote" rows="2"></textarea>
+    </div>
+  </div>
+
+  <!-- ── 5. Storyboard ───────────────────────────── -->
+  <div class="card" id="cardSb">
+    <div class="card-head" onclick="toggleCard(this)">🎬 Storyboard <span class="arrow">▾</span></div>
+    <div class="card-body">
+      <div class="sec-label">คิดหัวข้อใหม่ <span class="cnt" id="cntSbNew">0</span></div>
+      <div class="list-box" id="listSbNew"></div>
+      <button class="add-btn" onclick="addItem('sbNew')">＋ เพิ่มหัวข้อใหม่</button>
+      <div class="sec-label">ทำ Storyboard <span class="cnt" id="cntSbMake">0</span></div>
+      <div class="list-box" id="listSbMake"></div>
+      <button class="add-btn" onclick="addItem('sbMake')">＋ เพิ่มเรื่องที่กำลังทำ</button>
+      <div class="sec-label">ปรับแก้ Storyboard <span class="cnt" id="cntSbFix">0</span></div>
+      <div class="list-box" id="listSbFix"></div>
+      <button class="add-btn" onclick="addItem('sbFix')">＋ เพิ่มเรื่องที่ปรับแก้</button>
+      <div class="sec-label">รอตรวจ <span class="cnt" id="cntSbWait">0</span></div>
+      <div class="list-box" id="listSbWait"></div>
+      <button class="add-btn" onclick="addItem('sbWait')">＋ เพิ่มเรื่องรอตรวจ</button>
+      <div class="note-label">หมายเหตุ</div>
+      <textarea id="sbNote" rows="2"></textarea>
+    </div>
+  </div>
+
+  <!-- ── 6. ถ่ายคอนเทนต์ ─────────────────────────── -->
+  <div class="card" id="cardShoot">
+    <div class="card-head" onclick="toggleCard(this)">🎥 ถ่ายคอนเทนต์ <span class="arrow">▾</span></div>
+    <div class="card-body">
+      <div class="row"><button class="tg" id="tgShoot"></button><label>วันนี้ถ่ายคอนเทนต์</label></div>
+      <div class="note-label">หมายเหตุ</div>
+      <textarea id="shootNote" rows="2" placeholder="ถ่ายอะไร / ทำไมไม่ได้ถ่าย..."></textarea>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Preview ─────────────────────────────────── -->
+<div class="preview-pane">
+  <div class="pv-actions">
+    <button class="pv-btn copy" onclick="copyText()">📋 Copy ข้อความ</button>
+    <button class="pv-btn img" onclick="saveImage()">🖼️ เซฟเป็นรูป</button>
+  </div>
+  <div class="pv-card" id="pvCard">
+    <div class="pv-strip"></div>
+    <div class="pv-text" id="pvText"></div>
+  </div>
+</div>
+</div>
+
+<div class="save-flash" id="saveFlash">✓ บันทึกแล้ว</div>
+
+<script>
+'use strict';
+// ===== ตั้งค่า Sync กับ Google Sheets =====
+// วาง URL ของ Apps Script Web App (จากไฟล์ report-sync.gs) ตรงนี้ — ปล่อยว่าง = ใช้เฉพาะในเครื่อง
+const REPORT_API_URL = '';
+// ==========================================
+const KEY = 'dcDayReport_v1';
+const BUL = '    ●    ';          // ย่อหน้าหัวข้อย่อย
+const SUB = '              -';    // ย่อหน้ารายการ
+let store = null;   // { reports: { 'YYYY-MM-DD': report } }
+let cur   = null;   // report ของวันที่เลือกอยู่
+let knownToday = null; // ไว้เช็คว่าข้ามเที่ยงคืนหรือยัง
+
+/* ── date helpers ──────────────────────────────── */
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function dispDate(iso){
+  const p = iso.split('-');
+  return parseInt(p[2],10)+'/'+p[1]+'/'+p[0];
+}
+
+/* ── data model ────────────────────────────────── */
+function defaultReport(dateISO){
+  return {
+    date: dateISO, carriedFrom: null,
+    posting: {
+      yt:false,
+      fbig:{parent:false, aligner:false, dental:false},
+      tiktok:{parent:false, north:false, dental:false, aligner:false},
+      note:''
+    },
+    editing: { carryIn:0, newIn:0, done:0, fixes:[], remainList:[], note:'' },
+    plan: { items:[], note:'' },
+    website: {
+      steps: [
+        {name:'วางแผน & โครงสร้าง', status:'✅'},
+        {name:'ออกแบบดีไซน์ (UI/Design)', status:'✅'},
+        {name:'ลงเนื้อหา + เขียนโค้ด (Build)', status:'✅'},
+        {name:'เติมข้อมูลจริง (Content) คัดเลือกรูป Before-After', status:'🔄'},
+        {name:'ตรวจทาน (Review/QA)', status:''},
+        {name:'ขึ้นเว็บจริง (Deploy)', status:'✅'}
+      ],
+      currentStep:3, progress:0, imgTotal:0, imgDone:0,
+      pagesDone:0, pagesList:'', extra:'', note:''
+    },
+    storyboard: { newTopics:[], making:[], revising:[], waiting:[], note:'' },
+    shooting: { did:false, note:'' }
+  };
+}
+
+/* report ตัวอย่างวันที่ 7/08/2026 — ใช้ seed ครั้งแรกเพื่อให้ระบบยกยอดต่อได้ทันที */
+function seedReport(){
+  const r = defaultReport('2026-08-07');
+  r.posting.yt = true;
+  r.posting.fbig = {parent:true, aligner:false, dental:true};
+  r.posting.tiktok = {parent:false, north:true, dental:true, aligner:false};
+  r.posting.note = 'ตอนนี้ของช่อง ทั้ง tt และ fb dc aligner ไม่มีคลิปลง ผมกำลังทำคลิปอื่นมาลงคั่นครับ';
+  r.editing.carryIn = 8;
+  r.editing.fixes = ['คลิป aligne smile shine','โปรวันแม่'];
+  r.editing.remainList = [
+    '381 เมื่อก่อนยังไม่มี Digital Guide ฝังรากเทียมยังไง',
+    '384 มีทองแท้กับทองปลอม แล้วมีครอบฟันทองแท้กับปลอมไหม',
+    '385 ต่างประเทศที่เจียระไนวีเนียรเป็นเพชร ที่ไทยมีหรือยัง',
+    '386 ทำเซรามิกวีเนียร์ถ้าเจอคลื่นความร้อนจะเป็นอะไรไหม',
+    '388 หมอมิ้งค์เคยทำฟันคนไข้ที่อายุเยอะที่สุดเท่าไหร่',
+    '401 damon คืออะไร',
+    '402 จัดฟันเหล็กทำให้รากไม่แข็งแรงจริงไหม หมอคณิน',
+    '409 คุณพัชรี Missgrand'
+  ];
+  r.editing.note = 'วันนี้โฟกัสกับ โปรวันแม่และเว็บ';
+  r.plan.items = [
+    {text:'วางแพลนของเดือน กรกฎาคม ทั้ง dc aligner / dc dental', status:'✅'},
+    {text:'กำลังวางแพลนเดือน สิงหาคม', status:'🔄'}
+  ];
+  r.plan.note = 'ตอนนี้ของช่อง dc aligner ไม่มีคลิปลง ผมกำลังทำคลิปอื่นมาลงคั่นครับ ของช่อง dc dental กำลังคิดแคปชั่นครับ จัดวางไว้แล้ว';
+  Object.assign(r.website, {
+    progress:83, imgTotal:171, imgDone:129, pagesDone:13,
+    pagesList:'จัดฟันเหล็ก,จัดฟันดาม่อน,หน้าจัดฟันใส invi,หน้ารีเทนเนอร์,จัดฟันเด็ก,วีเนียร์,ฟอกสีฟัน,ครอบฟัน,ฟันปลอม,ขูดหินปูน,รักษารากฟัน,ถอนฟัน/ผ่าฟันคุด,ทันตกรรมเด็ก',
+    extra:'เหลือรีวิว\nหน้าบทความ blog ยังมีบ้างหน้าที่ยังไม่มีภาพครับ',
+    note:'ตอนนี้เร่งใส่ภาพอยู่ครับผม แต่วันนี้ยังทำไม่เสร็จ'
+  });
+  r.storyboard.making = [
+    'เช็คลิสต์ก่อนเลือกคลินิกทำวีเนียร์',
+    'สตอรี่บอร์ด kol คุณป๊อป (ยังไม่เสร็จ)',
+    'หมอนอร์ททำเว็ปโปเกม่อน 3 ล้านวิว',
+    'ข้อปฏิบัติตัวก่อนวันนัดทำวีเนียร์',
+    'ข้อปฏิบัติตัวหลังใส่วีเนียร์ชั่วคราว',
+    'การดูแลวีเนียร์ตัวจริง',
+    'kol v/o มิสแกรนด์ยะลา'
+  ].map(function(t){ return {text:t, status:'🔄'}; });
+  r.storyboard.note = 'วันนี้ไม่มีเวลาทำเลยครับ + คิดไม่ออก';
+  return r;
+}
+
+function loadStore(){
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.reports) return s;
+  } catch(e){}
+  return { reports:{} };
+}
+function saveStore(){
+  cur.updatedAt = Date.now();
+  // merge กับของบน disk ต่อวัน — กันแท็บอื่น/เครื่องอื่นถูกเขียนทับทั้งก้อน
+  const disk = loadStore();
+  Object.keys(disk.reports).forEach(function(d){
+    if (d === cur.date) return; // วันที่กำลังแก้ ใช้ของแท็บนี้เสมอ
+    const mine = store.reports[d];
+    if (!mine || (disk.reports[d].updatedAt||0) > (mine.updatedAt||0)) store.reports[d] = disk.reports[d];
+  });
+  store.reports[cur.date] = cur;
+  localStorage.setItem(KEY, JSON.stringify(store));
+  flashSave();
+  scheduleRemotePush();
+}
+/* แท็บอื่นบันทึก → อัพเดทสำเนาในหน่วยความจำของแท็บนี้ (ยกเว้นวันที่กำลังพิมพ์อยู่) */
+window.addEventListener('storage', function(ev){
+  if (ev.key !== KEY || !ev.newValue) return;
+  try {
+    const disk = JSON.parse(ev.newValue);
+    if (!disk || !disk.reports) return;
+    Object.keys(disk.reports).forEach(function(d){
+      if (cur && d === cur.date) return;
+      const mine = store.reports[d];
+      if (!mine || (disk.reports[d].updatedAt||0) > (mine.updatedAt||0)) store.reports[d] = disk.reports[d];
+    });
+    refreshHistory();
+  } catch(e){}
+});
+let flashTimer = null;
+function flashSave(){
+  const f = document.getElementById('saveFlash');
+  f.classList.add('show');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(function(){ f.classList.remove('show'); }, 900);
+}
+
+function calcRemain(e){
+  return Math.max(0, (Number(e.carryIn)||0) + (Number(e.newIn)||0) - (Number(e.done)||0));
+}
+
+/* หา report วันล่าสุดที่อยู่ก่อน dateISO */
+function latestBefore(dateISO){
+  const dates = Object.keys(store.reports).filter(function(d){ return d < dateISO; }).sort();
+  return dates.length ? store.reports[dates[dates.length-1]] : null;
+}
+
+/* ยกยอดจาก report วันก่อนหน้า → report วันใหม่ */
+function carryOver(prev, dateISO){
+  const r = defaultReport(dateISO);
+  if (!prev) return r;
+  const p = JSON.parse(JSON.stringify(prev));
+  r.carriedFrom = p.date;
+  r.posting.note   = p.posting.note;
+  r.editing.carryIn    = calcRemain(p.editing);
+  r.editing.remainList = p.editing.remainList;
+  r.plan.items = p.plan.items;
+  r.plan.note  = p.plan.note;
+  r.website    = p.website;
+  r.storyboard.making   = p.storyboard.making;
+  r.storyboard.revising = p.storyboard.revising;
+  r.storyboard.waiting  = p.storyboard.waiting;
+  return r;
+}
+
+/* ── list refs (ผูก id กับ array ใน state) ─────── */
+function listRef(key){
+  switch(key){
+    case 'fixes':  return {arr:cur.editing.fixes,        el:'listFixes',  cnt:'cntFixes',  status:false, doneBtn:false, ph:'งานแก้ไข...'};
+    case 'remain': return {arr:cur.editing.remainList,   el:'listRemain', cnt:'cntRemain', status:false, doneBtn:true,  ph:'เลขคลิป + ชื่อเรื่อง...'};
+    case 'plan':   return {arr:cur.plan.items,           el:'listPlan',   cnt:null,        status:true,  doneBtn:false, ph:'แพลนที่กำลังทำ...'};
+    case 'sbNew':  return {arr:cur.storyboard.newTopics, el:'listSbNew',  cnt:'cntSbNew',  status:false, doneBtn:false, ph:'หัวข้อใหม่...'};
+    case 'sbMake': return {arr:cur.storyboard.making,    el:'listSbMake', cnt:'cntSbMake', status:true,  doneBtn:false, ph:'เรื่องที่กำลังทำ...'};
+    case 'sbFix':  return {arr:cur.storyboard.revising,  el:'listSbFix',  cnt:'cntSbFix',  status:true,  doneBtn:false, ph:'เรื่องที่ปรับแก้...'};
+    case 'sbWait': return {arr:cur.storyboard.waiting,   el:'listSbWait', cnt:'cntSbWait', status:true,  doneBtn:false, ph:'เรื่องรอตรวจ...'};
+  }
+}
+const ST_CYCLE = ['🔄','✅','❌'];
+
+function renderList(key){
+  const ref = listRef(key);
+  const box = document.getElementById(ref.el);
+  box.innerHTML = '';
+  ref.arr.forEach(function(item, i){
+    const row = document.createElement('div');
+    row.className = 'li-row';
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = ref.ph;
+    inp.value = ref.status ? item.text : item;
+    inp.oninput = function(){
+      if (ref.status) ref.arr[i].text = inp.value; else ref.arr[i] = inp.value;
+      touch();
+    };
+    row.appendChild(inp);
+    if (ref.status){
+      const st = document.createElement('button');
+      st.className = 'li-btn st';
+      st.textContent = item.status || '🔄';
+      st.title = 'สลับสถานะ';
+      st.onclick = function(){
+        let idx = ST_CYCLE.indexOf(ref.arr[i].status);
+        const next = ST_CYCLE[(idx + 1) % ST_CYCLE.length];
+        ref.arr[i].status = next;
+        st.textContent = next;
+        touch();
+      };
+      row.appendChild(st);
+    }
+    if (ref.doneBtn){
+      const dn = document.createElement('button');
+      dn.className = 'li-btn done';
+      dn.textContent = '✅ เสร็จ';
+      dn.title = 'ตัดเสร็จแล้ว — ลบออกจากรายการ และ +1 ตัดเสร็จวันนี้';
+      dn.onclick = function(){
+        ref.arr.splice(i,1);
+        cur.editing.done = (Number(cur.editing.done)||0) + 1;
+        document.getElementById('edDone').value = cur.editing.done;
+        renderList(key);
+        touch();
+      };
+      row.appendChild(dn);
+    }
+    const del = document.createElement('button');
+    del.className = 'li-btn del';
+    del.textContent = '🗑';
+    del.title = 'ลบแถวนี้';
+    del.onclick = function(){ ref.arr.splice(i,1); renderList(key); touch(); };
+    row.appendChild(del);
+    box.appendChild(row);
+  });
+  if (ref.cnt) document.getElementById(ref.cnt).textContent = ref.arr.length;
+}
+function addItem(key){
+  const ref = listRef(key);
+  ref.arr.push(ref.status ? {text:'', status:'🔄'} : '');
+  renderList(key);
+  touch();
+  const rows = document.getElementById(ref.el).querySelectorAll('input[type=text]');
+  if (rows.length) rows[rows.length-1].focus();
+}
+
+/* ── toggles ───────────────────────────────────── */
+function bindToggle(id, obj, prop){
+  const b = document.getElementById(id);
+  const paint = function(){ b.textContent = obj[prop] ? '✔️' : '❎'; b.classList.toggle('on', !!obj[prop]); };
+  b.onclick = function(){ obj[prop] = !obj[prop]; paint(); touch(); };
+  paint();
+}
+
+/* ── website steps ─────────────────────────────── */
+const WEB_ST_CYCLE = ['✅','🔄',''];
+function renderWebSteps(){
+  const box = document.getElementById('webSteps');
+  box.innerHTML = '';
+  cur.website.steps.forEach(function(s, i){
+    const row = document.createElement('div');
+    row.className = 'step-row';
+    const idx = document.createElement('span');
+    idx.className = 'idx'; idx.textContent = (i+1)+'.';
+    row.appendChild(idx);
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.value = s.name;
+    inp.oninput = function(){ s.name = inp.value; touch(); };
+    row.appendChild(inp);
+    const st = document.createElement('button');
+    st.className = 'li-btn st';
+    st.textContent = s.status || '—';
+    st.title = 'สลับสถานะ ✅ → 🔄 → ว่าง';
+    st.onclick = function(){
+      const next = WEB_ST_CYCLE[(WEB_ST_CYCLE.indexOf(s.status)+1) % WEB_ST_CYCLE.length];
+      s.status = next;
+      st.textContent = next || '—';
+      touch();
+    };
+    row.appendChild(st);
+    const rad = document.createElement('input');
+    rad.type = 'radio'; rad.name = 'curStep'; rad.checked = (cur.website.currentStep === i);
+    rad.title = 'อยู่ขั้นตอนนี้';
+    rad.onchange = function(){ cur.website.currentStep = i; touch(); };
+    row.appendChild(rad);
+    box.appendChild(row);
+  });
+}
+
+/* ── number / text bindings ────────────────────── */
+function bindNum(id, obj, prop){
+  const el = document.getElementById(id);
+  el.value = obj[prop];
+  el.oninput = function(){ obj[prop] = Number(el.value)||0; touch(); };
+}
+function bindText(id, obj, prop){
+  const el = document.getElementById(id);
+  el.value = obj[prop];
+  el.oninput = function(){ obj[prop] = el.value; touch(); };
+}
+
+/* ── fill form from state ──────────────────────── */
+function fillForm(){
+  bindToggle('tgYt', cur.posting, 'yt');
+  bindToggle('tgFbig', cur.posting.fbig, 'parent');
+  bindToggle('tgFbAligner', cur.posting.fbig, 'aligner');
+  bindToggle('tgFbDental', cur.posting.fbig, 'dental');
+  bindToggle('tgTt', cur.posting.tiktok, 'parent');
+  bindToggle('tgTtNorth', cur.posting.tiktok, 'north');
+  bindToggle('tgTtDental', cur.posting.tiktok, 'dental');
+  bindToggle('tgTtAligner', cur.posting.tiktok, 'aligner');
+  bindText('postNote', cur.posting, 'note');
+
+  bindNum('edCarry', cur.editing, 'carryIn');
+  bindNum('edNew', cur.editing, 'newIn');
+  bindNum('edDone', cur.editing, 'done');
+  bindText('edNote', cur.editing, 'note');
+  renderList('fixes'); renderList('remain');
+
+  renderList('plan');
+  bindText('planNote', cur.plan, 'note');
+
+  renderWebSteps();
+  bindNum('webProg', cur.website, 'progress');
+  bindNum('webImgTotal', cur.website, 'imgTotal');
+  bindNum('webImgDone', cur.website, 'imgDone');
+  bindNum('webPages', cur.website, 'pagesDone');
+  bindText('webPagesList', cur.website, 'pagesList');
+  bindText('webExtra', cur.website, 'extra');
+  bindText('webNote', cur.website, 'note');
+
+  renderList('sbNew'); renderList('sbMake'); renderList('sbFix'); renderList('sbWait');
+  bindText('sbNote', cur.storyboard, 'note');
+
+  bindToggle('tgShoot', cur.shooting, 'did');
+  bindText('shootNote', cur.shooting, 'note');
+
+  document.getElementById('datePick').value = cur.date;
+  document.getElementById('carryHint').textContent =
+    cur.carriedFrom ? ('ยกยอดจาก report วันที่ ' + dispDate(cur.carriedFrom)) : '';
+  refreshAutoVals();
+  renderPreview();
+}
+
+function refreshAutoVals(){
+  const rem = calcRemain(cur.editing);
+  document.getElementById('edRemainVal').textContent = rem + ' เซต';
+  const mm = document.getElementById('remainMismatch');
+  const listLen = cur.editing.remainList.filter(nz).length;
+  if (listLen !== rem){
+    mm.style.display = 'block';
+    mm.textContent = '⚠️ รายการมี ' + listLen + ' คลิป แต่ตัวเลขคงเหลือคำนวณได้ ' + rem + ' เซต';
+  } else mm.style.display = 'none';
+  const imgRem = Math.max(0, (Number(cur.website.imgTotal)||0) - (Number(cur.website.imgDone)||0));
+  document.getElementById('webImgRemain').textContent = imgRem + ' ภาพ';
+}
+
+/* touch() — เรียกทุกครั้งที่ state เปลี่ยน */
+function touch(){
+  refreshAutoVals();
+  renderPreview();
+  saveStore();
+}
+
+/* ── สร้างข้อความ report ───────────────────────── */
+function mk(b){ return b ? '✔️' : '❎'; }
+function nz(s){ return !!(s && s.trim()); }
+function nzi(it){ return !!(it && it.text && it.text.trim()); }
+
+function buildText(r){
+  const L = [];
+  L.push('อัพเดทงานวันที่ ' + dispDate(r.date));
+  L.push('');
+  L.push('ลงคลิป yt (Daily) ' + mk(r.posting.yt));
+  L.push('');
+  L.push('ลงคลิป fb + ig (Daily) ' + mk(r.posting.fbig.parent));
+  L.push('dc aligner ' + mk(r.posting.fbig.aligner));
+  L.push('dc dental ' + mk(r.posting.fbig.dental));
+  L.push('');
+  L.push('ลง tiktok ทั้ง 3 ช่อง 1 คลิป ' + mk(r.posting.tiktok.parent));
+  L.push('tt dr.north ' + mk(r.posting.tiktok.north));
+  L.push('tt dc dental ' + mk(r.posting.tiktok.dental));
+  L.push('tt dc aligner ' + mk(r.posting.tiktok.aligner));
+  if (nz(r.posting.note)){ L.push(''); L.push('หมายเหตุ : ' + r.posting.note.trim()); }
+  L.push('');
+  const e = r.editing;
+  L.push('📌 ตัดต่อรูปภาพ + แก้ไข');
+  L.push(BUL + 'งานค้างต้นวัน ' + (Number(e.carryIn)||0) + ' เซต');
+  L.push(BUL + 'งานใหม่เข้า ' + (Number(e.newIn)||0) + ' เซต');
+  L.push(BUL + 'ตัดเสร็จวันนี้ ' + (Number(e.done)||0) + ' เซต');
+  L.push(BUL + 'งานแก้ไข ' + e.fixes.filter(nz).length + ' เซต');
+  e.fixes.filter(nz).forEach(function(f){ L.push(SUB + f.trim()); });
+  L.push(BUL + 'คงเหลือ ' + calcRemain(e) + ' เซต');
+  e.remainList.filter(nz).forEach(function(f){ L.push(SUB + f.trim()); });
+  if (nz(e.note)){ L.push(''); L.push('หมายเหตุ : ' + e.note.trim()); }
+  L.push('');
+  L.push('🐵 วางแพลน');
+  r.plan.items.filter(nzi).forEach(function(it){
+    L.push(it.text.trim() + ' ' + (it.status || '🔄'));
+  });
+  if (nz(r.plan.note)){ L.push('หมายเหตุ : ' + r.plan.note.trim()); }
+  L.push('');
+  const w = r.website;
+  L.push('🌐 Project (เว็บไซต์)');
+  L.push('จำนวนขั้นตอนทั้งหมด : ' + w.steps.length + ' ขั้นตอน');
+  L.push('สถานะปัจจุบัน');
+  w.steps.forEach(function(s, i){
+    let line = '    ' + (i+1) + '.    ' + s.name + (s.status ? ' ' + s.status : '');
+    if (w.currentStep === i) line += ' < อยู่ขั้นตอนนี้';
+    L.push(line);
+  });
+  L.push('');
+  L.push('Progress : ' + (Number(w.progress)||0) + ' %');
+  L.push('ทำภาพประกอบเว็บ ' + (Number(w.imgTotal)||0) + ' รูป');
+  L.push('เสร็จ ' + (Number(w.imgDone)||0) + ' ภาพ');
+  L.push('คงเหลือ ' + Math.max(0,(Number(w.imgTotal)||0)-(Number(w.imgDone)||0)) + ' ภาพ');
+  L.push('ใส่ภาพไปแล้ว ' + (Number(w.pagesDone)||0) + ' หน้า');
+  if (nz(w.pagesList)){ L.push(''); L.push(w.pagesList.trim()); }
+  if (nz(w.extra)){ L.push(''); w.extra.trim().split('\n').forEach(function(x){ L.push(x); }); }
+  if (nz(w.note)){ L.push(''); L.push('หมายเหตุ : ' + w.note.trim()); }
+  L.push('');
+  const sb = r.storyboard;
+  L.push('Storyboard');
+  L.push(BUL + 'คิดหัวข้อใหม่ ' + sb.newTopics.filter(nz).length + ' เรื่อง');
+  sb.newTopics.filter(nz).forEach(function(t){ L.push(SUB + t.trim()); });
+  L.push(BUL + 'ทำ Storyboard ' + sb.making.filter(nzi).length + ' เรื่อง');
+  sb.making.filter(nzi).forEach(function(it){ L.push(SUB + it.text.trim() + (it.status || '')); });
+  L.push(BUL + 'ปรับแก้ Storyboard ' + sb.revising.filter(nzi).length + ' เรื่อง');
+  sb.revising.filter(nzi).forEach(function(it){ L.push(SUB + it.text.trim() + (it.status || '')); });
+  L.push(BUL + 'รอตรวจ ' + sb.waiting.filter(nzi).length + ' เรื่อง');
+  sb.waiting.filter(nzi).forEach(function(it){ L.push(SUB + it.text.trim() + (it.status || '')); });
+  if (nz(sb.note)){ L.push('หมายเหตุ : ' + sb.note.trim()); }
+  L.push('');
+  L.push('🌐 ถ่ายคอนเทนต์ ' + mk(r.shooting.did));
+  if (nz(r.shooting.note)){ L.push('หมายเหตุ : ' + r.shooting.note.trim()); }
+  return L.join('\n');
+}
+
+function renderPreview(){
+  document.getElementById('pvText').textContent = buildText(cur);
+}
+
+/* ── copy / image ──────────────────────────────── */
+function copyText(){
+  const txt = buildText(cur);
+  function ok(){ toastBtn('.pv-btn.copy', '✅ Copy แล้ว!'); }
+  function fallback(){
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); ok(); } catch(e){ alert('Copy ไม่สำเร็จ — เลือกข้อความใน preview แล้ว copy เองได้ครับ'); }
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(ok, fallback);
+  } else fallback();
+}
+function toastBtn(sel, msg){
+  const b = document.querySelector(sel);
+  if (!b.dataset.orig) b.dataset.orig = b.innerHTML; // จำป้ายจริงครั้งแรกครั้งเดียว
+  b.innerHTML = msg;
+  clearTimeout(b._toastT);
+  b._toastT = setTimeout(function(){ b.innerHTML = b.dataset.orig; }, 1400);
+}
+
+let h2cLoading = null;
+function loadH2C(){
+  if (window.html2canvas) return Promise.resolve();
+  if (!h2cLoading){
+    h2cLoading = new Promise(function(res, rej){
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = res;
+      s.onerror = function(){ h2cLoading = null; rej(); };
+      document.head.appendChild(s);
+    });
+  }
+  return h2cLoading;
+}
+function saveImage(){
+  const btn = document.querySelector('.pv-btn.img');
+  btn.disabled = true;
+  loadH2C().then(function(){
+    const card = document.getElementById('pvCard');
+    return html2canvas(card, {scale:2, backgroundColor:'#FFFFFF', useCORS:true});
+  }).then(function(canvas){
+    const a = document.createElement('a');
+    a.download = 'report-' + cur.date + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    toastBtn('.pv-btn.img', '✅ เซฟแล้ว!');
+  }).catch(function(){
+    alert('เซฟรูปไม่สำเร็จ — ต้องต่ออินเทอร์เน็ตครั้งแรกเพื่อโหลดตัวแปลงรูปครับ');
+  }).finally(function(){ btn.disabled = false; });
+}
+
+/* ── date switching / history ──────────────────── */
+function openDate(dateISO){
+  if (store.reports[dateISO]){
+    cur = store.reports[dateISO];
+  } else {
+    // ยังไม่บันทึกทันที — จะบันทึกเมื่อผู้ใช้แก้อะไรครั้งแรก (กัน report ผีจากการกดดูเฉยๆ)
+    cur = carryOver(latestBefore(dateISO), dateISO);
+  }
+  fillForm();
+  refreshHistory();
+}
+function refreshHistory(){
+  const sel = document.getElementById('histSelect');
+  const dates = Object.keys(store.reports);
+  if (dates.indexOf(cur.date) < 0) dates.push(cur.date);
+  dates.sort().reverse();
+  sel.innerHTML = '<option value="">📂 วันก่อนหน้า…</option>' +
+    dates.map(function(d){
+      let tag = d===todayISO() ? ' (วันนี้)' : '';
+      if (!store.reports[d]) tag += ' — ยังไม่บันทึก';
+      return '<option value="'+d+'"'+(d===cur.date?' selected':'')+'>'+dispDate(d)+tag+'</option>';
+    }).join('');
+}
+function resetToday(){
+  if (!confirm('ล้างข้อมูลของวันที่ ' + dispDate(cur.date) + ' แล้วยกยอดจากวันก่อนหน้าใหม่?')) return;
+  const d = cur.date;
+  delete store.reports[d];
+  cur = carryOver(latestBefore(d), d);
+  fillForm();
+  refreshHistory();
+  saveStore(); // การรีเซ็ตถือเป็นการแก้ไข — บันทึก/ซิงค์ทันทีจะได้ทับของเก่า
+}
+/* ข้ามเที่ยงคืน: ถ้ายังเปิดหน้าวันเก่าค้างอยู่ ให้เด้งไปวันใหม่พร้อมยกยอด */
+function checkDayRollover(){
+  const t = todayISO();
+  if (t === knownToday) return;
+  const wasOnToday = (cur && cur.date === knownToday);
+  knownToday = t;
+  if (wasOnToday) openDate(t);
+  else refreshHistory();
+}
+
+function toggleCard(head){ head.parentElement.classList.toggle('closed'); }
+
+/* ── Sync กับ Google Sheets (ผ่าน Apps Script) ─── */
+let pushTimer = null, syncDirty = false;
+function setSync(state, title){
+  const c = document.getElementById('syncChip');
+  c.textContent = state;
+  if (title) c.title = title;
+}
+function scheduleRemotePush(){
+  if (!REPORT_API_URL) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(function(){ remotePush(cur); }, 1200);
+}
+function remotePush(rep){
+  if (!REPORT_API_URL || !rep) return Promise.resolve();
+  setSync('⏳', 'กำลังซิงค์...');
+  return fetch(REPORT_API_URL, {
+    method:'POST', redirect:'follow',
+    headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({action:'save', report:rep})
+  }).then(function(res){ return res.json(); })
+    .then(function(j){
+      if (!j.ok) throw new Error(j.error||'save failed');
+      syncDirty = false;
+      setSync('☁️', 'ซิงค์กับ Google Sheets แล้ว');
+    })
+    .catch(function(){
+      syncDirty = true;
+      setSync('⚠️', 'ซิงค์ไม่สำเร็จ — จะลองใหม่อัตโนมัติ');
+    });
+}
+function retryPushIfDirty(){ if (syncDirty && REPORT_API_URL) remotePush(cur); }
+function remoteLoad(){
+  if (!REPORT_API_URL){ setSync('📴', 'ยังไม่ได้ตั้งค่า sync — ข้อมูลเก็บในเครื่องนี้เท่านั้น'); return; }
+  setSync('⏳', 'กำลังโหลดจาก Google Sheets...');
+  fetch(REPORT_API_URL + '?t=' + Date.now(), {redirect:'follow'})
+    .then(function(res){ return res.json(); })
+    .then(function(j){
+      if (!j.ok) throw new Error(j.error||'load failed');
+      let curChanged = false;
+      const remoteDates = {};
+      (j.rows||[]).forEach(function(row){
+        remoteDates[row.date] = true;
+        let rep; try { rep = JSON.parse(row.json); } catch(e){ return; }
+        // เทียบกับเวอร์ชันในเครื่อง (รวม cur ที่ยังไม่ได้บันทึก) — ใครใหม่กว่าคนนั้นชนะ
+        const mine = store.reports[row.date] || (cur && cur.date === row.date ? cur : null);
+        if (!mine || (rep.updatedAt||0) > (mine.updatedAt||0)){
+          store.reports[row.date] = rep;
+          if (cur && cur.date === row.date){ cur = rep; curChanged = true; }
+        }
+      });
+      // วันที่มีในเครื่องแต่ไม่มีบนชีต (หรือในเครื่องใหม่กว่า) → ดันขึ้นชีต
+      const toPush = [];
+      Object.keys(store.reports).forEach(function(d){
+        if (!remoteDates[d]) toPush.push(store.reports[d]);
+      });
+      (j.rows||[]).forEach(function(row){
+        const mine = store.reports[row.date];
+        let rep; try { rep = JSON.parse(row.json); } catch(e){ rep = null; }
+        if (mine && rep && (mine.updatedAt||0) > (rep.updatedAt||0)) toPush.push(mine);
+      });
+      localStorage.setItem(KEY, JSON.stringify(store));
+      if (curChanged) fillForm();
+      refreshHistory();
+      setSync('☁️', 'ซิงค์กับ Google Sheets แล้ว');
+      // ทยอยดันทีละอัน
+      toPush.reduce(function(p, rep){ return p.then(function(){ return remotePush(rep); }); }, Promise.resolve());
+    })
+    .catch(function(){
+      setSync('⚠️', 'โหลดจากชีตไม่สำเร็จ — ใช้ข้อมูลในเครื่องไปก่อน');
+    });
+}
+
+/* ── init ──────────────────────────────────────── */
+(function init(){
+  store = loadStore();
+  if (!Object.keys(store.reports).length){
+    const seed = seedReport();
+    store.reports[seed.date] = seed;
+  }
+  knownToday = todayISO();
+  document.getElementById('datePick').onchange = function(){
+    if (this.value) openDate(this.value);
+  };
+  document.getElementById('histSelect').onchange = function(){
+    if (this.value) openDate(this.value);
+  };
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden){ checkDayRollover(); retryPushIfDirty(); }
+  });
+  window.addEventListener('focus', function(){ checkDayRollover(); retryPushIfDirty(); });
+  window.addEventListener('online', retryPushIfDirty);
+  openDate(todayISO());
+  remoteLoad();
+})();
+</script>
+</body>
+</html>

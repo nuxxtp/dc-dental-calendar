@@ -247,8 +247,9 @@ input:focus,textarea:focus{outline:none;border-color:var(--blue-mid);}
 <script>
 'use strict';
 // ===== ตั้งค่า Sync กับ Google Sheets =====
-// วาง URL ของ Apps Script Web App (จากไฟล์ report-sync.gs) ตรงนี้ — ปล่อยว่าง = ใช้เฉพาะในเครื่อง
-const REPORT_API_URL = '';
+// ใช้ deployment เดียวกับปฏิทิน (SHEET_URL ใน index.html) — ฝั่ง Apps Script ต้องเป็น GAS v6 ขึ้นไป
+// ถ้า deploy ใหม่แล้ว URL เปลี่ยน ให้เอา URL /exec อันใหม่มาวางแทนตรงนี้
+const REPORT_API_URL = 'https://script.google.com/macros/s/AKfycbzKVKIwZTU2Z_aYRY6xY98CbmNh7PTMUuwAr4R3ZI-7lZm0UuO6GOwo8qdFRUyym0IPug/exec';
 // ==========================================
 const KEY = 'dcDayReport_v1';
 const BUL = '    ●    ';          // ย่อหน้าหัวข้อย่อย
@@ -800,7 +801,7 @@ function remotePush(rep){
   return fetch(REPORT_API_URL, {
     method:'POST', redirect:'follow',
     headers:{'Content-Type':'text/plain'},
-    body: JSON.stringify({action:'save', report:rep})
+    body: JSON.stringify({action:'saveReport', report:rep})
   }).then(function(res){ return res.json(); })
     .then(function(j){
       if (!j.ok) throw new Error(j.error||'save failed');
@@ -816,7 +817,7 @@ function retryPushIfDirty(){ if (syncDirty && REPORT_API_URL) remotePush(cur); }
 function remoteLoad(){
   if (!REPORT_API_URL){ setSync('📴', 'ยังไม่ได้ตั้งค่า sync — ข้อมูลเก็บในเครื่องนี้เท่านั้น'); return; }
   setSync('⏳', 'กำลังโหลดจาก Google Sheets...');
-  fetch(REPORT_API_URL + '?t=' + Date.now(), {redirect:'follow'})
+  fetch(REPORT_API_URL + '?action=loadReports&t=' + Date.now(), {redirect:'follow'})
     .then(function(res){ return res.json(); })
     .then(function(j){
       if (!j.ok) throw new Error(j.error||'load failed');

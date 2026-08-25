@@ -12,7 +12,7 @@
   --blue:#1A6FB5;--blue-dark:#0D3F6E;--blue-light:#E8F4FD;--blue-mid:#2980C4;
   --accent:#F0A500;--green:#27AE60;--red:#E74C3C;--orange:#E67E22;--purple:#8E44AD;
   --gray:#ECF0F1;--gray-dark:#7F8C8D;--text:#1A1A2E;--white:#FFFFFF;--bg:#F4F7FB;
-  --shadow:0 2px 12px rgba(26,111,181,0.10);--radius:12px;
+  --shadow:0 1px 2px rgba(13,63,110,0.05),0 4px 16px rgba(26,111,181,0.10);--radius:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
@@ -234,6 +234,76 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 }
 /* ── ARCHIVE MODAL STYLES ── */
 /* archive modal override removed */
+
+/* ══ ✨ POLISH LAYER — ปรับหน้าตาอย่างเดียว โทนสีเดิมทั้งหมด (จอเท่านั้น ไม่กระทบโหมดพิมพ์) ══ */
+@media screen{
+  /* ตัวอักษรคมขึ้น */
+  body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  ::selection{background:#CBE5F8;color:var(--blue-dark);}
+
+  /* scrollbar บางเรียบ */
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:#C4D4E4;border-radius:8px;border:2px solid var(--bg);}
+  ::-webkit-scrollbar-thumb:hover{background:#9FB8D0;}
+
+  /* header + แถบช่อง: เงานุ่มลง มีเส้นไฮไลต์บางๆ */
+  header{box-shadow:0 2px 4px rgba(13,63,110,0.12),0 8px 24px rgba(13,63,110,0.16);}
+  #channelTabBar{box-shadow:inset 0 -1px 0 rgba(255,255,255,0.10);}
+  #channelTabBar::-webkit-scrollbar{height:5px;}
+  #channelTabBar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.25);border:none;}
+
+  /* แถบสถิติ */
+  .stats-bar{border-bottom-color:#E6EEF6;box-shadow:0 1px 3px rgba(13,63,110,0.04);}
+  .filter-btn{transition:all 0.18s ease;}
+  .filter-btn:hover{transform:translateY(-1px);}
+  .filter-btn.active{box-shadow:0 1px 4px rgba(26,111,181,0.18);}
+
+  /* ช่องวันในปฏิทิน: โค้งขึ้นนิด เงานุ่ม ขอบละมุน */
+  .day-cell{border-radius:12px;border-color:#E8F0F8;box-shadow:0 1px 2px rgba(13,63,110,0.03);}
+  .day-cell.today{box-shadow:0 2px 10px rgba(240,165,0,0.16);}
+  .day-header{letter-spacing:1px;}
+
+  /* การ์ดโพสต์ */
+  .post-card{border-radius:8px;}
+  .post-card:hover{box-shadow:0 4px 12px rgba(26,111,181,0.16);}
+  .pc-thumb{border-radius:6px;}
+  .pbadge{border-radius:4px;}
+
+  /* hover ยกการ์ด — เฉพาะอุปกรณ์ที่มีเมาส์ (ไม่กวนมือถือ) */
+  @media (hover:hover) and (pointer:fine){
+    .day-cell:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(13,63,110,0.06),0 10px 24px rgba(26,111,181,0.14);}
+    .day-cell{transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s;}
+    #fabAdd:hover{transform:scale(1.08);}
+  }
+
+  /* ปุ่มหลัก: เงาสีตามปุ่ม กดแล้วยุบนิดๆ */
+  .btn-add{box-shadow:0 2px 10px rgba(240,165,0,0.35);}
+  .btn-add:active{transform:translateY(0) scale(0.97);}
+  .btn-save{box-shadow:0 2px 10px rgba(26,111,181,0.30);}
+  .btn-save:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,111,181,0.35);}
+  .btn-save:active{transform:translateY(0) scale(0.97);}
+  .btn-export:hover{transform:translateY(-1px);}
+  .btn-export:active,.month-nav button:active{transform:scale(0.96);}
+
+  /* modal: โค้งขึ้น เงาลึกนุ่ม ฉากหลังเบลอขึ้น */
+  .modal-overlay{backdrop-filter:blur(7px);background:rgba(13,63,110,0.40);}
+  .modal{border-radius:20px;box-shadow:0 10px 30px rgba(13,63,110,0.18),0 30px 80px rgba(13,63,110,0.28);}
+  .modal-header{border-bottom-color:#EAF1F8;}
+
+  /* ฟอร์ม: ขอบนุ่ม โฟกัสละมุน */
+  .form-row input,.form-row select,.form-row textarea{border-radius:10px;border-color:#D8E2EE;}
+  .form-row input:focus,.form-row select:focus,.form-row textarea:focus{box-shadow:0 0 0 3.5px rgba(26,111,181,0.12);}
+  .thumb-upload{border-radius:12px;}
+
+  /* คีย์บอร์ดโฟกัสเห็นชัด (accessibility) */
+  button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--blue-mid);outline-offset:2px;}
+
+  /* เคารพผู้ใช้ที่ปิดอนิเมชัน */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
+  }
+}
 </style>
 </head>
 <body>

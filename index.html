@@ -362,6 +362,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     </div>
     <button id="btnGlobalSearch" onclick="openGlobalSearch()" title="ค้นหาทั้งหมด (Ctrl+K)" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🔍</button>
     <button id="btnDayReport" onclick="window.open('report.html','_blank')" title="เขียน Report ประจำวัน" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">📝 Report</button>
+    <button id="btnIdeas" onclick="openIdeas()" title="ไอเดียคอนเทนต์ประจำเดือน" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">💡 ไอเดีย</button>
     <div id="calendarControls" style="display:flex;align-items:center;gap:10px">
       <div class="month-nav">
         <button onclick="changeMonth(-1)">‹</button>
@@ -5396,5 +5397,216 @@ async function confirmImportDraft(){
 }
 </script>
 
+<!-- ══════════ 💡 CONTENT IDEAS — ไอเดียคอนเทนต์รายเดือน (ฟีเจอร์เสริม แยกจากโค้ดหลัก) ══════════ -->
+<style>
+.idea-sec{margin-bottom:16px;}
+.idea-sec-title{font-family:'Prompt',sans-serif;font-size:13px;font-weight:700;color:var(--blue-dark);margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.idea-row{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border:1.5px solid #E8F0F8;border-radius:10px;margin-bottom:5px;transition:all 0.15s;background:white;}
+.idea-row:hover{border-color:var(--blue-mid);box-shadow:0 2px 8px rgba(26,111,181,0.10);}
+.idea-row.used{opacity:0.5;background:#F4F8FB;}
+.idea-row.used .idea-text{color:var(--gray-dark);}
+.idea-chk{margin-top:2px;width:15px;height:15px;accent-color:var(--green);cursor:pointer;flex-shrink:0;}
+.idea-text{flex:1;font-size:12.5px;line-height:1.55;min-width:0;}
+.idea-act{border:none;background:var(--gray);border-radius:7px;padding:3px 7px;font-size:12px;cursor:pointer;flex-shrink:0;transition:all 0.15s;}
+.idea-act:hover{transform:translateY(-1px);background:var(--blue-light);}
+.idea-theme{background:var(--blue-light);border-radius:10px;padding:9px 13px;font-size:12.5px;color:var(--blue-dark);font-weight:600;margin-bottom:14px;line-height:1.5;}
+.idea-nav-btn{background:var(--gray);border:none;border-radius:8px;padding:4px 12px;font-size:15px;cursor:pointer;color:var(--blue-dark);transition:all 0.15s;}
+.idea-nav-btn:hover{background:var(--blue-light);}
+.idea-ai-btn{width:100%;background:linear-gradient(135deg,#8E44AD,#6C3483);color:white;border:none;border-radius:10px;padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:6px;}
+.idea-ai-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(142,68,173,0.35);}
+.idea-ai-btn:disabled{opacity:0.6;cursor:wait;transform:none;}
+.idea-ai-box{background:#F7F0FB;border:1.5px solid #E4D4EF;border-radius:10px;padding:10px 12px;margin-top:10px;}
+.idea-ai-box .idea-row{background:white;}
+.idea-empty{text-align:center;color:var(--gray-dark);font-size:13px;padding:24px 10px;line-height:1.7;}
+</style>
+
+<div class="modal-overlay" id="ideasModal">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header" style="gap:8px;">
+      <h2 style="flex:1;">💡 ไอเดียคอนเทนต์ — <span id="ideasMonthLabel"></span></h2>
+      <button class="idea-nav-btn" onclick="ideasNav(-1)" title="เดือนก่อนหน้า">‹</button>
+      <button class="idea-nav-btn" onclick="ideasNav(1)" title="เดือนถัดไป">›</button>
+      <button class="modal-close" onclick="closeIdeas()">×</button>
+    </div>
+    <div class="modal-body" id="ideasBody"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ── ฐานข้อมูลไอเดีย 12 เดือน (ก.ย. 2026 - ส.ค. 2027) ── */
+const CONTENT_IDEAS = {
+'2026-09':{theme:'โค้งสุดท้ายก่อนปิดเทอมตุลา — ปูคอนเทนต์จัดฟัน/ฟันคุดรอรับนักเรียน-นักศึกษา',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['วันเยาวชนแห่งชาติ 20 ก.ย. — ธีม "ยิ้มมั่นใจวัยทีน" ผูกกับจัดฟันใส','ใกล้ปิดเทอม ต.ค. — นับถอยหลังชวนจองคิวทำฟันช่วงปิดเทอม']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['เช็คลิสต์ "ปิดเทอมนี้เหมาะทำอะไรกับฟันบ้าง" (จัดฟัน/ฟันคุด/ขูดหินปูน)','Q&A หมอนอร์ท: เหล็กจัดฟันหลุดกลางดึก ทำไงดี','POV พาน้อง ม.ปลาย มาปรึกษาจัดฟันครั้งแรก เจออะไรบ้าง','เทียบชัดๆ จัดฟันเหล็ก vs จัดฟันใส ฉบับนักเรียน (งบ/เวลา/ความสะดวก)']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['อัลบั้มแนะนำทีมหมอ DC Dental ทีละคน พร้อมความถนัด','ชุด before/after จัดฟันวัยเรียน 3 เคส','กราฟิกฝนตก: "ฝนตกก็มาได้ คลินิกมีที่จอดรถ" + จุดจอด']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['เปิดจองคิวปรึกษาจัดฟันช่วงปิดเทอมล่วงหน้า (คิวปิดเทอมเต็มไว)','แพ็คขูดหินปูนนักเรียน/นักศึกษา แสดงบัตร']}]},
+'2026-10':{theme:'เดือนทองของคลินิก — วันทันตสาธารณสุขแห่งชาติ 21 ต.ค. + ปิดเทอม + ฮาโลวีน',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['21 ต.ค. วันทันตสาธารณสุขแห่งชาติ — ชุดคอนเทนต์ให้ความรู้ครบเซ็ต','ปิดเทอมตุลา — ช่วงพีคเด็ก/นักศึกษามาทำฟัน','31 ต.ค. ฮาโลวีน — คอนเทนต์สนุกแต่งคลินิก/ฟันแวมไพร์']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['ฮาโลวีน: "อยากมีเขี้ยวแวมไพร์จริงๆ หมอทำให้ได้ไหม" Q&A สนุกๆ','ผ่าฟันคุดช่วงปิดเทอม พักฟื้นกี่วัน กินอะไรได้บ้าง','ทำไมเด็กควรเช็คฟันทุก 6 เดือน (เจาะพ่อแม่)','Vlog เบื้องหลังคลินิกวันคิวแน่นช่วงปิดเทอม']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['อินโฟกราฟิก 10 ข้อดูแลฟัน รับวันทันตสาธารณสุข','รวมรอยยิ้มเคสประจำเดือน (ขอ consent คนไข้)','ทีมงานแต่งฮาโลวีนที่คลินิก']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['แคมเปญวันทันตฯ: ตรวจฟันฟรี/ลดขูดหินปูน 21-31 ต.ค.','โปรผ่าฟันคุดปิดเทอม นศ.']}]},
+'2026-11':{theme:'ลอยกระทง + 11.11 + เริ่มหนาว — จังหวะดันฟอกสีฟัน/วีเนียร์รับปลายปี',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ลอยกระทง (ปลาย พ.ย.) — ถ่ายรูปคู่กระทง ยิ้มต้องพร้อม','11.11 — วัฒนธรรมแฟลชเซล คนพร้อมจ่าย','อากาศเริ่มเย็น — คอนเทนต์เสียวฟัน']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['"อีก 2 อาทิตย์ลอยกระทง ฟอกสีฟันทันไหม" ไทม์ไลน์ความขาว','Q&A: จัดฟันอยู่ ถ่ายรูปมุมไหนยิ้มสวยสุด (สอนโพส)','อากาศเย็นแล้วเสียวฟัน เกิดจากอะไร แก้ยังไง','ไลฟ์/คลิปนับถอยหลังดีล 11.11']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมลอยกระทง แสงเทียน + รอยยิ้ม','before/after วีเนียร์ "ยิ้มรับปลายปี"','กราฟิก countdown ดีล 11.11']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['แฟลชเซล 11.11 ฟอกสีฟัน/ขูดหินปูน (จำกัดสิทธิ์ สร้าง urgency)','เปิดจองคิววีเนียร์ก่อนสิ้นปี (คิว ธ.ค. เต็มไว)']}]},
+'2026-12':{theme:'เดือนแห่งของขวัญ — วันพ่อ + ปีใหม่ + โบนัสออก = เคสใหญ่ (วีเนียร์/รากเทียม)',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['5 ธ.ค. วันพ่อ — พาพ่อมาทำฟัน','คริสต์มาส + ปีใหม่ — ธีมของขวัญ "รอยยิ้มใหม่"','12.12 + โบนัสปลายปี — กำลังซื้อสูงสุดของปี']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['"ของขวัญปีใหม่ที่ดีที่สุด = ให้ตัวเองยิ้มสวย" (วีเนียร์/จัดฟันใส)','คลิปเซอร์ไพรส์พาพ่อมาทำฟัน วันพ่อ','สรุปเคส transformation เด่นแห่งปี 2026 ของคลินิก','Q&A: ปีใหม่กินหวาน/น้ำอัดลมเยอะ ฟันพังไหม ดูแลยังไง']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['การ์ดอวยพรปีใหม่จากทีมหมอทุกคน','อัลบั้ม "รอยยิ้มแห่งปี 2026" รวม before/after ทั้งปี','ตกแต่งคลินิกธีมคริสต์มาส']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['โปรวันพ่อ: พาพ่อขูดหินปูน/ตรวจฟันราคาพิเศษ','แพ็คเกจปีใหม่ วีเนียร์/รากเทียม รับเงินโบนัส','ดีล 12.12 ส่งท้ายปี']}]},
+'2027-01':{theme:'New Year New Smile — ตั้งเป้าปีใหม่ + วันเด็ก + วันครู',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ปีใหม่ — เทรนด์ตั้งเป้าหมาย "ปีนี้ขอฟันสวย"','วันเด็ก (เสาร์ที่ 2 ของเดือน) — ทันตกรรมเด็ก','16 ม.ค. วันครู — ขอบคุณคุณครู']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['"New Year New Smile" ชวนตั้งเป้าฟันสวยปี 2027 เริ่มจากอะไรดี','วันเด็ก: พาลูกหาหมอฟันครั้งแรก พ่อแม่ต้องรู้อะไรบ้าง','Q&A: จัดฟันใช้เวลากี่ปี อายุเท่าไหร่เริ่มได้','เคสรีวิว: เริ่มจัดฟันต้นปี ปลายปีเปลี่ยนไปแค่ไหน']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['เช็คลิสต์เป้าหมายสุขภาพฟัน 2027 (เซฟเก็บได้)','ภาพกิจกรรมวันเด็กที่คลินิก แจกของรางวัล','การ์ดขอบคุณคุณครู วันครู']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['โปรต้อนรับปีใหม่ ตรวจฟัน + X-ray ราคาพิเศษ','ทันตกรรมเด็กราคาพิเศษ สัปดาห์วันเด็ก']}]},
+'2027-02':{theme:'เดือนแห่งความรัก + ตรุษจีน — คอนเทนต์คู่รัก + มงคลรับทรัพย์',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ตรุษจีน (ต้น ก.พ.) — ธีมแดง-ทอง อั่งเปา ยิ้มรับทรัพย์','14 ก.พ. วาเลนไทน์ — คอนเทนต์คู่รัก','มาฆบูชา']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['"ยิ้มสวยรับอั่งเปา" ฟันสวยเสริมบุคลิกรับปีใหม่จีน','POV คู่รักมาจัดฟันด้วยกัน ใครฟันเคลื่อนไวกว่า','Q&A: จัดฟันอยู่ เดตยังไงให้มั่นใจ (เจาะวัยรุ่น)','เมนูตรุษจีนอะไรทำร้ายฟันบ้าง (ขนมเข่ง ขนมเทียน เหนียวติดฟัน)']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมตรุษจีนแดง-ทอง ทีมงานใส่กี่เพ้า','before/after คู่รัก "ยิ้มสวยทั้งคู่"','กราฟิกวาเลนไทน์ "รักตัวเอง เริ่มที่รอยยิ้ม"']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['โปรคู่รักวาเลนไทน์ มา 2 คน ลดพิเศษ','อั่งเปาส่วนลดตรุษจีน สุ่มซองที่คลินิก']}]},
+'2027-03':{theme:'ปิดเทอมใหญ่เริ่ม + World Oral Health Day 20 มี.ค. — พีคจัดฟัน/ฟันคุดรอบใหญ่',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['20 มี.ค. World Oral Health Day — วันสุขภาพช่องปากโลก','ปิดเทอมใหญ่ (มี.ค.-พ.ค.) — ช่วงทองจัดฟัน/ฟันคุดนักเรียน','เริ่มหน้าร้อน — ของเย็น/เสียวฟัน']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['"ปิดเทอมใหญ่ = เวลาที่ดีที่สุดในการเริ่มจัดฟัน" เพราะอะไร','ผ่าฟันคุดปิดเทอม: ไทม์ไลน์พักฟื้นวันต่อวัน','Q&A: กินน้ำแข็ง/ไอศกรีมแล้วเสียวฟัน ผิดปกติไหม','สอบเสร็จแล้ว! เช็คลิสต์ดูแลตัวเองช่วงปิดเทอม (ฟันต้องมา)']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['อินโฟกราฟิกวันสุขภาพช่องปากโลก','ชุดรีวิวเคสนักเรียน/นักศึกษาช่วงปิดเทอม','ภาพธีมซัมเมอร์ ยิ้มสดใสรับแดด']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['แพ็คจัดฟันปิดเทอม ฟรีค่าปรึกษา + X-ray','โปรผ่าฟันคุดนักศึกษา แสดงบัตร']}]},
+'2027-04':{theme:'สงกรานต์ — กลับบ้าน เจอญาติ ถ่ายรูปเยอะ = ยิ้มต้องพร้อม',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['13-15 เม.ย. สงกรานต์ ปีใหม่ไทย','14 เม.ย. วันครอบครัว — รวมญาติ ถ่ายรูปหมู่','หน้าร้อนเต็มตัว']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['"กลับบ้านสงกรานต์ทั้งที ยิ้มให้ญาติทักว่าสวยขึ้น" (ฟอกสีฟัน/วีเนียร์)','เพิ่งผ่าฟันคุด/ทำฟัน เล่นน้ำสงกรานต์ได้ไหม ระวังอะไร','Q&A: รีเทนเนอร์หาย/ลืมไว้ต่างจังหวัด ทำไงดี','เช็คอินคลินิกช่วงสงกรานต์ วันไหนเปิด-ปิด (คลิปสั้นแจ้งเวลา)']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมสงกรานต์ ลายดอก สาดความสดใส','ภาพครอบครัวยิ้มพร้อมหน้า รับวันครอบครัว','before/after ฟอกสีฟัน "ขาวรับซัมเมอร์"']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['โปรฟอกสีฟันรับสงกรานต์','แพ็คตรวจฟันครอบครัว มากัน 3 คนขึ้นไปลดพิเศษ']}]},
+'2027-05':{theme:'เปิดเทอมใหญ่ — เช็คฟันก่อนเข้าเรียน + ฤดูฝนเริ่ม',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['เปิดเทอมใหญ่ กลาง พ.ค. — เช็คความพร้อมก่อนเปิดเทอม','วิสาขบูชา','ฝนเริ่มตก']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['เช็คลิสต์ "ก่อนเปิดเทอม พาลูกเช็คฟันหรือยัง"','เด็กจัดฟันไปโรงเรียน ต้องพกอะไรบ้าง (ชุด survival kit)','Q&A: แปรงสีฟัน/แปรงซอกฟันแบบไหนเหมาะกับคนจัดฟัน','1 วันของน้องที่เพิ่งติดเหล็กวันแรก ปวดไหม กินอะไรได้']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['กราฟิก back to school + อุปกรณ์ดูแลฟันที่ควรมี','รีวิวเคสจัดฟันเด็ก/ทันตกรรมเด็ก','ทีมงานต้อนรับเปิดเทอม']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['แพ็คเปิดเทอม: ตรวจฟัน + เคลือบฟลูออไรด์เด็ก','ส่วนลดนักเรียนตลอดเดือน พ.ค.']}]},
+'2027-06':{theme:'ครึ่งปีแรกจบ — Mid-year checkup + Pride Month ยิ้มมั่นใจในแบบตัวเอง',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ครึ่งปี 2027 — จังหวะชวนเช็คสุขภาพฟันกลางปี','Pride Month — ความมั่นใจในแบบของตัวเอง','วันไหว้ครู (พฤหัสแรกๆ ของเดือน)']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['"ครึ่งปีผ่านไปแล้ว ขูดหินปูนครั้งล่าสุดเมื่อไหร่" ชวนเช็ค','Q&A: ทำไมต้องขูดหินปูนทุก 6 เดือน ปล่อยไว้เกิดอะไรขึ้น','Pride: รอยยิ้มที่มั่นใจในแบบของตัวเอง (เล่าเรื่องเคสจริง)','อัพเดทเคสจัดฟันครบครึ่งทาง เปลี่ยนไปแค่ไหน']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['กราฟิก Mid-Year Dental Check ครึ่งปีเช็คที','ธีมสีรุ้ง Pride + รอยยิ้มหลากหลาย','meme หน้าฝน: "ฝนตกขี้เกียจออกจากบ้าน แต่คิวหมอฟันต้องไป"']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['Mid-Year Check-up ตรวจ+ขูดหินปูนราคาพิเศษ','โปรมาคู่ ขูดหินปูน 2 คนถูกกว่า']}]},
+'2027-07':{theme:'เข้าพรรษา — แคมเปญ "งดหวาน ฟันได้พัก" + คอนเทนต์คอกาแฟ',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['อาสาฬหบูชา + เข้าพรรษา — เทรนด์งดเหล้า/งดหวาน 3 เดือน','วันหยุดยาว — คนว่างเลื่อนดูโซเชียลเยอะ']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['ชาเลนจ์ "เข้าพรรษางดหวาน 3 เดือน" ฟันเปลี่ยนแค่ไหน มาดูกัน','Q&A: กาแฟทำฟันเหลืองจริงไหม เลิกไม่ได้ทำไงดี','ฟอกสีฟันขาวขึ้นได้กี่เฉด ดูจากเคสจริง','น้ำตาลซ่อนอยู่ในอะไรบ้างที่เราไม่รู้ตัว (ชานม น้ำอัดลม)']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดกราฟิกแคมเปญงดหวานเข้าพรรษา (ซีรีส์ 4 สัปดาห์)','before/after ฟอกสีฟันเคสคอกาแฟ/ชานม','ภาพทำบุญเข้าพรรษาของทีมคลินิก']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['ร่วมชาเลนจ์งดหวาน โพสต์แท็กคลินิก รับส่วนลดขูดหินปูน','โปรฟอกสีฟันกลางปี']}]},
+'2027-08':{theme:'วันแม่ 12 ส.ค. — เดือนแห่งการพาแม่มาทำฟัน (ต่อยอดโปรวันแม่ปีที่แล้ว)',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['12 ส.ค. วันแม่แห่งชาติ — ธีมสีฟ้า ดอกมะลิ','โอกาสเจาะกลุ่มผู้สูงอายุ: รากเทียม/ฟันปลอม']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['เซอร์ไพรส์พาแม่มาทำฟัน — เก็บโมเมนต์แม่ยิ้มสวย','Q&A: แม่อายุ 60+ ใส่ฟันปลอม vs รากเทียม อันไหนเหมาะ','"ขอบคุณแม่ผ่านรอยยิ้ม" รวมคลิปคนไข้พาแม่มา','ผู้สูงอายุฟันหลุด/ฟันโยก ปล่อยไว้อันตรายกว่าที่คิด']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['การ์ดวันแม่ธีมฟ้า-ดอกมะลิ จากคลินิก','รีวิวเคสคุณแม่: รากเทียม/ฟันปลอม เปลี่ยนชีวิต','ภาพทีมงานกับคุณแม่ของตัวเอง (humanize แบรนด์)']},
+ {icon:'💰',t:'โปร/แคมเปญ',items:['โปรวันแม่: พาแม่ตรวจฟันฟรี / ลดรากเทียม-ฟันปลอม','แพ็คแม่ลูก ขูดหินปูนคู่ราคาพิเศษ']}]}
+};
+/* ไอเดียใช้ได้ทุกเดือน */
+const IDEA_EVERGREEN = ['ตอบคำถามจากคอมเมนต์/อินบ็อกซ์ประจำสัปดาห์ (สไตล์คลิป Q&A ที่ทำอยู่)','เบื้องหลังคลินิก: เครื่องมือ/ความสะอาด/ทีมงาน สร้างความเชื่อมั่น','รีวิวคนไข้จริง สัมภาษณ์สั้นหลังทำเสร็จ','Myth-busting: ความเชื่อผิดๆ เรื่องฟัน เช่น "จัดฟันแล้วหน้าเรียว?"','เช็คอินร้านอร่อย/ที่เที่ยวจันทบุรี ผูกกับช่อง Check In'];
+
+let ideasY=null, ideasM=null;
+const IDEA_TH_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function ideaYM(){ return ideasY+'-'+String(ideasM+1).padStart(2,'0'); }
+function ideaUsedMap(){ try{ return JSON.parse(localStorage.getItem('dcIdeaUsed_v1'))||{}; }catch(e){ return {}; } }
+function ideaAIMap(){ try{ return JSON.parse(localStorage.getItem('dcIdeaAI_v1'))||{}; }catch(e){ return {}; } }
+
+function openIdeas(){ ideasY=cy; ideasM=cm; renderIdeasModal(); document.getElementById('ideasModal').classList.add('open'); }
+function closeIdeas(){ document.getElementById('ideasModal').classList.remove('open'); }
+function ideasNav(d){ ideasM+=d; if(ideasM<0){ideasM=11;ideasY--;} if(ideasM>11){ideasM=0;ideasY++;} renderIdeasModal(); }
+function ideaEsc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function ideaRowHTML(key, text, ym, si, ii){
+  const used = !!ideaUsedMap()[key];
+  return '<div class="idea-row'+(used?' used':'')+'" id="ir_'+key.replace(/[^a-zA-Z0-9]/g,'_')+'">'
+    +'<input type="checkbox" class="idea-chk" '+(used?'checked':'')+' title="ติ๊กเมื่อใช้ไอเดียนี้แล้ว" onchange="toggleIdeaUsed(\''+key+'\',this)">'
+    +'<span class="idea-text">'+ideaEsc(text)+'</span>'
+    +'<button class="idea-act" title="Copy ไอเดีย" onclick="copyIdea(\''+ym+'\','+si+','+ii+',this)">📋</button>'
+    +'<button class="idea-act" title="สร้างโพสต์จากไอเดียนี้" onclick="ideaToPost(\''+ym+'\','+si+','+ii+')">➕</button>'
+    +'</div>';
+}
+function ideaTextAt(ym, si, ii){
+  if (ym==='ev') return IDEA_EVERGREEN[ii];
+  if (si===-1){ const ai=ideaAIMap()[ym]||[]; return ai[ii]||''; }
+  return CONTENT_IDEAS[ym].sections[si].items[ii];
+}
+
+function renderIdeasModal(){
+  const ym = ideaYM();
+  document.getElementById('ideasMonthLabel').textContent = IDEA_TH_MONTHS[ideasM]+' '+ideasY;
+  const data = CONTENT_IDEAS[ym];
+  let h = '';
+  if (data){
+    h += '<div class="idea-theme">🎯 '+ideaEsc(data.theme)+'</div>';
+    data.sections.forEach(function(sec, si){
+      h += '<div class="idea-sec"><div class="idea-sec-title">'+sec.icon+' '+ideaEsc(sec.t)+'</div>';
+      sec.items.forEach(function(item, ii){ h += ideaRowHTML(ym+'|'+si+'|'+ii, item, ym, si, ii); });
+      h += '</div>';
+    });
+  } else {
+    h += '<div class="idea-empty">ยังไม่มีชุดไอเดียของเดือนนี้ 🙈<br>กดปุ่ม AI ด้านล่างให้ช่วย brainstorm ได้เลย</div>';
+  }
+  const aiIdeas = ideaAIMap()[ym]||[];
+  if (aiIdeas.length){
+    h += '<div class="idea-ai-box"><div class="idea-sec-title">🤖 ไอเดียจาก AI</div>';
+    aiIdeas.forEach(function(item, ii){ h += ideaRowHTML(ym+'|ai|'+ii, item, ym, -1, ii); });
+    h += '</div>';
+  }
+  h += '<button class="idea-ai-btn" id="ideaAIBtn" onclick="askAIIdeas()">🤖 ขอไอเดียเพิ่มจาก AI</button>';
+  h += '<div class="idea-sec" style="margin-top:16px;"><div class="idea-sec-title">🔁 ใช้ได้ทุกเดือน (Evergreen)</div>';
+  IDEA_EVERGREEN.forEach(function(item, ii){ h += ideaRowHTML('ev|'+ii, item, 'ev', 0, ii); });
+  h += '</div>';
+  document.getElementById('ideasBody').innerHTML = h;
+}
+
+function toggleIdeaUsed(key, chk){
+  const map = ideaUsedMap();
+  if (chk.checked) map[key]=true; else delete map[key];
+  localStorage.setItem('dcIdeaUsed_v1', JSON.stringify(map));
+  chk.parentElement.classList.toggle('used', chk.checked);
+}
+function copyIdea(ym, si, ii, btn){
+  const text = ideaTextAt(ym, si, ii);
+  const done = function(){ btn.textContent='✅'; setTimeout(function(){ btn.textContent='📋'; },1200); };
+  if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done); }
+  else { const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');done();}catch(e){} document.body.removeChild(ta); }
+}
+function ideaToPost(ym, si, ii){
+  const text = ideaTextAt(ym, si, ii);
+  closeIdeas();
+  const today = new Date();
+  let dateStr;
+  if (ym!=='ev' && (today.getFullYear()!==ideasY || today.getMonth()!==ideasM)){
+    dateStr = ideasY+'-'+String(ideasM+1).padStart(2,'0')+'-01';
+  } else {
+    dateStr = today.toISOString().split('T')[0];
+  }
+  openAdd(dateStr);
+  document.getElementById('fTitle').value = text;
+}
+function askAIIdeas(){
+  const ym = ideaYM();
+  const btn = document.getElementById('ideaAIBtn');
+  btn.disabled = true; btn.textContent = '🤖 กำลังคิดไอเดีย...';
+  const monthName = IDEA_TH_MONTHS[ideasM]+' '+ideasY;
+  const data = CONTENT_IDEAS[ym];
+  const existing = []
+    .concat(data ? data.sections.reduce(function(a,s){ return a.concat(s.items); },[]) : [])
+    .concat(ideaAIMap()[ym]||[]);
+  fetch(SHEET_URL, {
+    method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({action:'brainstormIdeas', month:monthName, context:existing.join(' | ').slice(0,3000)})
+  }).then(function(r){ return r.json(); })
+    .then(function(j){
+      if (!j.ok) throw new Error(j.error||'');
+      const lines = (j.ideas||'').split('\n').map(function(s){ return s.replace(/^[\s\d\.\-\*•]+/,'').trim(); }).filter(Boolean);
+      if (!lines.length) throw new Error('empty');
+      const map = ideaAIMap();
+      map[ym] = (map[ym]||[]).concat(lines);
+      localStorage.setItem('dcIdeaAI_v1', JSON.stringify(map));
+      renderIdeasModal();
+    })
+    .catch(function(err){
+      alert('ขอไอเดียจาก AI ไม่สำเร็จ 😅\n'+(String(err.message||'').includes('unknown')?'ต้องอัพเดทโค้ด Apps Script เป็นเวอร์ชัน v7 ก่อนครับ (มีไฟล์ calendar-gas-v7.gs ให้แล้ว)':'ลองใหม่อีกครั้ง หรือเช็คอินเทอร์เน็ต'));
+      btn.disabled = false; btn.textContent = '🤖 ขอไอเดียเพิ่มจาก AI';
+    });
+}
+document.getElementById('ideasModal').addEventListener('click', function(e){ if(e.target===this) closeIdeas(); });
+</script>
 </body>
 </html>

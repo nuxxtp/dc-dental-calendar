@@ -772,21 +772,20 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="check-in">✅ Check In</option>
         </select>
         <div id="fDoctorPreview" style="margin-top:6px;min-height:20px"></div></div>
-      <div class="form-row"><label>คอลแลปไปที่ (เลือกได้หลายช่อง)</label>
-        <div id="fCollabChips" style="display:flex;flex-wrap:wrap;gap:6px">
-          <button type="button" class="collab-chip" data-ch="dc-dental" data-color="#1A6FB5" onclick="toggleCollabChip(this)" style="background:#FFF;color:#1A6FB5;border:1.5px solid #1A6FB5;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">DC Dental Clinic</button>
-          <button type="button" class="collab-chip" data-ch="dc-aligner" data-color="#1A6FB5" onclick="toggleCollabChip(this)" style="background:#FFF;color:#1A6FB5;border:1.5px solid #1A6FB5;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">DC Aligner</button>
-          <button type="button" class="collab-chip" data-ch="junfun" data-color="#B8876A" onclick="toggleCollabChip(this)" style="background:#FFF;color:#B8876A;border:1.5px solid #B8876A;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">junfunreview</button>
-          <button type="button" class="collab-chip" data-ch="implant" data-color="#3D3D3D" onclick="toggleCollabChip(this)" style="background:#FFF;color:#3D3D3D;border:1.5px solid #3D3D3D;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">implant review</button>
-          <button type="button" class="collab-chip" data-ch="dr-north" data-color="#E67E22" onclick="toggleCollabChip(this)" style="background:#FFF;color:#E67E22;border:1.5px solid #E67E22;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.north.judfun</button>
-          <button type="button" class="collab-chip" data-ch="dr-daran" data-color="#27AE60" onclick="toggleCollabChip(this)" style="background:#FFF;color:#27AE60;border:1.5px solid #27AE60;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.daran.dc</button>
-          <button type="button" class="collab-chip" data-ch="north-tiktok" data-color="#010101" onclick="toggleCollabChip(this)" style="background:#FFF;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 dr.north TikTok</button>
-          <button type="button" class="collab-chip" data-ch="tiktok-dc" data-color="#010101" onclick="toggleCollabChip(this)" style="background:#FFF;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Dental TikTok</button>
-          <button type="button" class="collab-chip" data-ch="tiktok-aligner" data-color="#010101" onclick="toggleCollabChip(this)" style="background:#FFF;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Aligner TikTok</button>
-          <button type="button" class="collab-chip" data-ch="check-in" data-color="#D81B60" onclick="toggleCollabChip(this)" style="background:#FFF;color:#D81B60;border:1.5px solid #D81B60;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">✅ Check In</button>
+      <div class="form-row"><label>คอลแลปไปที่ <span style="font-weight:400;color:#9AA6B2">(แตะเพื่อเลือกได้หลายช่อง)</span></label>
+        <div id="fCollabChips" style="display:flex;flex-wrap:wrap;gap:7px">
+          <button type="button" class="collab-chip" data-ch="dc-dental" data-label="DC Dental Clinic" onclick="toggleCollabChip(this)" style="background:#1A6FB514;color:#1A6FB5;border:1.5px solid #1A6FB5;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">DC Dental Clinic</button>
+          <button type="button" class="collab-chip" data-ch="dc-aligner" data-label="DC Aligner" onclick="toggleCollabChip(this)" style="background:#1A6FB514;color:#1A6FB5;border:1.5px solid #1A6FB5;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">DC Aligner</button>
+          <button type="button" class="collab-chip" data-ch="junfun" data-label="junfunreview" onclick="toggleCollabChip(this)" style="background:#B8876A14;color:#B8876A;border:1.5px solid #B8876A;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">junfunreview</button>
+          <button type="button" class="collab-chip" data-ch="implant" data-label="implant review" onclick="toggleCollabChip(this)" style="background:#3D3D3D14;color:#3D3D3D;border:1.5px solid #3D3D3D;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">implant review</button>
+          <button type="button" class="collab-chip" data-ch="dr-north" data-label="dr.north.judfun" onclick="toggleCollabChip(this)" style="background:#E67E2214;color:#E67E22;border:1.5px solid #E67E22;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.north.judfun</button>
+          <button type="button" class="collab-chip" data-ch="dr-daran" data-label="dr.daran.dc" onclick="toggleCollabChip(this)" style="background:#27AE6014;color:#27AE60;border:1.5px solid #27AE60;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.daran.dc</button>
+          <button type="button" class="collab-chip" data-ch="north-tiktok" data-label="🎵 dr.north TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 dr.north TikTok</button>
+          <button type="button" class="collab-chip" data-ch="tiktok-dc" data-label="🎵 DC Dental TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Dental TikTok</button>
+          <button type="button" class="collab-chip" data-ch="tiktok-aligner" data-label="🎵 DC Aligner TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Aligner TikTok</button>
+          <button type="button" class="collab-chip" data-ch="check-in" data-label="✅ Check In" onclick="toggleCollabChip(this)" style="background:#D81B6014;color:#D81B60;border:1.5px solid #D81B60;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">✅ Check In</button>
         </div>
-        <input type="hidden" id="fCollab">
-        <div id="fCollabPreview" style="margin-top:6px;min-height:20px;display:flex;flex-wrap:wrap;gap:4px"></div></div>
+        <input type="hidden" id="fCollab"></div>
       <div class="form-row"><label>Status</label>
         <select id="fStatus">
           <option value="draft">📝 Draft</option>
@@ -1629,26 +1628,23 @@ function updateChannelPreview(selectId,previewId){
 function collabList(p){
   return String((p&&p.collab)||'').split(',').map(s=>s.trim()).filter(Boolean);
 }
+function paintCollabChip(btn,active){
+  btn.dataset.active=active?'1':'0';
+  btn.style.boxShadow=active?'0 0 0 2.5px currentColor':'none';
+  btn.style.transform=active?'scale(1.06)':'scale(1)';
+  btn.textContent=(active?'✓ ':'')+btn.dataset.label;
+}
 function toggleCollabChip(btn){
-  const activate=btn.dataset.active!=='1';
-  btn.dataset.active=activate?'1':'0';
-  const color=btn.dataset.color;
-  btn.style.background=activate?color:'#FFF';
-  btn.style.color=activate?'#FFF':color;
+  paintCollabChip(btn,btn.dataset.active!=='1');
   syncCollabHidden();
 }
 function syncCollabHidden(){
   const vals=[...document.querySelectorAll('#fCollabChips .collab-chip')].filter(b=>b.dataset.active==='1').map(b=>b.dataset.ch);
   document.getElementById('fCollab').value=vals.join(',');
-  document.getElementById('fCollabPreview').innerHTML=vals.map(v=>channelBadge(v)).join(' ');
 }
 function setCollabSelection(chArr){
   document.querySelectorAll('#fCollabChips .collab-chip').forEach(btn=>{
-    const active=chArr.includes(btn.dataset.ch);
-    btn.dataset.active=active?'1':'0';
-    const color=btn.dataset.color;
-    btn.style.background=active?color:'#FFF';
-    btn.style.color=active?'#FFF':color;
+    paintCollabChip(btn,chArr.includes(btn.dataset.ch));
   });
   syncCollabHidden();
 }

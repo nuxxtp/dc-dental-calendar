@@ -772,21 +772,21 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="check-in">✅ Check In</option>
         </select>
         <div id="fDoctorPreview" style="margin-top:6px;min-height:20px"></div></div>
-      <div class="form-row"><label>คอลแลปไปที่</label>
-        <select id="fCollab" onchange="updateChannelPreview('fCollab','fCollabPreview')">
-          <option value="">— ไม่มีคอลแลป —</option>
-          <option value="dc-dental">DC Dental Clinic</option>
-          <option value="dc-aligner">DC Aligner</option>
-          <option value="junfun">junfunreview</option>
-          <option value="implant">implant review</option>
-          <option value="dr-north">dr.north.judfun</option>
-          <option value="dr-daran">dr.daran.dc</option>
-          <option value="north-tiktok">🎵 dr.north TikTok</option>
-          <option value="tiktok-dc">🎵 DC Dental TikTok</option>
-          <option value="tiktok-aligner">🎵 DC Aligner TikTok</option>
-          <option value="check-in">✅ Check In</option>
-        </select>
-        <div id="fCollabPreview" style="margin-top:6px;min-height:20px"></div></div>
+      <div class="form-row"><label>คอลแลปไปที่ (เลือกได้หลายช่อง)</label>
+        <div id="fCollabChips" style="display:flex;flex-wrap:wrap;gap:6px">
+          <button type="button" class="collab-chip" data-ch="dc-dental" data-color="#1A6FB5" onclick="toggleCollabChip(this)" style="background:#FFF;color:#1A6FB5;border:1.5px solid #1A6FB5;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">DC Dental Clinic</button>
+          <button type="button" class="collab-chip" data-ch="dc-aligner" data-color="#1A6FB5" onclick="toggleCollabChip(this)" style="background:#FFF;color:#1A6FB5;border:1.5px solid #1A6FB5;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">DC Aligner</button>
+          <button type="button" class="collab-chip" data-ch="junfun" data-color="#B8876A" onclick="toggleCollabChip(this)" style="background:#FFF;color:#B8876A;border:1.5px solid #B8876A;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">junfunreview</button>
+          <button type="button" class="collab-chip" data-ch="implant" data-color="#3D3D3D" onclick="toggleCollabChip(this)" style="background:#FFF;color:#3D3D3D;border:1.5px solid #3D3D3D;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">implant review</button>
+          <button type="button" class="collab-chip" data-ch="dr-north" data-color="#E67E22" onclick="toggleCollabChip(this)" style="background:#FFF;color:#E67E22;border:1.5px solid #E67E22;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.north.judfun</button>
+          <button type="button" class="collab-chip" data-ch="dr-daran" data-color="#27AE60" onclick="toggleCollabChip(this)" style="background:#FFF;color:#27AE60;border:1.5px solid #27AE60;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.daran.dc</button>
+          <button type="button" class="collab-chip" data-ch="north-tiktok" data-color="#010101" onclick="toggleCollabChip(this)" style="background:#FFF;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 dr.north TikTok</button>
+          <button type="button" class="collab-chip" data-ch="tiktok-dc" data-color="#010101" onclick="toggleCollabChip(this)" style="background:#FFF;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Dental TikTok</button>
+          <button type="button" class="collab-chip" data-ch="tiktok-aligner" data-color="#010101" onclick="toggleCollabChip(this)" style="background:#FFF;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Aligner TikTok</button>
+          <button type="button" class="collab-chip" data-ch="check-in" data-color="#D81B60" onclick="toggleCollabChip(this)" style="background:#FFF;color:#D81B60;border:1.5px solid #D81B60;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">✅ Check In</button>
+        </div>
+        <input type="hidden" id="fCollab">
+        <div id="fCollabPreview" style="margin-top:6px;min-height:20px;display:flex;flex-wrap:wrap;gap:4px"></div></div>
       <div class="form-row"><label>Status</label>
         <select id="fStatus">
           <option value="draft">📝 Draft</option>
@@ -1558,7 +1558,7 @@ async function loadChannelData(ch){
     })).filter(r=>r.id&&r.title);
     // check อีกรอบหลัง parse (fetch ใช้เวลา)
     if(ch!==activeChannel){ showLoading(false); return; }
-    posts=allData.filter(r=>!r.doctor||r.doctor===ch||r.collab===ch);
+    posts=allData.filter(r=>!r.doctor||r.doctor===ch||collabList(r).includes(ch));
     try{
       const cacheData=posts.map(p=>({id:p.id,title:p.title,date:p.date,platform:p.platform,type:p.type,doctor:p.doctor,collab:p.collab,contentStyle:p.contentStyle,captionCheck:p.captionCheck||'',status:p.status,funnel:p.funnel||'',mood:p.mood||'',strategy:p.strategy||''}));
       localStorage.setItem(cacheKey,JSON.stringify(cacheData));
@@ -1624,6 +1624,33 @@ function channelBadge(val,small=false){
 function updateChannelPreview(selectId,previewId){
   const val=document.getElementById(selectId).value;
   document.getElementById(previewId).innerHTML=val?channelBadge(val):'';
+}
+
+function collabList(p){
+  return String((p&&p.collab)||'').split(',').map(s=>s.trim()).filter(Boolean);
+}
+function toggleCollabChip(btn){
+  const activate=btn.dataset.active!=='1';
+  btn.dataset.active=activate?'1':'0';
+  const color=btn.dataset.color;
+  btn.style.background=activate?color:'#FFF';
+  btn.style.color=activate?'#FFF':color;
+  syncCollabHidden();
+}
+function syncCollabHidden(){
+  const vals=[...document.querySelectorAll('#fCollabChips .collab-chip')].filter(b=>b.dataset.active==='1').map(b=>b.dataset.ch);
+  document.getElementById('fCollab').value=vals.join(',');
+  document.getElementById('fCollabPreview').innerHTML=vals.map(v=>channelBadge(v)).join(' ');
+}
+function setCollabSelection(chArr){
+  document.querySelectorAll('#fCollabChips .collab-chip').forEach(btn=>{
+    const active=chArr.includes(btn.dataset.ch);
+    btn.dataset.active=active?'1':'0';
+    const color=btn.dataset.color;
+    btn.style.background=active?color:'#FFF';
+    btn.style.color=active?'#FFF':color;
+  });
+  syncCollabHidden();
 }
 
 // ================================================
@@ -1766,7 +1793,7 @@ function render(){
 function postsInMonth(){
   return posts.filter(p=>{
     const d=new Date(p.date+'T00:00:00');
-    return d.getFullYear()===cy&&d.getMonth()===cm&&(!p.doctor||p.doctor===activeChannel||p.collab===activeChannel);
+    return d.getFullYear()===cy&&d.getMonth()===cm&&(!p.doctor||p.doctor===activeChannel||collabList(p).includes(activeChannel));
   });
 }
 
@@ -1881,16 +1908,18 @@ function createCard(p){
   const capDotColor=p.captionCheck==='done'?'#27AE60':'#E74C3C';
   const capDot=`<div style="position:absolute;bottom:2px;right:2px;width:7px;height:7px;border-radius:50%;background:${capDotColor};border:1.5px solid white;z-index:2;"></div>`;
   // Collab badge — short version
-  const isCollab=p.collab&&p.collab!==p.doctor;
+  const collabArr=collabList(p);
+  const weAreSenderCard=p.doctor===activeChannel;
+  const isCollab=collabArr.length>0&&(weAreSenderCard||collabArr.includes(activeChannel));
   const chBadge=channelBadge(p.doctor,true);
   let collabBadge='';
   if(isCollab){
-    const weAreSender=p.doctor===activeChannel;
-    if(weAreSender){
-      const targetCh=p.collab;
-      const targetMeta=CH_META[targetCh];
-      const shortName=targetMeta?targetMeta.label.split(' ')[0]:targetCh;
-      collabBadge=`<span style="font-size:8px;font-weight:600;background:#EBF5FF;color:#1A5276;border:0.5px solid #AED6F1;padding:1px 5px;border-radius:10px;white-space:nowrap;">↗ ${shortName}</span>`;
+    if(weAreSenderCard){
+      collabBadge=collabArr.map(targetCh=>{
+        const targetMeta=CH_META[targetCh];
+        const shortName=targetMeta?targetMeta.label.split(' ')[0]:targetCh;
+        return `<span style="font-size:8px;font-weight:600;background:#EBF5FF;color:#1A5276;border:0.5px solid #AED6F1;padding:1px 5px;border-radius:10px;white-space:nowrap;">↗ ${shortName}</span>`;
+      }).join('');
     } else {
       collabBadge=`<span style="font-size:8px;font-weight:600;background:#F3EEF8;color:#6A5A8E;border:0.5px solid #C39BD3;padding:1px 5px;border-radius:10px;white-space:nowrap;">↩ collab</span>`;
     }
@@ -1944,14 +1973,13 @@ function openAdd(dateStr){
   document.getElementById('fType').value='video';
   document.getElementById('fDoctor').value=activeChannel;
   updateChannelPreview('fDoctor','fDoctorPreview');
-  document.getElementById('fCollab').value='';
+  setCollabSelection([]);
   document.getElementById('fContentStyle').value='';
   document.getElementById('fStrategy').value='';
   document.getElementById('fFunnel').value='';
   document.getElementById('fMood').value='';
   document.getElementById('fCaptionCheck').value='';
   document.getElementById('fDoctorPreview').innerHTML='';
-  document.getElementById('fCollabPreview').innerHTML='';
   document.getElementById('fStatus').value='draft';
   document.getElementById('fThumbData').value='';
   document.getElementById('thumbPreview').style.display='none';
@@ -1974,14 +2002,13 @@ function openEdit(id){
   document.getElementById('fPlatform').value=p.platform||'both';
   document.getElementById('fType').value=p.type||'video';
   document.getElementById('fDoctor').value=p.doctor||'';
-  document.getElementById('fCollab').value=p.collab||'';
+  setCollabSelection(collabList(p));
   document.getElementById('fContentStyle').value=p.contentStyle||'';
   document.getElementById('fStrategy').value=p.strategy||'';
   document.getElementById('fFunnel').value=p.funnel||'';
   document.getElementById('fMood').value=p.mood||'';
   document.getElementById('fCaptionCheck').value=p.captionCheck||'';
   updateChannelPreview('fDoctor','fDoctorPreview');
-  updateChannelPreview('fCollab','fCollabPreview');
   document.getElementById('fStatus').value=p.status||'draft';
   document.getElementById('fThumbData').value=p.thumbData||'';
   if(p.thumbData){document.getElementById('thumbPreview').src=p.thumbData;document.getElementById('thumbPreview').style.display='block';document.getElementById('thumbPlaceholder').style.display='none';}
@@ -1998,8 +2025,9 @@ async function savePost(){
   if(!title){alert('กรุณาใส่ชื่อโพสต์');return;}
   if(!date){alert('กรุณาเลือกวันที่');return;}
   const id=document.getElementById('editId').value;
-  const collabCh=document.getElementById('fCollab').value;
   const doctorCh=document.getElementById('fDoctor').value||activeChannel;
+  const collabChs=document.getElementById('fCollab').value.split(',').map(s=>s.trim()).filter(v=>v&&v!==doctorCh);
+  const collabCh=collabChs.join(',');
   const post={
     id:id||Date.now().toString(),title,date,
     time:document.getElementById('fTime').value,
@@ -2025,11 +2053,16 @@ async function savePost(){
   showNoti('⏳ กำลังบันทึก...','#1A6FB5');
   const ok=await apiCall({action:'save',post},doctorCh);
   if(!ok||!ok.ok){showNoti('❌ บันทึกไม่สำเร็จ ลองใหม่','#E74C3C');return;}
-  if(collabCh&&collabCh!==doctorCh){
-    const collabPost=Object.assign({},post,{id:post.id,doctor:doctorCh,collab:collabCh});
-    const ok2=await apiCall({action:'save',post:collabPost},collabCh);
-    if(ok2&&ok2.ok) showNoti('✅ บันทึก + sync ไป '+(CHANNEL_META[collabCh]?.label||collabCh)+' อัตโนมัติ!','#27AE60');
-    else showNoti('✅ บันทึกแล้ว แต่ sync ไม่สำเร็จ','#E67E22');
+  if(collabChs.length){
+    const results=await Promise.all(collabChs.map(ch=>{
+      const collabPost=Object.assign({},post,{id:post.id,doctor:doctorCh,collab:collabCh});
+      return apiCall({action:'save',post:collabPost},ch).then(r=>({ch,ok:!!(r&&r.ok)}));
+    }));
+    const okChs=results.filter(r=>r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
+    const failChs=results.filter(r=>!r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
+    if(okChs.length&&!failChs.length) showNoti('✅ บันทึก + sync ไป '+okChs.join(', ')+' อัตโนมัติ!','#27AE60');
+    else if(okChs.length&&failChs.length) showNoti('✅ sync ไป '+okChs.join(', ')+' สำเร็จ แต่ '+failChs.join(', ')+' ไม่สำเร็จ','#E67E22');
+    else showNoti('✅ บันทึกแล้ว แต่ sync ไม่สำเร็จ ('+failChs.join(', ')+')','#E67E22');
   } else if(doctorCh!==activeChannel){
     showNoti('✅ บันทึกลงช่อง '+(CHANNEL_META[doctorCh]?.label||doctorCh)+' แล้ว (ไม่แสดงในช่องนี้)','#27AE60');
   } else {
@@ -2063,14 +2096,15 @@ function openView(id){
   const doctorWrap=document.getElementById('vDoctorWrap');
   const collabWrap=document.getElementById('vCollabWrap');
   const collabLabel=collabWrap?collabWrap.querySelector('.vfl'):null;
-  const hasCollab=p.collab&&p.collab!==p.doctor;
+  const collabArrV=collabList(p);
+  const hasCollab=collabArrV.length>0;
   const weAreSender=hasCollab&&p.doctor===activeChannel;
-  const weAreReceiver=hasCollab&&p.collab===activeChannel;
+  const weAreReceiver=hasCollab&&collabArrV.includes(activeChannel)&&p.doctor!==activeChannel;
   if(weAreSender){
     if(doctorWrap){doctorWrap.style.display='block';document.getElementById('vDoctor').innerHTML=channelBadge(p.doctor);}
     collabWrap.style.display='block';
     if(collabLabel) collabLabel.textContent='collab ไป';
-    document.getElementById('vCollab').innerHTML=channelBadge(p.collab);
+    document.getElementById('vCollab').innerHTML=collabArrV.map(ch=>channelBadge(ch)).join(' ');
   } else if(weAreReceiver){
     if(doctorWrap) doctorWrap.style.display='none';
     collabWrap.style.display='block';
@@ -2081,7 +2115,7 @@ function openView(id){
     if(hasCollab){
       collabWrap.style.display='block';
       if(collabLabel) collabLabel.textContent='collab';
-      document.getElementById('vCollab').innerHTML=channelBadge(p.collab);
+      document.getElementById('vCollab').innerHTML=collabArrV.map(ch=>channelBadge(ch)).join(' ');
     } else { collabWrap.style.display='none'; }
   }
   const br=document.getElementById('vBadges');
@@ -2503,7 +2537,7 @@ function renderGrid(){
 
 function mergeCollabToGrid(){
   const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
-  const collabPosts=posts.filter(p=>p.collab===activeChannel&&p.doctor!==activeChannel);
+  const collabPosts=posts.filter(p=>collabList(p).includes(activeChannel)&&p.doctor!==activeChannel);
   collabPosts.forEach(p=>{
     if(!gridSlots.find(s=>s.id===p.id)){
       gridSlots.push({id:p.id,img:p.thumbData||'',title:p.title||'',date:p.date||'',
@@ -3230,7 +3264,7 @@ function buildSummaryTable(posts){
       <td style="text-align:center;font-weight:700;font-size:9px;padding:3px 2px;border:1px solid #DDD">${String(i+1).padStart(2,'0')}</td>
       <td style="text-align:center;font-size:9px;padding:3px 4px;border:1px solid #DDD;white-space:nowrap">${dateStr}</td>
       <td style="padding:3px 4px;border:1px solid #DDD">${styleCell(p.contentStyle)}</td>
-      <td style="padding:3px 4px;border:1px solid #DDD"><div style="display:flex;gap:2px;flex-wrap:wrap;">${chIcon(p.doctor)}${p.collab?chIcon(p.collab):''}</div></td>
+      <td style="padding:3px 4px;border:1px solid #DDD"><div style="display:flex;gap:2px;flex-wrap:wrap;">${chIcon(p.doctor)}${collabList(p).map(chIcon).join('')}</div></td>
       <td style="padding:3px 4px;border:1px solid #DDD;font-size:9px;font-weight:600">${p.title||'—'}</td>
       <td style="text-align:center;padding:3px 4px;border:1px solid #DDD">${funnelCell(p.funnel)}</td>
       <td style="text-align:center;padding:3px 4px;border:1px solid #DDD">${moodCell(p.mood)}</td>
@@ -3558,11 +3592,10 @@ function printCalendar(){
     const ch=CH_META[p.doctor];const cs=STYLE_META[p.contentStyle];
     const typeLabel=TYPE_LABEL[p.type]||p.type||'—';
     const platIcons=p.platform==='both'?`<span style="font-size:22px">📘</span><span style="font-size:22px">📸</span>`:p.platform==='fb'?`<span style="font-size:22px">📘</span>`:`<span style="font-size:22px">📸</span>`;
-    const isCollabP=p.collab&&p.collab!==p.doctor;
-    const collabChMeta=CH_META[p.collab];
+    const collabArrPD=collabList(p);
     const chBadge=ch?`<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;">
       <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:#888;font-weight:700;min-width:60px;">ช่องหลัก</span><span style="background:${ch.bg};color:${ch.fg};border:1.5px solid ${ch.border};border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;">${ch.label}</span></div>
-      ${isCollabP&&collabChMeta?`<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:#888;font-weight:700;min-width:60px;">collab ไป</span><span style="background:${collabChMeta.bg};color:${collabChMeta.fg};border:1.5px solid ${collabChMeta.border};border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;">${collabChMeta.label}</span></div>`:''}
+      ${collabArrPD.map(cch=>{const m=CH_META[cch];return m?`<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:#888;font-weight:700;min-width:60px;">collab ไป</span><span style="background:${m.bg};color:${m.fg};border:1.5px solid ${m.border};border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;">${m.label}</span></div>`:'';}).join('')}
     </div>`:'';
     const thumbHtml=p.thumbData?`<img src="${p.thumbData}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block;">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#FDF6F0;border-radius:10px"><img src="${CHANNEL_LOGOS[activeChannel]||''}" style="width:60%;height:60%;object-fit:contain;opacity:0.4"></div>`;
     const pTheme=CHANNEL_THEMES[activeChannel]||CHANNEL_THEMES['dc-dental'];

@@ -1261,20 +1261,18 @@ function cancelGridEditMode(){
 }
 
 async function saveGridEditMode(){
-  const btn=document.querySelector('#gridEditBtns button:last-child');
-  if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
-  const ok=await saveGridSlots(true);
-  if(btn){btn.textContent='💾 บันทึก';btn.disabled=false;}
-  if(ok){
-    gridEditMode=false;
-    gridSnapshot=[];
-    document.getElementById('gridNormalBtns').style.display='flex';
-    document.getElementById('gridEditBtns').style.display='none';
-    const badge=document.getElementById('gridDirtyBadge');
-    if(badge) badge.style.display='none';
-    showNoti('✅ บันทึกลำดับ Grid สำเร็จ','#27AE60');
-    renderGrid();
-  }
+  // ออกจากโหมดแก้ไขทันที ไม่ต้องรอ GAS (3.5-9 วิ) — ลำดับถูกเก็บลง localStorage แล้ว
+  // ถ้าเขียนขึ้นชีตไม่สำเร็จ saveGridSlots() ขึ้นเตือนเอง
+  gridEditMode=false;
+  gridSnapshot=[];
+  document.getElementById('gridNormalBtns').style.display='flex';
+  document.getElementById('gridEditBtns').style.display='none';
+  const badge=document.getElementById('gridDirtyBadge');
+  if(badge) badge.style.display='none';
+  showNoti('✅ บันทึกลำดับ Grid แล้ว — กำลังซิงก์ขึ้น Sheets','#27AE60');
+  renderGrid();
+  // saveGridSlotsToSheet() ต่อคิวบน _gridSaveChain อยู่แล้ว สองรอบซ้อนกันไม่ได้
+  await saveGridSlots(false);
 }
 
 
@@ -2906,18 +2904,20 @@ async function openGridModal(editIdx){
     const currentIdx=gridSlots.findIndex(s=>s.id===slot.id);
     if(currentIdx<0){showNoti('❌ ไม่พบโพสต์นี้ อาจถูกลบหรือเปลี่ยนช่องไปแล้ว','#E74C3C');btn.disabled=false;btn.textContent='💾 บันทึก';return;}
     gridSlots[currentIdx]=slot;
-    showNoti('⏳ กำลังบันทึก...','#1A6FB5');
-    const ok=await saveGridSlots(true);
-    if(!ok){btn.disabled=false;btn.textContent='💾 บันทึก';return;}
-    if(slot.date){
-      const res=await syncSlotToCalendar(slot);
-      if(res&&res.ok) showNoti('✅ บันทึก + sync Calendar สำเร็จ!','#27AE60');
-      else showNoti('⚠️ บันทึก Grid แล้ว แต่ sync Calendar ไม่สำเร็จ','#E67E22');
-      render();
-    } else {
-      showNoti('✅ บันทึกแล้ว (ยังไม่มีวัน)','#7F8C8D');
-    }
+    // ปิดโมดัลทันที แล้วค่อยยิงขึ้น Sheets เบื้องหลัง
+    // เดิมรอ saveGridSlots แล้วรอ syncSlotToCalendar ต่อ = 2 รอบ GAS ≈ 7-18 วิ โดยปุ่มค้างทั้งคู่
     renderGrid();renderUnscheduled();close();
+    showNoti('✅ บันทึกแล้ว'+(slot.date?' — กำลังซิงก์ Grid + Calendar':' (ยังไม่มีวัน)'),'#27AE60');
+    // grid กับ calendar คนละชีต ยิงขนานได้ — GAS คิดเวลาต่อรอบ ไม่ใช่ต่อคำขอ
+    const [,calRes]=await Promise.all([
+      saveGridSlots(false),
+      slot.date?syncSlotToCalendar(slot):Promise.resolve(null)
+    ]);
+    if(slot.date){
+      render();
+      // syncSlotToCalendar() เข้าคิว pendingSync ให้แล้วตอนพลาด — แค่บอกให้รู้
+      if(!(calRes&&calRes.ok)) showNoti('⚠️ sync Calendar ไม่สำเร็จ — เก็บเข้าคิวไว้แล้ว จะลองใหม่ตอนเปิดช่องนี้','#E67E22',5000);
+    }
   };
 }
 

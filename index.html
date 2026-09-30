@@ -2186,54 +2186,43 @@ async function savePost(){
     if(id){const i=posts.findIndex(x=>x.id===id);if(i>=0) posts[i]=post;else posts.push(post);}
     else posts.push(post);
   }
-  closeModal('addModal');render();
-  showNoti('⏳ กำลังบันทึก...','#1A6FB5');
-  const ok=await apiCall({action:'save',post},doctorCh);
-  if(!ok||!ok.ok){
-    markPendingSync(doctorCh,post);   // เขียนไม่ขึ้น — จำไว้ลองใหม่ กันโพสต์หายตอน refresh
-    showNoti('❌ บันทึกลง Sheets ไม่สำเร็จ — เก็บไว้ในเครื่องแล้ว จะลองซิงก์ใหม่ตอนเปิดหน้าครั้งหน้า','#E74C3C',5000);
-    return;
-  }
-  clearPendingSync(doctorCh,post.id);
-  if(doctorCh!==activeChannel) upsertPostInCache(doctorCh,post);
-  if(collabChs.length){
-    const results=await Promise.all(collabChs.map(ch=>{
-      const collabPost=Object.assign({},post,{id:post.id,doctor:doctorCh,collab:collabCh});
-      return apiCall({action:'save',post:collabPost},ch).then(r=>{
-        const ok=!!(r&&r.ok);
-        if(ok){
-          clearPendingSync(ch,post.id);
-          if(ch===activeChannel){
-            const i=posts.findIndex(x=>x.id===post.id);
-            if(i>=0) posts[i]=collabPost; else posts.push(collabPost);
-          } else {
-            upsertPostInCache(ch,collabPost);
-          }
-        } else {
-          // เขียนชีตปลายทางไม่สำเร็จ = โพสต์จะไม่โผล่ที่ช่องนั้นเลย ต่อให้รีหน้ากี่รอบ
-          // เข้าคิวไว้ให้ retryPendingSync() ยิงซ้ำตอนเปิดช่องนั้นครั้งหน้า
-          markPendingSync(ch,collabPost);
-        }
-        return {ch,ok};
-      });
-    }));
-    if(results.some(r=>r.ok&&r.ch===activeChannel)) render();
-    const okChs=results.filter(r=>r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
-    const failChs=results.filter(r=>!r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
-    if(okChs.length&&!failChs.length) showNoti('✅ บันทึก + sync ไป '+okChs.join(', ')+' อัตโนมัติ!','#27AE60');
-    else if(okChs.length&&failChs.length) showNoti('✅ sync ไป '+okChs.join(', ')+' สำเร็จ — '+failChs.join(', ')+' ยังไม่ขึ้น เก็บเข้าคิวไว้แล้ว จะลองใหม่ตอนเปิดช่องนั้น','#E67E22',5000);
-    else showNoti('⚠️ บันทึกช่องต้นทางแล้ว แต่ '+failChs.join(', ')+' ยังไม่ขึ้น — เก็บเข้าคิวไว้ จะลองใหม่ตอนเปิดช่องนั้น','#E67E22',5000);
-  } else if(doctorCh!==activeChannel){
-    showNoti('✅ บันทึกลงช่อง '+(CHANNEL_META[doctorCh]?.label||doctorCh)+' แล้ว (ไม่แสดงในช่องนี้)','#27AE60');
-  } else {
-    showNoti('✅ บันทึกสำเร็จ!','#27AE60');
-  }
-  if(removedChs.length){
-    const res=await Promise.all(removedChs.map(ch=>removePostFromChannel(ch,post.id).then(ok=>({ch,ok}))));
-    const done=res.filter(r=>r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
-    const failed=res.filter(r=>!r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
-    if(failed.length) showNoti('⚠️ ถอดออกจาก '+failed.join(', ')+' ไม่สำเร็จ — โพสต์ยังค้างอยู่ช่องนั้น ลองกดบันทึกอีกครั้ง','#E67E22',5000);
-    else if(done.length) showNoti('🧹 ถอดโพสต์ออกจาก '+done.join(', ')+' แล้ว','#E67E22');
+  closeModal('addModal');
+
+  // ---- 1) อัปเดตทุกอย่างในเครื่องให้ครบก่อน แล้วค่อยยิงเน็ต ----
+  // cache ทุกช่องพร้อมทันที สลับไปช่องไหนก็เห็นเลย ไม่ต้องรอ GAS
+  // ถ้าเขียนขึ้นชีตไม่สำเร็จ ยังมี pendingSync คอยยิงซ้ำให้รอบหน้า
+  collabChs.forEach(ch=>{
+    if(ch===activeChannel){
+      const i=posts.findIndex(x=>x.id===post.id);
+      if(i>=0) posts[i]=post; else posts.push(post);
+    } else upsertPostInCache(ch,post);
+  });
+  if(doctorCh!==activeChannel&&!collabChs.includes(doctorCh)) upsertPostInCache(doctorCh,post);
+  removedChs.forEach(ch=>removePostFromCache(ch,post.id));
+  render();
+  showNoti('✅ บันทึกแล้ว'+(collabChs.length?' + collab ไป '+collabChs.length+' ช่อง':'')+' — กำลังซิงก์ขึ้น Sheets','#27AE60');
+
+  // ---- 2) ยิงทุกคำขอขนานกันรอบเดียว ----
+  // GAS คิด overhead ~2 วิต่อ "รอบ" ไม่ใช่ต่อคำขอ (3 คำขอขนาน ≈ เวลาเท่าคำขอเดียว)
+  // เดิมยิงเป็นทอด: เจ้าของ → collab → ลบสำเนาเก่า = รอ 3 รอบโดยเปล่าประโยชน์
+  const saveChs=[...new Set([doctorCh,...collabChs])];
+  const jobs=[
+    ...saveChs.map(ch=>({ch,kind:'save',run:()=>apiCall({action:'save',post},ch).then(r=>!!(r&&r.ok))})),
+    ...removedChs.map(ch=>({ch,kind:'remove',run:()=>removePostFromChannel(ch,post.id)})),
+  ];
+  const results=await Promise.all(jobs.map(j=>j.run().then(ok=>{
+    if(j.kind==='save'){
+      if(ok) clearPendingSync(j.ch,post.id);
+      else markPendingSync(j.ch,post);   // เขียนไม่ขึ้น — จำไว้ลองใหม่ กันโพสต์หายตอน refresh
+    }
+    return {ch:j.ch,kind:j.kind,ok};
+  })));
+
+  const failed=results.filter(r=>!r.ok);
+  if(failed.length){
+    const names=[...new Set(failed.map(r=>CHANNEL_META[r.ch]?.label||r.ch))].join(', ');
+    const stuck=failed.some(r=>r.kind==='remove');
+    showNoti('⚠️ '+names+' ซิงก์ไม่สำเร็จ'+(stuck?' (ยังมีสำเนาค้าง ลองกดบันทึกอีกรอบ)':' — เก็บเข้าคิวไว้ จะลองใหม่ตอนเปิดช่องนั้น'),'#E67E22',5000);
   }
   syncCalendarDatesToGrid();
 }

@@ -345,7 +345,6 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   <button class="ch-tab" data-ch="dr-north" onclick="switchChannel('dr-north')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> dr.north</span></button>
   <button class="ch-tab" data-ch="dr-daran" onclick="switchChannel('dr-daran')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/574179784_17845527528599344_23126879378071020_n_xphheg.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> dr.daran</span></button>
   <button class="ch-tab" data-ch="north-tiktok" onclick="switchChannel('north-tiktok')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/q_auto/f_auto/v1775450124/4c323dad7e5f061e077c5ec0028ceebf_tplv-tiktokx-cropcenter_1080_1080_uia8fl.jpg" style="width:18px;height:18px;object-fit:cover;border-radius:3px;vertical-align:middle;"> 🎵 TikTok</span></button>
-  <button class="ch-tab" data-ch="check-in" onclick="switchChannel('check-in')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1779359156/check_in_f4306m.png" style="width:18px;height:18px;object-fit:cover;border-radius:50%;vertical-align:middle;"> Check In</span></button>
   <div style="flex:1"></div>
 </div>
 
@@ -541,7 +540,6 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     <button class="pl-ch-btn" data-ch="dr-north" onclick="setPipelineChFilter('dr-north',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">dr.north</button>
     <button class="pl-ch-btn" data-ch="dr-daran" onclick="setPipelineChFilter('dr-daran',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">dr.daran</button>
     <button class="pl-ch-btn" data-ch="north-tiktok" onclick="setPipelineChFilter('north-tiktok',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">TikTok</button>
-    <button class="pl-ch-btn" data-ch="check-in" onclick="setPipelineChFilter('check-in',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">Check In</button>
   </div>
 
   <!-- Filter row — stage -->
@@ -572,7 +570,6 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <option value="dr-north">dr.north</option>
       <option value="dr-daran">dr.daran</option>
       <option value="north-tiktok">TikTok</option>
-      <option value="check-in">Check In</option>
     </select>
     <button onclick="applyBulkChannel()" style="background:#1A6FB5;color:white;border:none;border-radius:8px;padding:6px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">✏️ แก้ช่อง</button>
     <button onclick="clearPlSelection()" style="background:none;border:1.5px solid #B8D4F0;border-radius:8px;padding:5px 12px;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer;color:#888;">ยกเลิก</button>
@@ -636,7 +633,6 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="dr-north">dr.north</option>
           <option value="dr-daran">dr.daran</option>
           <option value="north-tiktok">TikTok</option>
-          <option value="check-in">Check In</option>
         </select></div>
       <div class="form-row"><label>กำหนดส่ง (Deadline)</label>
         <input type="date" id="plDeadline"></div>
@@ -769,7 +765,6 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="north-tiktok">🎵 dr.north TikTok</option>
           <option value="tiktok-dc">🎵 DC Dental TikTok</option>
           <option value="tiktok-aligner">🎵 DC Aligner TikTok</option>
-          <option value="check-in">✅ Check In</option>
         </select>
         <div id="fDoctorPreview" style="margin-top:6px;min-height:20px"></div></div>
       <div class="form-row"><label>คอลแลปไปที่ <span style="font-weight:400;color:#9AA6B2">(แตะเพื่อเลือกได้หลายช่อง)</span></label>
@@ -783,7 +778,6 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <button type="button" class="collab-chip" data-ch="north-tiktok" data-label="🎵 dr.north TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 dr.north TikTok</button>
           <button type="button" class="collab-chip" data-ch="tiktok-dc" data-label="🎵 DC Dental TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Dental TikTok</button>
           <button type="button" class="collab-chip" data-ch="tiktok-aligner" data-label="🎵 DC Aligner TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Aligner TikTok</button>
-          <button type="button" class="collab-chip" data-ch="check-in" data-label="✅ Check In" onclick="toggleCollabChip(this)" style="background:#D81B6014;color:#D81B60;border:1.5px solid #D81B60;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">✅ Check In</button>
         </div>
         <input type="hidden" id="fCollab"></div>
       <div class="form-row"><label>Status</label>
@@ -894,6 +888,8 @@ const SCOLOR={'draft':'#7F8C8D','ready':'#F0A500','posted':'#27AE60'};
 
 let cy=new Date().getFullYear(),cm=new Date().getMonth();
 let posts=[],filter='all',viewingId=null,activeChannel='dc-dental';
+// true ระหว่าง paint จาก cache — กัน render() เอาวันที่จาก cache ไปเขียนทับ grid บนชีต
+let _skipGridSyncWrite=false;
 // Advanced multi-filter state
 let advFilter={funnel:[],mood:[],style:[],strategy:[]};
 
@@ -1046,7 +1042,6 @@ const CHANNEL_THEMES={
   'north-tiktok':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#EE1D52',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
   'tiktok-dc':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#FE2C55',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
   'tiktok-aligner':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#FE2C55',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
-  'check-in':{bg:'#FDE7F3',bgLight:'#FAD0E8',primary:'#D81B60',primaryDark:'#880E4F',primaryLight:'#FAD0E8',accent:'#D81B60',headerGrad:'135deg, #880E4F 0%, #D81B60 100%'},
 };
 const CHANNEL_LOGOS={
   'dc-dental':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/logo_all_lowwbp.jpg',
@@ -1058,7 +1053,6 @@ const CHANNEL_LOGOS={
   'north-tiktok':'https://res.cloudinary.com/djxw6mu0w/image/upload/q_auto/f_auto/v1775450124/4c323dad7e5f061e077c5ec0028ceebf_tplv-tiktokx-cropcenter_1080_1080_uia8fl.jpg',
   'tiktok-dc':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/logo_all_lowwbp.jpg',
   'tiktok-aligner':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/505445784_17864311473408516_5332727545825280500_n_nzpwov.jpg',
-  'check-in':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1779359156/check_in_f4306m.png',
 };
 const CHANNEL_META={
   'dc-dental':{label:'DC Dental Clinic',emoji:'🦷',sheetName:'DC Dental Content Calendar',color:'#1A6FB5'},
@@ -1070,7 +1064,6 @@ const CHANNEL_META={
   'north-tiktok':{label:'dr.north TikTok',emoji:'🎵',sheetName:'dr.north.judfun tiktok Calendar',color:'#010101',noGrid:true},
   'tiktok-dc':{label:'DC Dental TikTok',emoji:'🎵',sheetName:'DC Dental TikTok Calendar',color:'#010101'},
   'tiktok-aligner':{label:'DC Aligner TikTok',emoji:'🎵',sheetName:'DC Aligner TikTok Calendar',color:'#010101'},
-  'check-in':{label:'Check In',emoji:'💗',sheetName:'Check In Content Calendar',color:'#D81B60'},
 };
 const GRID_CHANNEL_META={
   'dc-dental':{label:'DC Dental Clinic',username:'@dc_dentalclinic'},
@@ -1082,7 +1075,6 @@ const GRID_CHANNEL_META={
   'north-tiktok':{label:'dr.north TikTok',username:'@drnorth.tiktok'},
   'tiktok-dc':{label:'DC Dental Clinic',username:'@dc_dentalclinic'},
   'tiktok-aligner':{label:'DC Aligner',username:'@dc_aligner'},
-  'check-in':{label:'Check In',username:'@check_in'},
 };
 const CH_META={
   'dc-dental':{label:'DC Dental Clinic',bg:'#FFFFFF',fg:'#1A6FB5',border:'#1A6FB5'},
@@ -1094,7 +1086,6 @@ const CH_META={
   'north-tiktok':{label:'dr.north TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
   'tiktok-dc':{label:'DC Dental TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
   'tiktok-aligner':{label:'DC Aligner TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
-  'check-in':{label:'Check In',bg:'#D81B60',fg:'#FFFFFF',border:'#D81B60'},
 };
 
 // =====================================================
@@ -1156,17 +1147,24 @@ function showGridLoading(show){
   if(el) el.style.display=show?'block':'none';
 }
 
-async function loadGridSlots(){
+// เอา grid ที่แคชไว้ขึ้นจอทันทีโดยไม่รอเน็ต — คืน true ถ้ามี cache ใช้ได้จริง
+function primeGridCache(){
   // ข้อมูลกำลังจะถูกโหลดใหม่ทั้งชุด — index ที่แคชไว้ (เลือก/ลาก) จะไม่ตรงกับข้อมูลใหม่แล้ว ล้างทิ้งกันลบ/ลากผิดรูป
   gridSelected.clear();
   dragSrcIdx=null;
   try{
-    const cached=localStorage.getItem(getGridStorageKey());
-    if(cached){
-      const parsed=JSON.parse(cached);
+    const parsed=JSON.parse(localStorage.getItem(getGridStorageKey())||'null');
+    if(Array.isArray(parsed)){
       gridSlots=dedupeSlotsById(parsed.filter(s=>(s.img||s.type==='pending'||s.type==='blank')&&(!s.channel||s.channel===activeChannel)));
+      return gridSlots.length>0;
     }
-  }catch(e){ gridSlots=[]; }
+  }catch(e){}
+  gridSlots=[];
+  return false;
+}
+
+async function loadGridSlots(){
+  primeGridCache();
 
   showGridLoading(true);
   const loadChannel=activeChannel;
@@ -1206,7 +1204,8 @@ async function loadGridSlots(){
       })).filter(r=>r.id&&(r.img||r.type==='pending'||r.type==='blank')&&(!r.channel||r.channel===activeChannel||r.channel===''));
       const sheetSlotsDeduped=dedupeSlotsById(sheetSlots);
       if(sheetSlotsDeduped.length===0 && gridSlots.length>0){
-        await saveGridSlotsToSheet();
+        // ชีตว่างแต่ local ยังมีข้อมูล = กู้กลับขึ้นชีต แต่ไม่รอผล (เขียน 1 ครั้ง ~2 วิ ไม่ควรขวางการโหลด)
+        saveGridSlotsToSheet();
       } else {
       gridSlots=sheetSlotsDeduped;
       let needsSave=sheetSlotsDeduped.length<sheetSlots.length; // เจอ row ซ้ำ ต้องเขียนทับ sheet เพื่อล้างทิ้ง
@@ -1497,88 +1496,122 @@ async function switchChannel(ch){
   applyChannelTheme(ch);
   gridSlots=[];
   posts=[];
+
+  const unlockTabs=()=>{
+    document.querySelectorAll('.ch-tab').forEach(btn=>{
+      btn.style.pointerEvents='';
+      btn.style.opacity='';
+    });
+    hideChannelLoading();
+  };
+
+  // paint จาก cache ก่อน — ถ้ามีของแคชไว้ก็ปลดล็อคปุ่มทันที ไม่ต้องรอ GAS (~2 วิต่อคำขอ)
+  primeGridCache();
+  const paintedFromCache=primeChannelCache(ch);
+  _skipGridSyncWrite=true;   // ข้อมูลชุดนี้มาจาก cache ห้ามเอาไปเขียนทับชีต
   render();
-
-  await loadGridSlots();
-  if(token.cancelled){ hideChannelLoading(); return; }
-
+  _skipGridSyncWrite=false;
   renderGrid();
   renderUnscheduled();
-  await loadChannelData(ch);
+  // ช่องที่ยังไม่มี cache ต้องรอของจริง แต่ห้ามล็อคปุ่มค้างถ้า GAS spike — ปล่อยภายใน 6 วิ
+  const unlockGuard=paintedFromCache?null:setTimeout(unlockTabs,6000);
+  if(paintedFromCache) unlockTabs();
+
+  // refresh ของจริงเบื้องหลัง — ยิงขนานกัน เพราะ GAS รับขนานได้ (3 คำขอพร้อมกัน ≈ เวลาเท่าคำขอเดียว)
+  await Promise.all([loadGridSlots(),loadChannelData(ch)]);
+  if(unlockGuard) clearTimeout(unlockGuard);
   if(token.cancelled){ hideChannelLoading(); return; }
 
-  // โหลดเสร็จ — ปลดล็อคปุ่มและซ่อน overlay
-  document.querySelectorAll('.ch-tab').forEach(btn=>{
-    btn.style.pointerEvents='';
-    btn.style.opacity='';
-  });
-  hideChannelLoading();
+  if(document.getElementById('igGridSection').style.display!=='none') mergeCollabToGrid();
+  renderGrid();
+  renderUnscheduled();
+  if(!paintedFromCache) unlockTabs();
   window._switchToken=null;
 }
 
-async function loadChannelData(ch){
-  const cacheKey='dcCache_'+ch;
-  const cached=localStorage.getItem(cacheKey);
-  if(cached){
+// เอา cache ของช่องขึ้นจอทันทีโดยไม่รอเน็ต — คืน true ถ้ามี cache ใช้ได้จริง
+function primeChannelCache(ch){
+  try{
+    const arr=JSON.parse(localStorage.getItem('dcCache_'+ch)||'null');
+    if(Array.isArray(arr)&&arr.length){ posts=arr; return true; }
+  }catch(e){}
+  posts=[];
+  return false;
+}
+
+// เก็บโพสต์เต็มรูปแบบ (รวม thumbData/caption) เพื่อให้รอบหน้า paint จาก cache ได้ครบ ไม่เห็นรูปหาย
+// ถ้า localStorage เต็มค่อยถอยไปเก็บเฉพาะฟิลด์ที่ render ต้องใช้
+// force=true คือข้อมูลจริงจาก Sheets (เชื่อถือได้) ส่วนการเซฟจาก render ต้องกันเคสลิสต์ว่างชั่วคราวมาล้าง cache
+function writeChannelCache(ch,arr,force){
+  if(!force&&!arr.length){
     try{
-      // แสดง cache ก่อนเฉพาะถ้าช่องยังตรงกันอยู่
-      if(ch===activeChannel){ posts=JSON.parse(cached); render(); }
+      const cur=JSON.parse(localStorage.getItem('dcCache_'+ch)||'null');
+      if(Array.isArray(cur)&&cur.length) return;
     }catch(e){}
-  } else { if(ch===activeChannel){posts=[];render();} }
+  }
+  const key='dcCache_'+ch;
+  try{ localStorage.setItem(key,JSON.stringify(arr)); return; }
+  catch(e){
+    try{
+      localStorage.setItem(key,JSON.stringify(arr.map(p=>({
+        id:p.id,title:p.title,date:p.date,time:p.time,platform:p.platform,type:p.type,
+        doctor:p.doctor,collab:p.collab,contentStyle:p.contentStyle,captionCheck:p.captionCheck||'',
+        status:p.status,funnel:p.funnel||'',mood:p.mood||'',strategy:p.strategy||'',thumbData:p.thumbData||''
+      }))));
+    }catch(e2){ console.warn('เขียน cache ไม่ได้ (localStorage เต็ม):',e2); }
+  }
+}
+
+async function loadChannelData(ch){
+  const isActive=ch===activeChannel;
+  const hadCache=isActive?primeChannelCache(ch):false;
+  if(isActive){
+    _skipGridSyncWrite=true;   // ข้อมูลชุดนี้มาจาก cache ห้ามเอาไปเขียนทับชีต
+    render();
+    _skipGridSyncWrite=false;
+  }
   showLoading(true);
   const sheetName=CHANNEL_META[ch]?.sheetName||'DC Dental Content Calendar';
-  const MAX_ATTEMPTS=3;
-  let lastErr=null;
-  for(let attempt=1;attempt<=MAX_ATTEMPTS;attempt++){
-    try{
-      const controller=new AbortController();
-      // เผื่อเวลาให้ Google Apps Script ตื่นจาก cold start — ยิ่งลองซ้ำยิ่งรอนานขึ้น
-      const fetchTimer=setTimeout(()=>controller.abort(),10000+attempt*5000);
-      const res=await fetch(SHEET_URL+'?t='+Date.now()+'&sheet='+encodeURIComponent(sheetName),
-        {method:'GET',redirect:'follow',signal:controller.signal});
-      clearTimeout(fetchTimer);
-      // ถ้าระหว่างรอ fetch ผู้ใช้เปลี่ยนช่องไปแล้ว → ทิ้งผลลัพธ์นี้เลย
-      if(ch!==activeChannel){ showLoading(false); return; }
-      const data=JSON.parse(await res.text());
-      const allData=data.map(r=>({
-        id:String(r.id||''),title:String(r.title||''),
-        date:(()=>{
-          const s=String(r.date||'');
-          if(!s) return '';
-          if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-          const d=new Date(s);
-          if(isNaN(d)) return s;
-          const local=new Date(d.getTime()+(7*60*60*1000));
-          const pad=n=>String(n).padStart(2,'0');
-          return local.getFullYear()+'-'+pad(local.getMonth()+1)+'-'+pad(local.getDate());
-        })(),
-        time:(()=>{const t=String(r.time||'');if(!t) return '19:00';if(t.includes('T')){const d=new Date(t);return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');}return t;})(),
-        platform:String(r.platform||'both'),type:String(r.type||'video'),
-        doctor:String(r.doctor||ch),collab:String(r.collab||''),contentStyle:String(r.contentStyle||''),
-        strategy:String(r.strategy||''),funnel:String(r.funnel||''),mood:String(r.mood||''),
-        status:String(r.status||'draft'),thumbData:String(r.thumbData||''),
-        caption:String(r.caption||''),hashtag:String(r.hashtag||''),note:String(r.note||''),captionCheck:String(r.captionCheck||'')
-      })).filter(r=>r.id&&r.title);
-      // check อีกรอบหลัง parse (fetch ใช้เวลา)
-      if(ch!==activeChannel){ showLoading(false); return; }
-      posts=allData.filter(r=>!r.doctor||r.doctor===ch||collabList(r).includes(ch));
-      try{
-        const cacheData=posts.map(p=>({id:p.id,title:p.title,date:p.date,platform:p.platform,type:p.type,doctor:p.doctor,collab:p.collab,contentStyle:p.contentStyle,captionCheck:p.captionCheck||'',status:p.status,funnel:p.funnel||'',mood:p.mood||'',strategy:p.strategy||''}));
-        localStorage.setItem(cacheKey,JSON.stringify(cacheData));
-      }catch(e){}
-      render();
-      checkOverduePosts();
-      lastErr=null;
-      break;
-    }catch(e){
-      lastErr=e;
-      console.error(`loadChannelData attempt ${attempt} error:`,e);
-      // ยังลองซ้ำได้อีก → รอสักครู่แล้วลองใหม่ แทนที่จะปล่อยให้หน้าจอค้างแบบข้อมูล/รูปหาย
-      if(attempt<MAX_ATTEMPTS) await new Promise(r=>setTimeout(r,1000*attempt));
-    }
-  }
-  if(lastErr){
-    showNoti('⚠️ อัปเดตข้อมูลล่าสุดไม่สำเร็จ (เน็ต/Sheets ตอบช้า) — กำลังโชว์ข้อมูลที่แคชไว้ ลองรีเฟรชหน้าอีกครั้ง','#E67E22',5000);
+  try{
+    const controller=new AbortController();
+    // GAS มี overhead คงที่ ~2 วิ และ spike ได้ถึง ~9 วิ — ให้เวลาเหลือ ๆ แต่ยิงรอบเดียว
+    // หน้าเว็บ paint จาก cache ไปก่อนแล้ว รอบนี้เป็นแค่ refresh เบื้องหลัง ช้าได้ไม่กระทบผู้ใช้
+    const fetchTimer=setTimeout(()=>controller.abort(),25000);
+    const res=await fetch(SHEET_URL+'?t='+Date.now()+'&sheet='+encodeURIComponent(sheetName),
+      {method:'GET',redirect:'follow',signal:controller.signal});
+    clearTimeout(fetchTimer);
+    // ถ้าระหว่างรอ fetch ผู้ใช้เปลี่ยนช่องไปแล้ว → ทิ้งผลลัพธ์นี้เลย
+    if(ch!==activeChannel){ showLoading(false); return; }
+    const data=JSON.parse(await res.text());
+    const allData=data.map(r=>({
+      id:String(r.id||''),title:String(r.title||''),
+      date:(()=>{
+        const s=String(r.date||'');
+        if(!s) return '';
+        if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+        const d=new Date(s);
+        if(isNaN(d)) return s;
+        const local=new Date(d.getTime()+(7*60*60*1000));
+        const pad=n=>String(n).padStart(2,'0');
+        return local.getFullYear()+'-'+pad(local.getMonth()+1)+'-'+pad(local.getDate());
+      })(),
+      time:(()=>{const t=String(r.time||'');if(!t) return '19:00';if(t.includes('T')){const d=new Date(t);return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');}return t;})(),
+      platform:String(r.platform||'both'),type:String(r.type||'video'),
+      doctor:String(r.doctor||ch),collab:String(r.collab||''),contentStyle:String(r.contentStyle||''),
+      strategy:String(r.strategy||''),funnel:String(r.funnel||''),mood:String(r.mood||''),
+      status:String(r.status||'draft'),thumbData:String(r.thumbData||''),
+      caption:String(r.caption||''),hashtag:String(r.hashtag||''),note:String(r.note||''),captionCheck:String(r.captionCheck||'')
+    })).filter(r=>r.id&&r.title);
+    // check อีกรอบหลัง parse (fetch ใช้เวลา)
+    if(ch!==activeChannel){ showLoading(false); return; }
+    posts=allData.filter(r=>!r.doctor||r.doctor===ch||collabList(r).includes(ch));
+    writeChannelCache(ch,posts,true);
+    render();
+    checkOverduePosts();
+    retryPendingSync(ch);   // เบื้องหลัง — กู้โพสต์ที่เขียนขึ้น Sheets ค้างไว้
+  }catch(e){
+    console.error('loadChannelData error:',e);
+    if(!hadCache) showNoti('⚠️ โหลดข้อมูลไม่ได้ (Sheets ตอบช้า) — ลองรีเฟรชอีกครั้ง','#E67E22',5000);
   }
   showLoading(false);
   const sel=document.getElementById('gridChannelSelect');
@@ -1592,6 +1625,8 @@ async function loadChannelData(ch){
 // ================================================
 function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
 const debouncedRenderPipeline=debounce(()=>renderPipeline(),200);
+// ทุกการแก้โพสต์จบที่ render() → เกาะ cache ไว้จุดเดียวที่นี่ เพื่อให้เปิดหน้าใหม่เห็นของล่าสุดทันทีแม้ Sheets ยังไม่ตอบ
+const persistChannelCache=debounce(()=>writeChannelCache(activeChannel,posts),800);
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function showNoti(msg,color='#1A6FB5',duration=2500){
   let n=document.getElementById('notiBar');
@@ -1607,16 +1642,66 @@ function showNoti(msg,color='#1A6FB5',duration=2500){
 }
 
 async function apiCall(body,targetChannel){
-  try{
-    const ch=targetChannel||activeChannel;
-    const res=await fetch(SHEET_URL,{
-      method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({...body,sheetName:CHANNEL_META[ch]?.sheetName||'DC Dental Content Calendar'})
-    });
-    const result=JSON.parse(await res.text());
-    if(result&&result.ok===false) showNoti('⚠️ บันทึกไม่สำเร็จ: '+(result.error||'ลองใหม่อีกครั้ง'),'#E67E22');
-    return result;
-  }catch(e){console.error('API error:',e);showNoti('❌ เชื่อมต่อ Sheets ไม่ได้','#E74C3C');return null;}
+  const ch=targetChannel||activeChannel;
+  const payload=JSON.stringify({...body,sheetName:CHANNEL_META[ch]?.sheetName||'DC Dental Content Calendar'});
+  // เดิมไม่มี timeout เลย → ตอน GAS spike (วัดได้ถึง 9 วิ) หรือคำขอหลุด จะค้างรอไม่จบ
+  // ลองซ้ำได้ปลอดภัยเพราะทุก action เป็น upsert/replace ตาม id — ยิงซ้ำไม่เกิดข้อมูลซ้ำ
+  for(let attempt=1;attempt<=2;attempt++){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),20000);
+    try{
+      const res=await fetch(SHEET_URL,{
+        method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+        body:payload,signal:controller.signal
+      });
+      const result=JSON.parse(await res.text());
+      if(result&&result.ok===false) showNoti('⚠️ บันทึกไม่สำเร็จ: '+(result.error||'ลองใหม่อีกครั้ง'),'#E67E22',5000);
+      return result;
+    }catch(e){
+      console.error('API error (attempt '+attempt+'):',e);
+      if(attempt===2){
+        showNoti('❌ เชื่อมต่อ Sheets ไม่ได้ — ข้อมูลยังอยู่ในเครื่อง ลองกดบันทึกอีกครั้ง','#E74C3C',5000);
+        return null;
+      }
+      await new Promise(r=>setTimeout(r,1200));
+    }finally{ clearTimeout(timer); }
+  }
+  return null;
+}
+
+// โพสต์ที่แก้ในเครื่องแล้วแต่เขียนขึ้น Sheets ไม่สำเร็จ ต้องจำไว้
+// ไม่งั้นรอบหน้าที่ refresh จาก Sheets จะเอาข้อมูลฝั่งเซิร์ฟเวอร์มาทับ แล้วโพสต์นั้นหายเงียบ ๆ
+function pendingSync(){ try{ return JSON.parse(localStorage.getItem('dcPendingSync')||'{}'); }catch(e){ return {}; } }
+function writePendingSync(m){ try{ localStorage.setItem('dcPendingSync',JSON.stringify(m)); }catch(e){} }
+function markPendingSync(ch,post){
+  const m=pendingSync();
+  (m[ch]=m[ch]||{})[post.id]=post;
+  writePendingSync(m);
+}
+function clearPendingSync(ch,id){
+  const m=pendingSync();
+  if(!m[ch]) return;
+  delete m[ch][id];
+  if(!Object.keys(m[ch]).length) delete m[ch];
+  writePendingSync(m);
+}
+
+// หลังโหลดของจริงเสร็จ เอาโพสต์ที่ค้างใส่กลับเข้าลิสต์ แล้วลองเขียนขึ้น Sheets อีกครั้ง
+async function retryPendingSync(ch){
+  const list=Object.values(pendingSync()[ch]||{});
+  if(!list.length) return;
+  list.forEach(p=>{
+    const i=posts.findIndex(x=>x.id===p.id);
+    if(i>=0) posts[i]=p; else posts.push(p);
+  });
+  render();
+  let fixed=0;
+  for(const p of list){
+    const r=await apiCall({action:'save',post:p},ch);
+    if(r&&r.ok){ clearPendingSync(ch,p.id); fixed++; }
+  }
+  if(fixed===list.length) showNoti('✅ ซิงก์โพสต์ที่ค้างไว้ '+fixed+' รายการเรียบร้อย','#27AE60');
+  else showNoti('⚠️ ยังมีโพสต์ค้างอยู่ '+(list.length-fixed)+' รายการ (เก็บไว้ในเครื่องแล้ว จะลองใหม่รอบหน้า)','#E67E22',5000);
 }
 
 function showLoading(show){
@@ -1786,16 +1871,21 @@ function render(){
   document.getElementById('cTotal').textContent=mp.length;
   renderCal();
   renderUnscheduled();
-  let gridUpdated=false;
-  gridSlots.forEach((slot,i)=>{
-    const calPost=posts.find(p=>p.id===slot.id);
-    if(calPost&&calPost.date!==slot.date){gridSlots[i].date=calPost.date;gridUpdated=true;}
-  });
-  if(gridUpdated){
-    saveGridSlots().catch(e=>console.error('saveGridSlots failed:',e));
-    const igSection=document.getElementById('igGridSection');
-    if(igSection&&igSection.style.display!=='none') renderGrid();
+  // ซิงก์วันโพสต์ลง grid แล้วเขียนขึ้นชีต — ทำได้เฉพาะตอนถือข้อมูลสดจาก Sheets อยู่
+  // ถ้าทำตอน paint จาก cache จะเสี่ยงเอาวันที่เก่าไปทับของใหม่บนชีต
+  if(!_skipGridSyncWrite){
+    let gridUpdated=false;
+    gridSlots.forEach((slot,i)=>{
+      const calPost=posts.find(p=>p.id===slot.id);
+      if(calPost&&calPost.date!==slot.date){gridSlots[i].date=calPost.date;gridUpdated=true;}
+    });
+    if(gridUpdated){
+      saveGridSlots().catch(e=>console.error('saveGridSlots failed:',e));
+      const igSection=document.getElementById('igGridSection');
+      if(igSection&&igSection.style.display!=='none') renderGrid();
+    }
   }
+  persistChannelCache();
 }
 
 function postsInMonth(){
@@ -2060,7 +2150,12 @@ async function savePost(){
   closeModal('addModal');render();
   showNoti('⏳ กำลังบันทึก...','#1A6FB5');
   const ok=await apiCall({action:'save',post},doctorCh);
-  if(!ok||!ok.ok){showNoti('❌ บันทึกไม่สำเร็จ ลองใหม่','#E74C3C');return;}
+  if(!ok||!ok.ok){
+    markPendingSync(doctorCh,post);   // เขียนไม่ขึ้น — จำไว้ลองใหม่ กันโพสต์หายตอน refresh
+    showNoti('❌ บันทึกลง Sheets ไม่สำเร็จ — เก็บไว้ในเครื่องแล้ว จะลองซิงก์ใหม่ตอนเปิดหน้าครั้งหน้า','#E74C3C',5000);
+    return;
+  }
+  clearPendingSync(doctorCh,post.id);
   if(collabChs.length){
     const results=await Promise.all(collabChs.map(ch=>{
       const collabPost=Object.assign({},post,{id:post.id,doctor:doctorCh,collab:collabCh});
@@ -2086,6 +2181,7 @@ async function deletePost(){
   const postToDelete=posts.find(p=>p.id===id);
   const postCh=postToDelete?.doctor||activeChannel;
   posts=posts.filter(p=>p.id!==id);
+  clearPendingSync(postCh,id);   // ลบแล้ว ห้ามให้คิวค้างเอากลับมาอีก
   closeModal('addModal');render();
   showNoti('⏳ กำลังลบ...','#E67E22');
   const ok=await apiCall({action:'delete',id},postCh);
@@ -2602,7 +2698,8 @@ async function syncSlotToCalendar(slot){
     posts.push(calPost);
   }
   const res=await apiCall({action:'save',post:calPost},ch);
-  if(res&&res.ok) render();
+  if(res&&res.ok){ clearPendingSync(ch,calPost.id); render(); }
+  else markPendingSync(ch,calPost);   // เขียนไม่ขึ้น — จำไว้ลองใหม่ กันโพสต์หายตอน refresh
   return res;
 }
 
@@ -3795,7 +3892,6 @@ const PL_CHANNEL_COLORS={
   'north-tiktok':{bg:'#F0F0F0',fg:'#010101',label:'TikTok'},
   'tiktok-dc':   {bg:'#F0F0F0',fg:'#010101',label:'DC TikTok'},
   'tiktok-aligner':{bg:'#E8F4FB',fg:'#2E86C1',label:'Aligner TikTok'},
-  'check-in':    {bg:'#FDE7F3',fg:'#D81B60',label:'Check In'},
 };
 
 // ================================================
@@ -4274,7 +4370,7 @@ function openPipelinePage(){
   // channel filter
   parts.push('<div class="filter-row">');
   parts.push('<span>\u0e0a\u0e48\u0e2d\u0e07:</span>');
-  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['dc-dental','DC Dental'],['dc-aligner','DC Aligner'],['junfun','junfun'],['implant','implant'],['dr-north','dr.north'],['dr-daran','dr.daran'],['north-tiktok','TikTok'],['check-in','Check In']].forEach(function(pair){
+  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['dc-dental','DC Dental'],['dc-aligner','DC Aligner'],['junfun','junfun'],['implant','implant'],['dr-north','dr.north'],['dr-daran','dr.daran'],['north-tiktok','TikTok']].forEach(function(pair){
     parts.push('<button class="pill'+(pair[0]==='all'?' active':'')+'" data-ch="'+pair[0]+'" onclick="setChF(\''+pair[0]+'\',this)">'+pair[1]+'</button>');
   });
   parts.push('</div>');
@@ -4309,7 +4405,6 @@ function openPipelinePage(){
   parts.push('<option value="dr-north">dr.north</option>');
   parts.push('<option value="dr-daran">dr.daran</option>');
   parts.push('<option value="north-tiktok">TikTok</option>');
-  parts.push('<option value="check-in">Check In</option>');
   parts.push('</select></div>');
   parts.push('<div class="form-row"><label>\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07 (Deadline)</label><input type="date" id="plDl"></div>');
   parts.push('<div class="form-row"><label>\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38</label><textarea id="plNt" placeholder="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21..."></textarea></div>');
@@ -4318,7 +4413,7 @@ function openPipelinePage(){
   parts.push('<button class="btn-save" onclick="saveItem()">\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button></div>');
   parts.push('</div></div></div>');
   parts.push('<div class="noti" id="noti"></div>');
-  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option><option value="dc-dental">DC Dental</option><option value="dc-aligner">DC Aligner</option><option value="junfun">junfun</option><option value="implant">implant</option><option value="dr-north">dr.north</option><option value="dr-daran">dr.daran</option><option value="north-tiktok">TikTok</option><option value="check-in">Check In</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
+  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option><option value="dc-dental">DC Dental</option><option value="dc-aligner">DC Aligner</option><option value="junfun">junfun</option><option value="implant">implant</option><option value="dr-north">dr.north</option><option value="dr-daran">dr.daran</option><option value="north-tiktok">TikTok</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
 
   // script — inject data as JSON, ไม่มี quote ซ้อน
   parts.push('<script>');
@@ -4561,7 +4656,7 @@ function openPipelinePage(){
   parts.push('  var exMap={};items.forEach(function(p){exMap[p.id]=p;});');
   parts.push('  function findEx(num){var prefix="prog_"+num+"_"+num+"_";for(var k in exMap){if(k.indexOf(prefix)===0)return exMap[k];}return null;}');
   parts.push('  var SL={storyboard:"📝 สตอรี่บอร์ด",shooting:"🎥 ถ่ายทำ",editing:"✂️ ตัดต่อ",thumbnail:"🖼 ปกคลิป",caption:"✍️ แคปชั่น",scheduling:"📅 ลงแพลน",complete:"✅ Complete"};');
-  parts.push('  var CL={"dc-dental":"DC Dental","dc-aligner":"DC Aligner","dr-north":"dr.north","check-in":"Check In"};');
+  parts.push('  var CL={"dc-dental":"DC Dental","dc-aligner":"DC Aligner","dr-north":"dr.north"};');
   parts.push('  var newC=0,upC=0,tb=document.getElementById("impTbody");tb.innerHTML="";');
   parts.push('  rows.forEach(function(row,i){');
   parts.push('    var ex=findEx(row.num),isNew=!ex,isUp=ex&&ex.stage!==row.stage;');
@@ -4637,14 +4732,27 @@ function openPipelinePage(){
 
 document.addEventListener('DOMContentLoaded',async function(){
   applyChannelTheme(activeChannel);
-  render();
-  // รอโหลดข้อมูลจริงก่อน แล้วค่อยซ่อน overlay
-  await loadChannelData(activeChannel);
-  const ov=document.getElementById('loadingOverlay');
-  if(ov){ov.style.opacity='0';ov.style.pointerEvents='none';setTimeout(()=>{try{ov.remove()}catch(e){}},600);}
   const sel=document.getElementById('gridChannelSelect');
   if(sel) sel.value=activeChannel;
-  loadPipelineItems();
+
+  const hideOverlay=()=>{
+    const ov=document.getElementById('loadingOverlay');
+    if(ov){ov.style.opacity='0';ov.style.pointerEvents='none';setTimeout(()=>{try{ov.remove()}catch(e){}},600);}
+  };
+  // กันเหนียว: ให้เข้าใช้งานหน้าเว็บได้ภายใน 6 วิ ไม่ว่า Sheets จะตอบช้าแค่ไหน
+  const overlayGuard=setTimeout(hideOverlay,6000);
+
+  // paint จาก cache แล้วเปิดให้ใช้งานเลย — ไม่รอ GAS ที่กินเวลาคงที่ ~2 วิ (spike ได้ถึง ~9 วิ)
+  const paintedFromCache=primeChannelCache(activeChannel);
+  _skipGridSyncWrite=true;   // ข้อมูลชุดนี้มาจาก cache ห้ามเอาไปเขียนทับชีต
+  render();
+  _skipGridSyncWrite=false;
+  if(paintedFromCache){ clearTimeout(overlayGuard); hideOverlay(); }
+
+  // โหลดของจริงเบื้องหลัง ยิงขนานกันทั้งสองอย่าง
+  await Promise.all([loadChannelData(activeChannel),loadPipelineItems()]);
+  clearTimeout(overlayGuard);
+  hideOverlay();
 });
 
 // ===== GLOBAL SEARCH =====
@@ -5366,7 +5474,7 @@ function renderImportTable(rows){
   const existingMap={};
   (pipelineItems||[]).forEach(p=>{ existingMap[p.id]=p; });
   const STAGE_LABEL={storyboard:'📋 Storyboard',thumbnail:'🖼 Thumbnail',scheduling:'📅 Scheduling',complete:'✅ Complete'};
-  const CH_LABEL={'dc-dental':'DC Dental','dc-aligner':'DC Aligner','dr-north':'dr.north','check-in':'Check In'};
+  const CH_LABEL={'dc-dental':'DC Dental','dc-aligner':'DC Aligner','dr-north':'dr.north'};
   let newCount=0,updateCount=0;
   const tbody=document.getElementById('importDraftTableBody');
   tbody.innerHTML='';
@@ -5539,7 +5647,7 @@ const CONTENT_IDEAS = {
  {icon:'💰',t:'โปร/แคมเปญ',items:['โปรวันแม่: รากเทียมลดพิเศษ + พาแม่ตรวจฟรี','แพ็คแม่ลูกจัดฟันใส/ขูดหินปูนคู่']}]}
 };
 /* ไอเดียใช้ได้ทุกเดือน */
-const IDEA_EVERGREEN = ['Q&A ตอบคอมเมนต์เรื่องจัดฟันใส/รากเทียมประจำสัปดาห์ (สไตล์คลิปที่ทำอยู่)','เคสรีวิวจัดฟันใส: เทียบถาดแรก vs ถาดปัจจุบัน','เบื้องหลังเทคโนโลยี: สแกนฟัน 3D + Digital Guide รากเทียม','Myth-busting: ความเชื่อผิดๆ เรื่องจัดฟันใส/รากเทียม','รีวิวคนไข้จริง สัมภาษณ์สั้นหลังทำเสร็จ','เช็คอินร้านอร่อย/ที่เที่ยวจันทบุรี ผูกกับช่อง Check In'];
+const IDEA_EVERGREEN = ['Q&A ตอบคอมเมนต์เรื่องจัดฟันใส/รากเทียมประจำสัปดาห์ (สไตล์คลิปที่ทำอยู่)','เคสรีวิวจัดฟันใส: เทียบถาดแรก vs ถาดปัจจุบัน','เบื้องหลังเทคโนโลยี: สแกนฟัน 3D + Digital Guide รากเทียม','Myth-busting: ความเชื่อผิดๆ เรื่องจัดฟันใส/รากเทียม','รีวิวคนไข้จริง สัมภาษณ์สั้นหลังทำเสร็จ'];
 
 let ideasY=null, ideasM=null;
 const IDEA_TH_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];

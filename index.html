@@ -1511,6 +1511,8 @@ async function switchChannel(ch){
   _skipGridSyncWrite=true;   // ข้อมูลชุดนี้มาจาก cache ห้ามเอาไปเขียนทับชีต
   render();
   _skipGridSyncWrite=false;
+  // เอาคลิปที่ช่องอื่น collab มาให้เห็นใน grid ตั้งแต่รอบ paint จาก cache ไม่ต้องรอ GAS
+  if(document.getElementById('igGridSection').style.display!=='none') mergeCollabToGrid();
   renderGrid();
   renderUnscheduled();
   // ช่องที่ยังไม่มี cache ต้องรอของจริง แต่ห้ามล็อคปุ่มค้างถ้า GAS spike — ปล่อยภายใน 6 วิ
@@ -1560,6 +1562,35 @@ function writeChannelCache(ch,arr,force){
       }))));
     }catch(e2){ console.warn('เขียน cache ไม่ได้ (localStorage เต็ม):',e2); }
   }
+}
+
+function removePostFromCache(ch,id){
+  let arr=null;
+  try{ arr=JSON.parse(localStorage.getItem('dcCache_'+ch)||'null'); }catch(e){}
+  if(!Array.isArray(arr)) return;
+  writeChannelCache(ch,arr.filter(p=>String(p.id)!==String(id)),true);
+}
+// ถอนโพสต์ออกจากช่องหนึ่งให้หมดจด: cache + คิวค้าง + ลิสต์ในจอ + ชีตปลายทาง
+// ต้องเคลียร์คิวก่อนยิงลบ ไม่งั้น retryPendingSync() รอบหน้าจะเขียนกลับขึ้นมาใหม่
+function removePostFromChannel(ch,id){
+  removePostFromCache(ch,id);
+  clearPendingSync(ch,id);
+  if(ch===activeChannel){
+    const before=posts.length;
+    posts=posts.filter(x=>String(x.id)!==String(id));
+    if(posts.length!==before) render();
+  }
+  return apiCall({action:'delete',id:String(id)},ch).then(r=>!!(r&&r.ok));
+}
+// โพสต์ที่ collab ไปช่องอื่น เขียนลงชีตปลายทางแล้วก็จริง แต่ cache ของช่องนั้นในเครื่องยังเป็นของเก่า
+// พอสลับไปช่องปลายทาง หน้าเว็บ paint จาก cache ก่อน เลยไม่เห็นโพสต์จนกว่า GAS จะตอบ (2-9 วิ)
+// อัปเดต cache ช่องปลายทางตั้งแต่ตอนเซฟ จะได้เห็นทันทีไม่ต้องรอ
+function upsertPostInCache(ch,post){
+  let arr=[];
+  try{ const cur=JSON.parse(localStorage.getItem('dcCache_'+ch)||'null'); if(Array.isArray(cur)) arr=cur; }catch(e){}
+  const i=arr.findIndex(p=>String(p.id)===String(post.id));
+  if(i>=0) arr[i]=post; else arr.push(post);
+  writeChannelCache(ch,arr,true);
 }
 
 async function loadChannelData(ch){
@@ -2143,6 +2174,14 @@ async function savePost(){
     hashtag:document.getElementById('fHashtag').value,
     note:document.getElementById('fNote').value,
   };
+  // ช่องที่โพสต์นี้เคยอยู่ (เจ้าของเดิม + collab เดิม) แต่รอบนี้ไม่อยู่แล้ว
+  // ถ้าไม่ตามไปลบ สำเนาในชีตช่องนั้นจะค้างเป็นโพสต์ผีตลอดไป
+  const prevPost=id?posts.find(x=>x.id===id):null;
+  const nowChs=[doctorCh,...collabChs];
+  const removedChs=prevPost
+    ?[...new Set([prevPost.doctor,...collabList(prevPost)].filter(Boolean))].filter(c=>!nowChs.includes(c))
+    :[];
+  if(removedChs.includes(activeChannel)) posts=posts.filter(x=>x.id!==post.id);
   if(doctorCh===activeChannel){
     if(id){const i=posts.findIndex(x=>x.id===id);if(i>=0) posts[i]=post;else posts.push(post);}
     else posts.push(post);
@@ -2156,20 +2195,45 @@ async function savePost(){
     return;
   }
   clearPendingSync(doctorCh,post.id);
+  if(doctorCh!==activeChannel) upsertPostInCache(doctorCh,post);
   if(collabChs.length){
     const results=await Promise.all(collabChs.map(ch=>{
       const collabPost=Object.assign({},post,{id:post.id,doctor:doctorCh,collab:collabCh});
-      return apiCall({action:'save',post:collabPost},ch).then(r=>({ch,ok:!!(r&&r.ok)}));
+      return apiCall({action:'save',post:collabPost},ch).then(r=>{
+        const ok=!!(r&&r.ok);
+        if(ok){
+          clearPendingSync(ch,post.id);
+          if(ch===activeChannel){
+            const i=posts.findIndex(x=>x.id===post.id);
+            if(i>=0) posts[i]=collabPost; else posts.push(collabPost);
+          } else {
+            upsertPostInCache(ch,collabPost);
+          }
+        } else {
+          // เขียนชีตปลายทางไม่สำเร็จ = โพสต์จะไม่โผล่ที่ช่องนั้นเลย ต่อให้รีหน้ากี่รอบ
+          // เข้าคิวไว้ให้ retryPendingSync() ยิงซ้ำตอนเปิดช่องนั้นครั้งหน้า
+          markPendingSync(ch,collabPost);
+        }
+        return {ch,ok};
+      });
     }));
+    if(results.some(r=>r.ok&&r.ch===activeChannel)) render();
     const okChs=results.filter(r=>r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
     const failChs=results.filter(r=>!r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
     if(okChs.length&&!failChs.length) showNoti('✅ บันทึก + sync ไป '+okChs.join(', ')+' อัตโนมัติ!','#27AE60');
-    else if(okChs.length&&failChs.length) showNoti('✅ sync ไป '+okChs.join(', ')+' สำเร็จ แต่ '+failChs.join(', ')+' ไม่สำเร็จ','#E67E22');
-    else showNoti('✅ บันทึกแล้ว แต่ sync ไม่สำเร็จ ('+failChs.join(', ')+')','#E67E22');
+    else if(okChs.length&&failChs.length) showNoti('✅ sync ไป '+okChs.join(', ')+' สำเร็จ — '+failChs.join(', ')+' ยังไม่ขึ้น เก็บเข้าคิวไว้แล้ว จะลองใหม่ตอนเปิดช่องนั้น','#E67E22',5000);
+    else showNoti('⚠️ บันทึกช่องต้นทางแล้ว แต่ '+failChs.join(', ')+' ยังไม่ขึ้น — เก็บเข้าคิวไว้ จะลองใหม่ตอนเปิดช่องนั้น','#E67E22',5000);
   } else if(doctorCh!==activeChannel){
     showNoti('✅ บันทึกลงช่อง '+(CHANNEL_META[doctorCh]?.label||doctorCh)+' แล้ว (ไม่แสดงในช่องนี้)','#27AE60');
   } else {
     showNoti('✅ บันทึกสำเร็จ!','#27AE60');
+  }
+  if(removedChs.length){
+    const res=await Promise.all(removedChs.map(ch=>removePostFromChannel(ch,post.id).then(ok=>({ch,ok}))));
+    const done=res.filter(r=>r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
+    const failed=res.filter(r=>!r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
+    if(failed.length) showNoti('⚠️ ถอดออกจาก '+failed.join(', ')+' ไม่สำเร็จ — โพสต์ยังค้างอยู่ช่องนั้น ลองกดบันทึกอีกครั้ง','#E67E22',5000);
+    else if(done.length) showNoti('🧹 ถอดโพสต์ออกจาก '+done.join(', ')+' แล้ว','#E67E22');
   }
   syncCalendarDatesToGrid();
 }
@@ -2177,16 +2241,20 @@ async function savePost(){
 async function deletePost(){
   const id=document.getElementById('editId').value;
   if(!id) return;
-  if(!confirm('ลบโพสต์นี้?')) return;
   const postToDelete=posts.find(p=>p.id===id);
   const postCh=postToDelete?.doctor||activeChannel;
+  // โพสต์ที่ collab ไว้มีสำเนาอยู่ในชีตของทุกช่องปลายทาง ต้องลบให้ครบ ไม่งั้นเหลือโพสต์ผี
+  const allChs=[...new Set([postCh,...collabList(postToDelete)].filter(Boolean))];
+  const allLabels=allChs.map(c=>CHANNEL_META[c]?.label||c);
+  if(!confirm('ลบโพสต์นี้?'+(allChs.length>1?'\nจะหายจากทุกช่องที่ collab กันไว้: '+allLabels.join(', '):''))) return;
   posts=posts.filter(p=>p.id!==id);
-  clearPendingSync(postCh,id);   // ลบแล้ว ห้ามให้คิวค้างเอากลับมาอีก
+  allChs.forEach(c=>clearPendingSync(c,id));   // ลบแล้ว ห้ามให้คิวค้างเอากลับมาอีก
   closeModal('addModal');render();
   showNoti('⏳ กำลังลบ...','#E67E22');
-  const ok=await apiCall({action:'delete',id},postCh);
-  if(ok&&ok.ok) showNoti('🗑️ ลบโพสต์แล้ว','#E67E22');
-  else showNoti('❌ ลบไม่สำเร็จ ลองใหม่','#E74C3C');
+  const res=await Promise.all(allChs.map(c=>removePostFromChannel(c,id).then(ok=>({ch:c,ok}))));
+  const failed=res.filter(r=>!r.ok).map(r=>CHANNEL_META[r.ch]?.label||r.ch);
+  if(!failed.length) showNoti('🗑️ ลบโพสต์แล้ว'+(allChs.length>1?' ('+allChs.length+' ช่อง)':''),'#E67E22');
+  else showNoti('❌ ลบไม่สำเร็จที่ '+failed.join(', ')+' — ลองใหม่อีกครั้ง','#E74C3C',5000);
 }
 
 function openView(id){

@@ -2758,11 +2758,20 @@ async function syncSlotToCalendar(slot){
   return res;
 }
 
+// ส่งข้อมูลโพสต์จากปฏิทินไปช่องที่ผูกกันใน IG Grid (วันที่ ชื่อ รูปปก แคปชั่น # โน้ต)
+// แคปชั่น/#/โน้ต ลบในปฏิทินจนว่าง → ใน Grid ว่างตาม; ชื่อกับรูปปกว่างไม่ทับ กันช่อง Grid หาย
 function syncCalendarDatesToGrid(){
   let changed=false;
-  gridSlots.forEach((slot,idx)=>{
+  gridSlots.forEach(slot=>{
     const calPost=posts.find(p=>p.id===slot.id);
-    if(calPost&&calPost.date&&calPost.date!==slot.date){gridSlots[idx].date=calPost.date;changed=true;}
+    if(!calPost) return;
+    const set=(k,v)=>{if((slot[k]||'')!==v){slot[k]=v;changed=true;}};
+    if(calPost.date) set('date',calPost.date);
+    if(calPost.title) set('title',calPost.title);
+    if(calPost.thumbData) set('img',calPost.thumbData);
+    set('caption',calPost.caption||'');
+    set('hashtag',calPost.hashtag||'');
+    set('note',calPost.note||'');
   });
   if(changed){saveGridSlots();renderGrid();}
 }

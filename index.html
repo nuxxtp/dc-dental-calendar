@@ -64,7 +64,9 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .day-num-text{font-size:12px;font-weight:700;}
 .festival-badge{font-size:8px;color:var(--orange);font-weight:700;background:#FEF3E2;
   padding:1px 5px;border-radius:4px;white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis;}
-.festival-dot{width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0;}
+.festival-dot{width:7px;height:7px;border-radius:50%;background:var(--orange);flex-shrink:0;cursor:pointer;}
+.festival-badge{cursor:pointer;}
+.festival-badge:hover{background:#FCE3C4;}
 .day-add-btn{opacity:0;font-size:15px;color:var(--blue);cursor:pointer;transition:opacity 0.2s;background:none;border:none;line-height:1;flex-shrink:0;}
 .day-cell:hover .day-add-btn{opacity:1;}
 .post-card{border-radius:7px;overflow:hidden;margin-bottom:3px;border:1px solid #E4EDF5;border-left-width:3px;
@@ -116,6 +118,10 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .btn-delete:hover{background:#c0392b;}
 .ch-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.12);}
 .view-field{margin-bottom:12px;}
+.copy-head{display:flex;align-items:center;gap:6px;}
+.copy-btn{background:white;border:1.5px solid #D0DCE8;border-radius:8px;padding:3px 10px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;text-transform:none;letter-spacing:0;transition:all 0.15s;white-space:nowrap;}
+.copy-btn:hover{border-color:var(--blue);background:var(--blue-light);}
+.copy-btn.done{border-color:var(--green);background:#D5F5E3;color:var(--green);}
 .vfl{font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
 .vfv{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
 #viewThumb{width:100%;height:auto;object-fit:contain;border-radius:9px;margin-bottom:14px;display:none;}
@@ -663,6 +669,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 </div>
 
 <div class="calendar-wrap">
+  <div id="festAlert" class="fest-alert"></div>
   <div class="day-headers">
     <div class="day-header">จันทร์</div><div class="day-header">อังคาร</div><div class="day-header">พุธ</div>
     <div class="day-header">พฤหัส</div><div class="day-header">ศุกร์</div>
@@ -816,9 +823,11 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
             <button type="button" onclick="openCaptionGenerator()" style="background:#1A6FB5;color:white;border:none;border-radius:8px;padding:6px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">✨ Generate</button>
           </div>
           <textarea id="fCaption" placeholder="วางแคปชั่นที่นี่..."></textarea>
+          <div style="display:flex;gap:6px;justify-content:flex-end;"><button type="button" class="copy-btn" onclick="copyFieldText('fCaption',this)">📋 คัดลอกแคปชั่น</button><button type="button" class="copy-btn" onclick="copyFieldText('all',this)">📋 แคปชั่น + แฮชแท็ก</button></div>
         </div></div>
       <div class="form-row"><label>Hashtag</label>
-        <textarea id="fHashtag" placeholder="#DCDentalClinic #ทำฟันจันทบุรี ..." style="min-height:60px"></textarea></div>
+        <div style="display:flex;flex-direction:column;gap:6px;"><textarea id="fHashtag" placeholder="#DCDentalClinic #ทำฟันจันทบุรี ..." style="min-height:60px"></textarea>
+          <div style="display:flex;justify-content:flex-end;"><button type="button" class="copy-btn" onclick="copyFieldText('fHashtag',this)">📋 คัดลอกแฮชแท็ก</button></div></div></div>
       <div class="form-row"><label>หมายเหตุ / Storyboard</label>
         <textarea id="fNote" placeholder="บันทึกเพิ่มเติม เช่น มุมกล้อง โลเคชั่น..." style="min-height:60px"></textarea></div>
       <div class="modal-actions">
@@ -853,9 +862,9 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         </div>
       </div>
       <div class="view-field"><div id="vCaptionCheck"></div></div>
-      <div class="view-field" id="vCaptionWrap"><div class="vfl">Caption</div>
+      <div class="view-field" id="vCaptionWrap"><div class="vfl copy-head">Caption<span style="flex:1"></span><button type="button" class="copy-btn" onclick="copyPostText('caption',this)">📋 คัดลอก</button><button type="button" class="copy-btn" id="vCopyAllBtn" onclick="copyPostText('all',this)">📋 แคปชั่น + แฮชแท็ก</button></div>
         <div class="vfv" id="vCaption" style="background:var(--bg);padding:10px;border-radius:8px;font-size:12px"></div></div>
-      <div class="view-field" id="vHashtagWrap"><div class="vfl">Hashtag</div>
+      <div class="view-field" id="vHashtagWrap"><div class="vfl copy-head">Hashtag<span style="flex:1"></span><button type="button" class="copy-btn" onclick="copyPostText('hashtag',this)">📋 คัดลอก</button></div>
         <div class="vfv" id="vHashtag" style="color:var(--blue);font-size:12px"></div></div>
       <div class="view-field" id="vNoteWrap"><div class="vfl">หมายเหตุ</div>
         <div class="vfv" id="vNote" style="font-size:12px"></div></div>
@@ -1916,6 +1925,7 @@ function render(){
   document.getElementById('cTotal').textContent=mp.length;
   renderCal();
   renderUnscheduled();
+  if(typeof renderFestivalAlert==='function')renderFestivalAlert();
   // ซิงก์วันโพสต์ลง grid แล้วเขียนขึ้นชีต — ทำได้เฉพาะตอนถือข้อมูลสดจาก Sheets อยู่
   // ถ้าทำตอน paint จาก cache จะเสี่ยงเอาวันที่เก่าไปทับของใหม่บนชีต
   if(!_skipGridSyncWrite){
@@ -1982,7 +1992,7 @@ function renderCal(){
     const fest=getFestival(date,ds);
     const top=document.createElement('div');top.className='day-top';
     const dayLabel=isMobile&&!other?`<span style="font-size:10px;font-weight:500;color:${isWeekend?'var(--red)':'var(--gray-dark)'};margin-right:3px;">${DAYS_SHORT[date.getDay()]}</span>`:'';
-    top.innerHTML=`<span class="day-num-text" style="color:${isWeekend&&!isMobile?'var(--red)':''}">${dayLabel}${date.getDate()}</span>${fest?(isMobile?`<span class="festival-dot" title="${fest}"></span>`:`<span class="festival-badge" title="${fest}">${fest}</span>`):''}
+    top.innerHTML=`<span class="day-num-text" style="color:${isWeekend&&!isMobile?'var(--red)':''}">${dayLabel}${date.getDate()}</span>${fest?(isMobile?`<span class="festival-dot" title="${fest}" onclick="event.stopPropagation();openFestival('${ds}')"></span>`:`<span class="festival-badge" title="${fest} — คลิกดูไอเดีย" onclick="event.stopPropagation();openFestival('${ds}')">${fest}</span>`):''}
       <button class="day-add-btn" onclick="openAdd('${ds}')">＋</button>`;
     cell.appendChild(top);
     const dayPosts=applyFilter(posts.filter(p=>p.date===ds));
@@ -2105,6 +2115,34 @@ function setFilter(f,btn){filter=f;document.querySelectorAll('.filter-btn').forE
 // ================================================
 // CALENDAR — Add / Edit / View Posts (modal)
 // ================================================
+// ── คัดลอกแคปชั่น/แฮชแท็ก ──
+function copyToClipboard(text,btn){
+  if(!text){ flashCopyBtn(btn,'ว่างอยู่'); return; }
+  const ok=function(){ flashCopyBtn(btn,'✅ คัดลอกแล้ว'); };
+  const fallback=function(){
+    const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); ok(); }catch(e){ flashCopyBtn(btn,'คัดลอกไม่ได้'); }
+    document.body.removeChild(ta);
+  };
+  if(navigator.clipboard&&window.isSecureContext) navigator.clipboard.writeText(text).then(ok,fallback); else fallback();
+}
+function flashCopyBtn(btn,label){
+  if(!btn) return;
+  if(!btn.dataset.label) btn.dataset.label=btn.textContent;
+  btn.textContent=label; btn.classList.add('done');
+  clearTimeout(btn._t); btn._t=setTimeout(function(){ btn.textContent=btn.dataset.label; btn.classList.remove('done'); },1400);
+}
+function joinCaption(cap,tag){ return [String(cap||'').trim(),String(tag||'').trim()].filter(Boolean).join('\n\n'); }
+function copyPostText(what,btn){
+  const cap=document.getElementById('vCaption').textContent, tag=document.getElementById('vHashtag').textContent;
+  copyToClipboard(what==='caption'?cap:what==='hashtag'?tag:joinCaption(cap,tag),btn);
+}
+function copyFieldText(id,btn){
+  const text=id==='all'?joinCaption(document.getElementById('fCaption').value,document.getElementById('fHashtag').value):document.getElementById(id).value;
+  copyToClipboard(text,btn);
+}
+
 function openAdd(dateStr){
   document.getElementById('editId').value='';
   document.getElementById('modalTitle').textContent='➕ เพิ่มโพสต์ใหม่';
@@ -2318,6 +2356,7 @@ function openView(id){
   document.getElementById('vCaption').textContent=p.caption||'';cw.style.display=p.caption?'block':'none';
   const hw=document.getElementById('vHashtagWrap');
   document.getElementById('vHashtag').textContent=p.hashtag||'';hw.style.display=p.hashtag?'block':'none';
+  document.getElementById('vCopyAllBtn').style.display=p.hashtag?'':'none';
   const nw=document.getElementById('vNoteWrap');
   document.getElementById('vNote').textContent=p.note||'';nw.style.display=p.note?'block':'none';
   const cc=document.getElementById('vCaptionCheck');
@@ -5838,6 +5877,146 @@ function askAIIdeas(){
     });
 }
 document.getElementById('ideasModal').addEventListener('click', function(e){ if(e.target===this) closeIdeas(); });
+</script>
+<!-- ══════════ 🎉 FESTIVALS — แถบเตือนวันสำคัญที่ใกล้มาถึง + ไอเดียต่อวันสำคัญ ══════════ -->
+<style>
+.fest-alert{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.fest-alert:empty{display:none;}
+.fest-chip{display:flex;align-items:center;gap:6px;border:1.5px solid #F5CBA7;background:#FEF5EC;border-radius:20px;padding:4px 12px;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer;transition:all 0.15s;color:#7E4A1E;}
+.fest-chip:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(230,126,34,0.2);}
+.fest-chip b{font-weight:700;}
+.fest-chip .fc-count{border-radius:10px;padding:0 7px;font-size:11px;font-weight:700;background:var(--green);color:white;}
+.fest-chip.urgent{border-color:#F1948A;background:#FDEDEC;color:#922B21;}
+.fest-chip .fc-count.zero{background:var(--red);}
+.fest-alert-title{font-size:12px;font-weight:700;color:var(--gray-dark);align-self:center;margin-right:2px;}
+.fest-post{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1.5px solid #E8F0F8;border-radius:10px;margin-bottom:5px;cursor:pointer;font-size:12.5px;background:white;}
+.fest-post:hover{border-color:var(--blue-mid);}
+.fest-head{background:#FEF5EC;border-radius:10px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:#7E4A1E;line-height:1.6;}
+@media(max-width:640px){.fest-alert-title{display:none;}.fest-chip{font-size:11px;padding:3px 9px;}}
+</style>
+
+<div class="modal-overlay" id="festModal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-header">
+      <h2 id="festTitle" style="flex:1;"></h2>
+      <button class="modal-close" onclick="closeFestival()">×</button>
+    </div>
+    <div class="modal-body" id="festBody"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const FEST_LOOKAHEAD_DAYS = 21;
+/* ไอเดียต่อวันสำคัญ — แบรนด์ไม่ทำโปร: เน้นความรู้ + เทรนด์ตลก ผูกกับจัดฟันใส/รากเทียม (จับคู่ด้วยคำในชื่อวัน) */
+const FESTIVAL_IDEAS = [
+ {k:'ลอยกระทง', ideas:['POV ถ่ายรูปคู่ริมน้ำ ยิ้มกว้างได้เต็มที่เพราะจัดฟันใส ไม่มีเหล็กโผล่','เทรนด์ "อธิษฐานอะไรตอนลอยกระทง" — คนไข้ตอบ: ขอให้กลับมากินของที่ชอบได้อีกครั้ง (รากเทียม)','ความรู้: กินขนมหวานงานวัดเยอะ ดูแลฟันยังไงไม่ให้ผุ (ใส่ถาดจัดฟันใสต้องแปรงก่อนใส่)','ฟันหลุดลอยไปกับกระทงได้ แต่ช่องว่างไม่ลอยไปด้วยนะ — ผลเสียของการปล่อยฟันหายไม่ทำรากเทียม']},
+ {k:'คริสต์มาส', ideas:['All I want for Christmas is… ฟันกลับมาครบ 🎄 (เทรนด์เพลง + รากเทียม)','ของขวัญที่ดีที่สุดให้พ่อแม่ = กลับมาเคี้ยวได้อีกครั้ง (เล่าเคสรากเทียมแบบเรื่องเล่า ไม่ขายของ)','ความรู้: ปาร์ตี้ปลายปี ใส่ถาดจัดฟันใสอยู่ กิน-ดื่มยังไงให้ถาดไม่เหลือง','หมอ/ทีมแต่งชุดซานต้าตอบคำถามจัดฟันใสแบบเร็วๆ']},
+ {k:'สิ้นปี', ideas:['สรุปปีนี้คลินิกทำรากเทียม/จัดฟันใสไปกี่เคส — Year in review','เทรนด์ "สิ่งที่ปีหน้าจะไม่ทำอีกแล้ว": ไม่ยิ้มปิดปากในรูปอีกแล้ว']},
+ {k:'ปีใหม่', ideas:['New Year resolution ที่ทำได้จริง: "ปีนี้ขอยิ้มเต็มที่" — ไทม์ไลน์จัดฟันใส 12 เดือน','เช็คลิสต์สุขภาพฟันต้นปี 5 ข้อ','ฟันหายไปปีก่อน ปีนี้กลับมาเคี้ยวได้ — อธิบายขั้นตอนรากเทียมทีละสเต็ป']},
+ {k:'ตรุษจีน', ideas:['ยิ้มรับทรัพย์ — ความเชื่อเรื่องฟันหน้า/ฟันห่างในโหงวเฮ้ง vs ความจริงทางทันตกรรม','ขนมไหว้เจ้าเหนียวๆ หวานๆ (ขนมเข่ง) กินยังไงไม่ให้ถาดจัดฟันใส/ครอบฟันเสีย','อากง อาม่า กลับมาเคี้ยวเป็ดไก่ได้ — เรื่องเล่ารากเทียมผู้สูงวัย','เทรนด์ตลก: ญาติถามทุกปี "ทำงานอะไร มีแฟนยัง" ปีนี้ถาม "จัดฟันเหรอ? ไม่เห็นเลย"']},
+ {k:'Valentine', ideas:['Couple challenge: แฟนดูออกไหมว่าใส่จัดฟันใสอยู่','ความรู้: กลิ่นปากกับการจัดฟันใส — ดูแลยังไงให้พร้อมเดต','ช็อกโกแลตกับฟัน: กินได้ แต่ต้องรู้สิ่งนี้']},
+ {k:'World Oral Health Day', ideas:['ชุดความรู้ World Oral Health Day: ฟันหาย 1 ซี่ ส่งผลต่อฟันที่เหลือยังไง','Myth vs Fact จัดฟันใส 5 ข้อ','หมอตอบคำถามฮิตจากคอมเมนต์ (Q&A รวมฮิต)']},
+ {k:'สงกรานต์', ideas:['กลับบ้านสงกรานต์ ลองสังเกตพ่อแม่: เคี้ยวข้างเดียว ฟันโยก = สัญญาณอะไร','สาดน้ำได้ ถาดจัดฟันใสไม่หาย — ทิปพกถาด/เคสตอนเที่ยว','เทรนด์ตลก: โดนแป้งดินสอพองเต็มหน้า แต่ยิ้มยังสวย']},
+ {k:'วันครอบครัว', ideas:['พาครอบครัวมาเช็คฟันพร้อมกัน — ฟันแต่ละวัยต้องดูแลต่างกันยังไง']},
+ {k:'วันแม่', ideas:['เรื่องเล่า: ลูกพาแม่มาทำรากเทียม จนแม่กลับมากินของที่ชอบได้','ความรู้: ฟันปลอมถอดได้ vs รากเทียม ต่างกันยังไงสำหรับผู้สูงวัย','เทรนด์ "แม่ส่งสติกเกอร์อะไรมาบ้าง" ยิ้มให้แม่ด้วยฟันที่มั่นใจ']},
+ {k:'วันพ่อ', ideas:['พ่อไม่เคยบ่นว่าเคี้ยวลำบาก แต่สังเกตได้จาก 5 อย่างนี้','เรื่องเล่า: พ่อกลับมากินสเต๊กได้อีกครั้ง (รากเทียม)','ความรู้: อายุมากทำรากเทียมได้ไหม มีข้อจำกัดอะไร']},
+ {k:'วันทันตสาธารณสุข', ideas:['ชุดความรู้วันทันตฯ: แปรงฟันถูกวิธีตอนใส่จัดฟันใส','เบื้องหลังเทคโนโลยี สแกนฟัน 3D + Digital Guide รากเทียม']},
+ {k:'Halloween', ideas:['ฟันหลอน: ปล่อยช่องฟันว่างนานๆ กระดูกละลาย ฟันข้างๆ ล้ม (สนุกแต่ได้ความรู้)','แต่งฮาโลวีนเป็นแวมไพร์ แต่ฟันเขี้ยวต้องเรียงสวย 🧛']},
+ {k:'วันเด็ก', ideas:['ความรู้: เด็กควรเริ่มพบหมอจัดฟันตอนกี่ขวบ','เทรนด์ "ตอนเด็กอยากเป็นอะไร" — ทีมหมอตอบ']},
+ {k:'วันครู', ideas:['ครูยิ้มบ่อยทั้งวัน — จัดฟันใสสอนหน้าห้องได้ ไม่มีใครรู้']},
+ {k:'11.11', ideas:['เทรนด์ตลก 11.11: ใส่ตะกร้าทุกอย่าง ยกเว้นนัดเช็คฟัน 😅 (ชวนดูแลฟัน ไม่ใช่ขายโปร)','ความรู้: "จัดฟันราคาถูก" ต้องเช็คอะไรบ้างก่อนตัดสินใจ']},
+ {k:'12.12', ideas:['ของที่ใช้ได้เป็นสิบปี vs ของที่ใช้ครั้งเดียว — ความคุ้มของการดูแลฟัน (ความรู้ ไม่ใช่โปร)']},
+ {k:'เข้าพรรษา', ideas:['เทรนด์งดของหวาน 3 เดือนช่วงเข้าพรรษา — ฟันได้อะไรบ้าง','ใส่ถาดจัดฟันใสครบ 22 ชม. = ช่วยลดกินจุบจิบโดยไม่ตั้งใจ']},
+ {k:'บูชา', ideas:['ทำบุญตักบาตรตอนเช้า — ทิปถอด/ใส่ถาดจัดฟันใสเมื่อออกนอกบ้าน','ความรู้เบาๆ: อาหารเจ/มังสวิรัติกับสุขภาพฟัน']}
+];
+
+function festPostsOn(ds){
+  return posts.filter(function(p){ return p.date===ds && (!p.doctor||p.doctor===activeChannel||collabList(p).includes(activeChannel)); });
+}
+function festDs(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function festIdeasFor(name, ds){
+  const out=[];
+  FESTIVAL_IDEAS.forEach(function(f){ if(name.indexOf(f.k)!==-1) f.ideas.forEach(function(t){ if(out.indexOf(t)===-1) out.push(t); }); });
+  // ดึงไอเดียของเดือนนั้นจากคลัง 💡 ที่พูดถึงวันนี้ด้วย
+  const data=(typeof CONTENT_IDEAS!=='undefined')&&CONTENT_IDEAS[ds.slice(0,7)];
+  if(data){
+    const words=name.split(' · ').map(function(n){ return n.replace(/[^฀-๿a-zA-Z0-9\.]/g,'').trim(); }).filter(function(w){ return w.length>=3; });
+    data.sections.forEach(function(sec){ sec.items.forEach(function(t){
+      if(words.some(function(w){ return t.indexOf(w)!==-1; }) && out.indexOf(t)===-1) out.push(t);
+    }); });
+  }
+  return out;
+}
+function festDaysLeft(ds){
+  const t=new Date(); t.setHours(0,0,0,0);
+  return Math.round((new Date(ds+'T00:00:00')-t)/86400000);
+}
+function festWhen(n){ return n===0?'วันนี้!':n===1?'พรุ่งนี้':'อีก '+n+' วัน'; }
+
+function renderFestivalAlert(){
+  const box=document.getElementById('festAlert'); if(!box) return;
+  const t=new Date(); t.setHours(0,0,0,0);
+  let h='';
+  for(let i=0;i<=FEST_LOOKAHEAD_DAYS;i++){
+    const d=new Date(t); d.setDate(t.getDate()+i);
+    const ds=festDs(d), name=getFestival(d,ds);
+    if(!name) continue;
+    const cnt=festPostsOn(ds).length;
+    const urgent=cnt===0&&i<=7;
+    h+='<div class="fest-chip'+(urgent?' urgent':'')+'" onclick="openFestival(\''+ds+'\')" title="คลิกดูไอเดีย + สร้างโพสต์">'
+      +'<b>'+ideaEsc(name)+'</b><span>'+festWhen(i)+' ('+d.getDate()+' '+FEST_TH_MON[d.getMonth()]+')</span>'
+      +'<span class="fc-count'+(cnt===0?' zero':'')+'">'+(cnt===0?'ยังไม่มีโพสต์':cnt+' โพสต์')+'</span></div>';
+  }
+  box.innerHTML=h?'<span class="fest-alert-title">🗓 วันสำคัญที่ใกล้มาถึง</span>'+h:'';
+}
+const FEST_TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+let festCurDs='';
+function openFestival(ds){
+  festCurDs=ds;
+  const d=new Date(ds+'T00:00:00'), name=getFestival(d,ds);
+  document.getElementById('festTitle').textContent='🎉 '+name;
+  const left=festDaysLeft(ds);
+  const dp=festPostsOn(ds);
+  const ideas=festIdeasFor(name, ds);
+  let h='<div class="fest-head">📅 '+d.getDate()+' '+FEST_TH_MON[d.getMonth()]+' '+(d.getFullYear()+543)
+    +(left>=0?' · <b>'+festWhen(left)+'</b>':' · ผ่านมาแล้ว')
+    +'<br>'+(dp.length?'วางโพสต์ไว้แล้ว '+dp.length+' ชิ้น ✅':'⚠️ ยังไม่มีโพสต์ในวันนี้')+'</div>';
+  if(dp.length){
+    h+='<div class="idea-sec"><div class="idea-sec-title">📌 โพสต์ที่วางไว้วันนี้</div>';
+    dp.forEach(function(p){ h+='<div class="fest-post" onclick="closeFestival();openView(\''+p.id+'\')"><span>'+({draft:'📝',ready:'✅',posted:'🚀'}[p.status]||'📝')+'</span><span style="flex:1">'+ideaEsc(p.title||'(ไม่มีชื่อ)')+'</span></div>'; });
+    h+='</div>';
+  }
+  h+='<div class="idea-sec"><div class="idea-sec-title">💡 ไอเดียสำหรับวันนี้</div>';
+  if(ideas.length){
+    ideas.forEach(function(t,i){
+      h+='<div class="idea-row"><span class="idea-text">'+ideaEsc(t)+'</span>'
+        +'<button class="idea-act" title="Copy ไอเดีย" onclick="festCopy('+i+',this)">📋</button>'
+        +'<button class="idea-act" title="สร้างโพสต์วันนี้จากไอเดียนี้" onclick="festToPost('+i+')">➕</button></div>';
+    });
+  } else {
+    h+='<div class="idea-empty">ยังไม่มีไอเดียเตรียมไว้สำหรับวันนี้<br>เปิด 💡 ไอเดีย แล้วให้ AI ช่วย brainstorm ได้</div>';
+  }
+  h+='</div><button class="idea-ai-btn" style="background:linear-gradient(135deg,#E67E22,#CA6F1E)" onclick="festToPost(-1)">＋ สร้างโพสต์ว่างในวันนี้</button>';
+  document.getElementById('festBody').innerHTML=h;
+  document.getElementById('festModal').classList.add('open');
+}
+function closeFestival(){ document.getElementById('festModal').classList.remove('open'); }
+function festIdeaText(i){ const d=new Date(festCurDs+'T00:00:00'); return festIdeasFor(getFestival(d,festCurDs),festCurDs)[i]||''; }
+function festCopy(i,btn){
+  const text=festIdeaText(i);
+  const done=function(){ btn.textContent='✅'; setTimeout(function(){ btn.textContent='📋'; },1200); };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done);
+}
+function festToPost(i){
+  const text=i>=0?festIdeaText(i):'';
+  closeFestival();
+  openAdd(festCurDs);
+  if(text) document.getElementById('fTitle').value=text;
+}
+document.getElementById('festModal').addEventListener('click', function(e){ if(e.target===this) closeFestival(); });
+renderFestivalAlert();
 </script>
 </body>
 </html>

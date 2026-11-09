@@ -2673,6 +2673,12 @@ function renderGrid(){
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.45);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
         numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
+        if(item.date){
+          const d=new Date(item.date+'T00:00:00');
+          const dateBadge=document.createElement('div');
+          dateBadge.style.cssText='position:absolute;bottom:4px;left:4px;right:4px;background:rgba(26,111,181,0.85);color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;pointer-events:none;z-index:3;text-align:center;';
+          dateBadge.textContent=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;cell.appendChild(dateBadge);
+        }
         cell.addEventListener('click',()=>openGridModal(realIdx));
         cell.addEventListener('dragstart',e=>{dragSrcIdx=realIdx;setTimeout(()=>cell.style.opacity='0.4',0);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('type','grid');});
         cell.addEventListener('dragend',()=>{cell.style.opacity='1';document.querySelectorAll('#igGrid > div').forEach(c=>c.style.outline='none');});
@@ -6155,7 +6161,13 @@ async function applyAutoDate(){
   const p=autoDatePlan();
   if(!p.plan.length) return;
   const changed=p.plan.filter(function(x){ return x.slot.date!==x.date; });
-  changed.forEach(function(x){ x.slot.date=x.date; });
+  // ต้องแก้วันของโพสต์ในปฏิทินที่ผูกกันไปพร้อมกัน — render() จะดึงวันจากปฏิทินกลับมาทับ grid
+  // ถ้าโพสต์ในปฏิทินยังเป็นวันเก่า/ว่าง วันที่เพิ่งจัดจะหายก่อนได้เซฟ
+  changed.forEach(function(x){
+    x.slot.date=x.date;
+    const cp=posts.find(function(q){ return q.id===x.slot.id; });
+    if(cp) cp.date=x.date;
+  });
   closeAutoDate();
   renderGrid(); renderUnscheduled(); render();
   if(!changed.length){ showNoti('✅ วันตรงอยู่แล้ว ไม่มีอะไรต้องเปลี่ยน','#27AE60'); return; }

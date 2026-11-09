@@ -3271,7 +3271,26 @@ function openGridSandbox(){
   renderSandbox();
 }
 
-function closeSandbox(){const ov=document.getElementById('gridSandboxOverlay');if(ov) document.body.removeChild(ov);sandboxSlots=[];}
+function closeSandbox(){const ov=document.getElementById('gridSandboxOverlay');if(ov) document.body.removeChild(ov);sandboxSlots=[];sbSelectMode=false;sbSelected.clear();}
+
+// โหมดเลือกในหน้าทดลองจัด — ติ๊กได้ทุกช่อง (ชื่อคอนเทนต์ / รูป / รอปก / คั่น) แล้วลบทีเดียว ใช้ได้บนมือถือด้วย
+let sbSelectMode=false;
+const sbSelected=new Set();   // เก็บ id ของช่อง — ลากสลับตำแหน่งแล้วยังเลือกถูกช่อง
+function toggleSbSelectMode(){ sbSelectMode=!sbSelectMode; sbSelected.clear(); renderSandbox(); }
+function toggleSbSelect(id){ if(sbSelected.has(id)) sbSelected.delete(id); else sbSelected.add(id); renderSandbox(); }
+function sbSelectAll(){
+  const all=sandboxSlots.length>0&&sandboxSlots.every(s=>sbSelected.has(s.id));
+  sbSelected.clear();
+  if(!all) sandboxSlots.forEach(s=>sbSelected.add(s.id));
+  renderSandbox();
+}
+function sbDeleteSelected(){
+  if(!sbSelected.size) return;
+  if(!confirm('ลบ '+sbSelected.size+' ช่องที่เลือกออกจากหน้าทดลองจัด?')) return;
+  sandboxSlots=sandboxSlots.filter(s=>!sbSelected.has(s.id));
+  sbSelected.clear(); sbSelectMode=false;
+  renderSandbox();
+}
 
 async function handleSandboxFiles(files){
   const arr=Array.from(files).filter(f=>f.type.startsWith('image/'));if(!arr.length) return;
@@ -3467,6 +3486,21 @@ function renderSandbox(){
         const tmp=sandboxSlots[fromIdx];sandboxSlots[fromIdx]=sandboxSlots[idx];sandboxSlots[idx]=tmp;
         renderSandbox();
       });
+      if(sbSelectMode){
+        const sel=sbSelected.has(slot.id);
+        del.remove();
+        cell.draggable=false;cell.style.cursor='pointer';
+        cell.style.outline=sel?'3px solid #E74C3C':'none';cell.style.outlineOffset='-3px';
+        const chk=document.createElement('div');
+        chk.style.cssText='position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:'+(sel?'#E74C3C':'rgba(0,0,0,0.4)')+';border:2px solid '+(sel?'#E74C3C':'rgba(255,255,255,0.85)')+';display:flex;align-items:center;justify-content:center;z-index:5;pointer-events:none;';
+        chk.innerHTML=sel?'<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':'';
+        cell.appendChild(chk);
+        // capture + หยุดต่อ → ไม่ไปเปิดหน้าแก้ไขชื่อคอนเทนต์ และไม่ให้ hover เปลี่ยนกรอบ
+        const pick=e=>{e.stopPropagation();e.stopImmediatePropagation();toggleSbSelect(slot.id);};
+        cell.addEventListener('click',pick,true);
+        cell.addEventListener('mouseleave',e=>e.stopImmediatePropagation(),true);
+        cell.addEventListener('mouseenter',e=>e.stopImmediatePropagation(),true);
+      }
       grid.appendChild(cell);
     });
   });
@@ -3474,6 +3508,18 @@ function renderSandbox(){
   // Toolbar ปุ่มทั้งหมด
   const toolbar=document.createElement('div');
   toolbar.style.cssText='grid-column:1/-1;display:flex;gap:8px;padding:8px 0;flex-wrap:wrap;';
+  if(sbSelectMode){
+    toolbar.innerHTML=`
+    <button onclick="sbDeleteSelected()" ${sbSelected.size?'':'disabled'}
+      style="flex:2;min-width:140px;background:#E74C3C;border:none;border-radius:8px;padding:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;opacity:${sbSelected.size?1:0.5};">🗑 ลบที่เลือก (${sbSelected.size})</button>
+    <button onclick="sbSelectAll()"
+      style="flex:1;min-width:100px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;">${sandboxSlots.length&&sandboxSlots.every(s=>sbSelected.has(s.id))?'ไม่เลือกเลย':'เลือกทั้งหมด'}</button>
+    <button onclick="toggleSbSelectMode()"
+      style="flex:1;min-width:90px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:white;font-size:12px;font-weight:600;cursor:pointer;">✕ ยกเลิก</button>`;
+    grid.appendChild(toolbar);
+    saveSandboxDraft();
+    return;
+  }
   toolbar.innerHTML=`
     <button onclick="openAddTextCard()"
       style="flex:1;min-width:120px;background:linear-gradient(135deg,#4A4A6A,#8888AA);border:none;border-radius:8px;padding:10px;color:white;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
@@ -3487,6 +3533,8 @@ function renderSandbox(){
       style="flex:1;min-width:90px;background:linear-gradient(135deg,#8B6F3E,#C8956C);border:none;border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:600;cursor:pointer;">รอปก</button>
     <button onclick="(()=>{const m=cy+'-'+String(cm+1).padStart(2,'0');sandboxSlots.unshift({id:activeChannel+'-blank-'+Date.now(),type:'blank',img:'',title:'',createdMonth:m});renderSandbox();})()"
       style="flex:1;min-width:90px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer;">▭ คั่น</button>
+    <button onclick="toggleSbSelectMode()" ${sandboxSlots.length?'':'disabled'}
+      style="flex:1;min-width:90px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:700;cursor:pointer;opacity:${sandboxSlots.length?1:0.5};">☑️ เลือก</button>
     <button onclick="(()=>{sandboxSlots=[];clearSandboxDraft();renderSandbox();})()"
       style="flex:1;min-width:90px;background:rgba(231,76,60,0.25);border:1px solid rgba(231,76,60,0.45);border-radius:8px;padding:10px;color:rgba(255,160,140,1);font-size:11px;font-weight:600;cursor:pointer;">🗑 เริ่มใหม่</button>`;
   grid.appendChild(toolbar);

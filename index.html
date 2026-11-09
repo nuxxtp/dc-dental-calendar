@@ -1493,7 +1493,16 @@ function hideChannelLoading(){
   },220);
 }
 
+// ช่องที่ Apps Script ตัวที่ deploy อยู่ยังไม่รู้จักชีต — ถ้าเปิดใช้ ระบบจะอ่าน/เขียนชีต DC Dental แทน
+// ซ่อนไว้ก่อน ลบชื่อออกจากลิสต์นี้หลัง deploy .gs เวอร์ชันที่มีชีตของช่องนั้นใน ALLOWED_SHEETS แล้ว
+const CHANNELS_PENDING_SERVER=['dr-pearn'];
+document.addEventListener('DOMContentLoaded',function(){
+  CHANNELS_PENDING_SERVER.forEach(function(ch){
+    document.querySelectorAll('[data-ch="'+ch+'"],option[value="'+ch+'"]').forEach(function(el){ el.remove(); });
+  });
+});
 async function switchChannel(ch){
+  if(CHANNELS_PENDING_SERVER.includes(ch)) return;
   // ป้องกัน race condition — ถ้ากำลังโหลดช่องเดิมอยู่ให้ยกเลิกก่อน
   if(window._switchToken) window._switchToken.cancelled=true;
   const token={cancelled:false};

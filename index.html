@@ -2527,7 +2527,6 @@ function selectAllGridSlots(){
   const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
   const monthIdxs=[];
   gridSlots.forEach((s,i)=>{
-    if(s.type==='blank') return;
     if(s.date){
       const d=new Date(s.date+'T00:00:00');
       if(d.getFullYear()===cy&&d.getMonth()===cm) monthIdxs.push(i);
@@ -2554,12 +2553,12 @@ function updateSelectedCount(){
 }
 
 async function deleteSelectedGridSlots(){
-  if(gridSelected.size===0){showNoti('ยังไม่ได้เลือกรูปเลยครับ','#E67E22');return;}
-  const totalReal=gridSlots.filter(s=>s.type!=='blank').length;
+  if(gridSelected.size===0){showNoti('ยังไม่ได้เลือกช่องไหนเลยครับ','#E67E22');return;}
+  const totalReal=gridSlots.length;
   const isAll=gridSelected.size>=totalReal;
   const confirmMsg=isAll
-    ?'⚠️ คุณกำลังจะลบทุกรูปใน Grid ('+gridSelected.size+' รูป)\n\nแน่ใจ 100% ไหมครับ?\nพิมพ์ "ลบ" เพื่อยืนยัน'
-    :'ลบ '+gridSelected.size+' รูปที่เลือก?\n(ถ้าผูกกับ Calendar แล้วจะลบออกด้วย)';
+    ?'⚠️ คุณกำลังจะลบทุกช่องใน Grid ('+gridSelected.size+' ช่อง)\n\nแน่ใจ 100% ไหมครับ?\nพิมพ์ "ลบ" เพื่อยืนยัน'
+    :'ลบ '+gridSelected.size+' ช่องที่เลือก?\n(รูป / รอปก / คั่น — ถ้าผูกกับ Calendar แล้วโพสต์ในปฏิทินจะถูกลบด้วย)';
   if(isAll){
     const input=prompt(confirmMsg);
     if(input!=='ลบ'){showNoti('ยกเลิกการลบแล้ว','#27AE60');return;}
@@ -2593,7 +2592,7 @@ async function deleteSelectedGridSlots(){
 
   gridSelected.clear();
   updateSelectedCount();
-  showNoti('🗑️ ลบ '+indices.length+' รูปแล้ว','#E74C3C');
+  showNoti('🗑️ ลบ '+indices.length+' ช่องแล้ว','#E74C3C');
   await saveGridSlots(true);
   render();
   renderGrid();
@@ -2617,6 +2616,27 @@ function igLayoutRows(list){
 }
 // เลขลำดับโพสต์ที่โชว์บนช่อง: #1 = โพสต์แรก (ล่างขวา)
 function igPostNo(list,item){ return list.length-list.indexOf(item); }
+// โหมดเลือก: ช่องรอปก/ช่องคั่นก็ติ๊กเลือกเพื่อลบได้เหมือนรูป
+// ใช้ listener แบบ capture บนตัวช่อง แล้วหยุดต่อ — ไม่ให้คลิกไปเปิดหน้าแก้ไขของช่องนั้น
+function makeGridCellSelectable(cell,realIdx){
+  if(!gridSelectMode) return;
+  const sel=gridSelected.has(realIdx);
+  const chk=document.createElement('div');
+  chk.className='grid-check';
+  chk.style.cssText='position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:'+(sel?'#E74C3C':'rgba(0,0,0,0.4)')+';border:2px solid '+(sel?'#E74C3C':'rgba(255,255,255,0.8)')+';display:flex;align-items:center;justify-content:center;z-index:5;pointer-events:none;';
+  chk.innerHTML=sel?'<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':'';
+  cell.appendChild(chk);
+  cell.dataset.idx=realIdx;
+  cell.draggable=false;
+  cell.style.cursor='pointer';
+  cell.style.outline=sel?'3px solid #E74C3C':'none';
+  cell.style.outlineOffset='-3px';
+  cell.addEventListener('click',e=>{
+    e.stopPropagation();e.stopImmediatePropagation();
+    if(gridSelected.has(realIdx)) gridSelected.delete(realIdx); else gridSelected.add(realIdx);
+    updateSelectedCount();renderGrid();
+  },true);
+}
 
 function renderGrid(){
   const ch=GRID_CHANNEL_META[activeChannel]||GRID_CHANNEL_META['dc-dental'];
@@ -2691,6 +2711,7 @@ function renderGrid(){
           dateBadge.style.cssText='position:absolute;bottom:4px;left:4px;right:4px;background:rgba(26,111,181,0.85);color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;pointer-events:none;z-index:3;text-align:center;';
           dateBadge.textContent=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;cell.appendChild(dateBadge);
         }
+        makeGridCellSelectable(cell,realIdx);
         cell.addEventListener('click',()=>openGridModal(realIdx));
         cell.addEventListener('dragstart',e=>{dragSrcIdx=realIdx;setTimeout(()=>cell.style.opacity='0.4',0);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('type','grid');});
         cell.addEventListener('dragend',()=>{cell.style.opacity='1';document.querySelectorAll('#igGrid > div').forEach(c=>c.style.outline='none');});
@@ -2717,10 +2738,12 @@ function renderGrid(){
         btnDelBlank.style.cssText='background:rgba(231,76,60,0.92);border:none;border-radius:6px;color:white;font-size:13px;padding:6px 10px;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:4;font-weight:700;';
         btnDelBlank.onclick=e=>{e.stopPropagation();deleteGridSlot(realIdx);};
         blankOverlay.appendChild(btnDelBlank);cell.appendChild(blankOverlay);
+        if(gridSelectMode) btnDelBlank.style.display='none';
+        makeGridCellSelectable(cell,realIdx);
         cell.addEventListener('mouseenter',()=>{blankOverlay.style.background='rgba(0,0,0,0.3)';btnDelBlank.style.opacity='1';});
         cell.addEventListener('mouseleave',()=>{blankOverlay.style.background='rgba(0,0,0,0)';btnDelBlank.style.opacity='0';});
         let blankTapped=false;
-        cell.addEventListener('touchstart',e=>{
+        if(!gridSelectMode) cell.addEventListener('touchstart',e=>{
           if(e.target===btnDelBlank||e.target.closest('button')===btnDelBlank) return;
           e.preventDefault();
           blankTapped=!blankTapped;

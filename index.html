@@ -144,9 +144,9 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   .header-left-group{flex-shrink:0;align-self:flex-start;}
   /* header-right: row layout — tab+search บรรทัดเดียว, controls บรรทัดล่าง */
   .header-right{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;width:100%;}
-  #tabSwitcher{flex:1;min-width:0;}
-  #tabCalBtn{padding:6px 10px;font-size:11px;}
-  #tabGridBtn{padding:6px 10px;font-size:11px;}
+  /* แท็บ Calendar / IG Grid / Process ได้แถวของตัวเอง แบ่ง 3 ช่องเท่ากัน — เดิมเบียดกับปุ่มค้นหา/Report/ไอเดียจนชื่อแท็บโดนตัด */
+  #tabSwitcher{flex:1 1 100%;min-width:0;}
+  #tabSwitcher button{flex:1 1 0;min-width:0;white-space:nowrap;padding:7px 6px !important;font-size:12px !important;}
   #btnGlobalSearch{padding:6px 10px;font-size:13px;flex-shrink:0;}
   /* calendarControls และ gridControls เต็มแถวล่าง */
   #calendarControls{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap;width:100%;}

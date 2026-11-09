@@ -351,6 +351,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   <button class="ch-tab" data-ch="implant" onclick="switchChannel('implant')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/612995449_17844614772670316_7195624432906695769_n_ednung.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> implant review</span></button>
   <button class="ch-tab" data-ch="dr-north" onclick="switchChannel('dr-north')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> dr.north</span></button>
   <button class="ch-tab" data-ch="dr-daran" onclick="switchChannel('dr-daran')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/574179784_17845527528599344_23126879378071020_n_xphheg.jpg" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> dr.daran</span></button>
+  <button class="ch-tab" data-ch="dr-pearn" onclick="switchChannel('dr-pearn')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="img/dr-pearn.png" style="width:18px;height:18px;object-fit:contain;border-radius:3px;vertical-align:middle;"> dr.pearn</span></button>
   <button class="ch-tab" data-ch="north-tiktok" onclick="switchChannel('north-tiktok')" style="background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,0.65);padding:10px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;"><span style="display:inline-flex;align-items:center;gap:5px;"><img src="https://res.cloudinary.com/djxw6mu0w/image/upload/q_auto/f_auto/v1775450124/4c323dad7e5f061e077c5ec0028ceebf_tplv-tiktokx-cropcenter_1080_1080_uia8fl.jpg" style="width:18px;height:18px;object-fit:cover;border-radius:3px;vertical-align:middle;"> 🎵 TikTok</span></button>
   <div style="flex:1"></div>
 </div>
@@ -546,6 +547,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
     <button class="pl-ch-btn" data-ch="implant" onclick="setPipelineChFilter('implant',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">implant</button>
     <button class="pl-ch-btn" data-ch="dr-north" onclick="setPipelineChFilter('dr-north',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">dr.north</button>
     <button class="pl-ch-btn" data-ch="dr-daran" onclick="setPipelineChFilter('dr-daran',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">dr.daran</button>
+    <button class="pl-ch-btn" data-ch="dr-pearn" onclick="setPipelineChFilter('dr-pearn',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">dr.pearn</button>
     <button class="pl-ch-btn" data-ch="north-tiktok" onclick="setPipelineChFilter('north-tiktok',this)" style="border:1.5px solid #D0DCE8;background:white;color:var(--gray-dark);border-radius:20px;padding:3px 12px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer;">TikTok</button>
   </div>
 
@@ -576,6 +578,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <option value="implant">implant review</option>
       <option value="dr-north">dr.north</option>
       <option value="dr-daran">dr.daran</option>
+      <option value="dr-pearn">dr.pearn</option>
       <option value="north-tiktok">TikTok</option>
     </select>
     <button onclick="applyBulkChannel()" style="background:#1A6FB5;color:white;border:none;border-radius:8px;padding:6px 16px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">✏️ แก้ช่อง</button>
@@ -639,6 +642,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="implant">implant review</option>
           <option value="dr-north">dr.north</option>
           <option value="dr-daran">dr.daran</option>
+          <option value="dr-pearn">dr.pearn</option>
           <option value="north-tiktok">TikTok</option>
         </select></div>
       <div class="form-row"><label>กำหนดส่ง (Deadline)</label>
@@ -770,6 +774,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <option value="implant">implant review</option>
           <option value="dr-north">dr.north.judfun</option>
           <option value="dr-daran">dr.daran.dc</option>
+          <option value="dr-pearn">dr.pearn</option>
           <option value="north-tiktok">🎵 dr.north TikTok</option>
           <option value="tiktok-dc">🎵 DC Dental TikTok</option>
           <option value="tiktok-aligner">🎵 DC Aligner TikTok</option>
@@ -783,6 +788,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
           <button type="button" class="collab-chip" data-ch="implant" data-label="implant review" onclick="toggleCollabChip(this)" style="background:#3D3D3D14;color:#3D3D3D;border:1.5px solid #3D3D3D;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">implant review</button>
           <button type="button" class="collab-chip" data-ch="dr-north" data-label="dr.north.judfun" onclick="toggleCollabChip(this)" style="background:#E67E2214;color:#E67E22;border:1.5px solid #E67E22;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.north.judfun</button>
           <button type="button" class="collab-chip" data-ch="dr-daran" data-label="dr.daran.dc" onclick="toggleCollabChip(this)" style="background:#27AE6014;color:#27AE60;border:1.5px solid #27AE60;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.daran.dc</button>
+          <button type="button" class="collab-chip" data-ch="dr-pearn" data-label="dr.pearn" onclick="toggleCollabChip(this)" style="background:#D6338414;color:#D63384;border:1.5px solid #D63384;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">dr.pearn</button>
           <button type="button" class="collab-chip" data-ch="north-tiktok" data-label="🎵 dr.north TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 dr.north TikTok</button>
           <button type="button" class="collab-chip" data-ch="tiktok-dc" data-label="🎵 DC Dental TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Dental TikTok</button>
           <button type="button" class="collab-chip" data-ch="tiktok-aligner" data-label="🎵 DC Aligner TikTok" onclick="toggleCollabChip(this)" style="background:#01010114;color:#010101;border:1.5px solid #010101;border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all .15s;">🎵 DC Aligner TikTok</button>
@@ -888,7 +894,7 @@ const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
 const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-const FESTIVALS={'01-01':'วันปีใหม่ 🎆','01-16':'วันครู','02-14':'Valentine 💕','03-20':'World Oral Health Day 🦷','04-06':'วันจักรี','04-13':'สงกรานต์ 💦','04-14':'สงกรานต์ · วันครอบครัว','04-15':'สงกรานต์','05-01':'วันแรงงาน','05-04':'วันฉัตรมงคล','06-03':'วันเฉลิมฯ พระราชินี','07-28':'วันเฉลิมฯ ร.10','08-12':'วันแม่ 💙','10-13':'วันนวมินทรมหาราช','10-21':'วันทันตสาธารณสุข 🦷','10-23':'วันปิยมหาราช','10-31':'Halloween 🎃','11-11':'11.11','12-05':'วันพ่อ 💛','12-10':'รัฐธรรมนูญ','12-12':'12.12','12-24':'คริสต์มาสอีฟ','12-25':'คริสต์มาส 🎄','12-31':'สิ้นปี 🎉'};
+const FESTIVALS={'01-01':'วันปีใหม่ 🎆','01-16':'วันครู','02-14':'Valentine 💕','03-20':'World Oral Health Day 🦷','04-06':'วันจักรี','04-13':'สงกรานต์ 💦','04-14':'สงกรานต์ · วันครอบครัว','04-15':'สงกรานต์','05-01':'วันแรงงาน','05-04':'วันฉัตรมงคล','06-03':'วันเฉลิมฯ พระราชินี','07-28':'วันเฉลิมฯ ร.10','08-12':'วันแม่ 💙','10-13':'วันนวมินทรมหาราช','10-21':'วันทันตสาธารณสุข 🦷','10-23':'วันปิยมหาราช','10-31':'Halloween 🎃','12-05':'วันพ่อ 💛','12-10':'รัฐธรรมนูญ','12-24':'คริสต์มาสอีฟ','12-25':'คริสต์มาส 🎄','12-31':'สิ้นปี 🎉'};
 // วันตามจันทรคติ/ปฏิทินจีน — เปลี่ยนทุกปี ต้องเติมปีใหม่เอง (2027 คำนวณจากมาฆบูชาที่ประกาศแล้ว อาจคลาด ±1 วัน)
 const FESTIVALS_BY_DATE={
   '2025-01-29':'ตรุษจีน 🧧','2025-02-12':'มาฆบูชา','2025-05-11':'วิสาขบูชา','2025-07-10':'อาสาฬหบูชา','2025-07-11':'เข้าพรรษา','2025-10-07':'ออกพรรษา','2025-11-05':'ลอยกระทง 🏮',
@@ -1064,6 +1070,7 @@ const CHANNEL_THEMES={
   'implant':{bg:'#F2F3F4',bgLight:'#E5E7E9',primary:'#5D6D7E',primaryDark:'#2C3E50',primaryLight:'#E5E7E9',accent:'#5D6D7E',headerGrad:'135deg, #2C3E50 0%, #5D6D7E 100%'},
   'dr-north':{bg:'#FEF5EC',bgLight:'#FDEBD0',primary:'#E67E22',primaryDark:'#A04000',primaryLight:'#FDEBD0',accent:'#E67E22',headerGrad:'135deg, #A04000 0%, #E67E22 100%'},
   'dr-daran':{bg:'#EAFAF1',bgLight:'#D5F5E3',primary:'#27AE60',primaryDark:'#1A6B3A',primaryLight:'#D5F5E3',accent:'#27AE60',headerGrad:'135deg, #1A6B3A 0%, #27AE60 100%'},
+  'dr-pearn':{bg:'#FCE8F1',bgLight:'#F9D2E4',primary:'#D63384',primaryDark:'#8E1F55',primaryLight:'#F9D2E4',accent:'#D63384',headerGrad:'135deg, #8E1F55 0%, #D63384 100%'},
   'north-tiktok':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#EE1D52',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
   'tiktok-dc':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#FE2C55',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
   'tiktok-aligner':{bg:'#F5F5F5',bgLight:'#E8E8E8',primary:'#010101',primaryDark:'#000000',primaryLight:'#E8E8E8',accent:'#FE2C55',headerGrad:'135deg, #000000 0%, #2B2B2B 100%'},
@@ -1075,6 +1082,7 @@ const CHANNEL_LOGOS={
   'implant':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/612995449_17844614772670316_7195624432906695769_n_ednung.jpg',
   'dr-north':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/568175621_17844059694597965_1682935197736211139_n_ai1lpg.jpg',
   'dr-daran':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/574179784_17845527528599344_23126879378071020_n_xphheg.jpg',
+  'dr-pearn':'img/dr-pearn.png',
   'north-tiktok':'https://res.cloudinary.com/djxw6mu0w/image/upload/q_auto/f_auto/v1775450124/4c323dad7e5f061e077c5ec0028ceebf_tplv-tiktokx-cropcenter_1080_1080_uia8fl.jpg',
   'tiktok-dc':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160215/logo_all_lowwbp.jpg',
   'tiktok-aligner':'https://res.cloudinary.com/djxw6mu0w/image/upload/v1774160214/505445784_17864311473408516_5332727545825280500_n_nzpwov.jpg',
@@ -1086,6 +1094,7 @@ const CHANNEL_META={
   'implant':{label:'implant review',emoji:'🔩',sheetName:'implant review Calendar',color:'#3D3D3D'},
   'dr-north':{label:'dr.north.judfun',emoji:'👨‍⚕️',sheetName:'dr.north Calendar',color:'#E67E22'},
   'dr-daran':{label:'dr.daran.dc',emoji:'👩‍⚕️',sheetName:'dr.daran Calendar',color:'#27AE60'},
+  'dr-pearn':{label:'dr.pearn',emoji:'👩‍⚕️',sheetName:'dr.pearn Calendar',color:'#D63384'},
   'north-tiktok':{label:'dr.north TikTok',emoji:'🎵',sheetName:'dr.north.judfun tiktok Calendar',color:'#010101',noGrid:true},
   'tiktok-dc':{label:'DC Dental TikTok',emoji:'🎵',sheetName:'DC Dental TikTok Calendar',color:'#010101'},
   'tiktok-aligner':{label:'DC Aligner TikTok',emoji:'🎵',sheetName:'DC Aligner TikTok Calendar',color:'#010101'},
@@ -1097,6 +1106,7 @@ const GRID_CHANNEL_META={
   'implant':{label:'implant review',username:'@implant_review'},
   'dr-north':{label:'dr.north.judfun',username:'@dr.north.judfun'},
   'dr-daran':{label:'dr.daran.dc',username:'@dr.daran.dc'},
+  'dr-pearn':{label:'dr.pearn',username:'@dr.pearn'},
   'north-tiktok':{label:'dr.north TikTok',username:'@drnorth.tiktok'},
   'tiktok-dc':{label:'DC Dental Clinic',username:'@dc_dentalclinic'},
   'tiktok-aligner':{label:'DC Aligner',username:'@dc_aligner'},
@@ -1108,6 +1118,7 @@ const CH_META={
   'implant':{label:'implant review',bg:'#3D3D3D',fg:'#FFFFFF',border:'#3D3D3D'},
   'dr-north':{label:'dr.north.judfun',bg:'#E67E22',fg:'#FFFFFF',border:'#E67E22'},
   'dr-daran':{label:'dr.daran.dc',bg:'#27AE60',fg:'#FFFFFF',border:'#27AE60'},
+  'dr-pearn':{label:'dr.pearn',bg:'#D63384',fg:'#FFFFFF',border:'#D63384'},
   'north-tiktok':{label:'dr.north TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
   'tiktok-dc':{label:'DC Dental TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
   'tiktok-aligner':{label:'DC Aligner TikTok',bg:'#010101',fg:'#FFFFFF',border:'#010101'},
@@ -4010,6 +4021,7 @@ const PL_CHANNEL_COLORS={
   'implant':     {bg:'#F2F3F4',fg:'#5D6D7E',label:'implant'},
   'dr-north':    {bg:'#FEF5EC',fg:'#E67E22',label:'dr.north'},
   'dr-daran':    {bg:'#EAFAF1',fg:'#27AE60',label:'dr.daran'},
+  'dr-pearn':    {bg:'#FCE8F1',fg:'#D63384',label:'dr.pearn'},
   'north-tiktok':{bg:'#F0F0F0',fg:'#010101',label:'TikTok'},
   'tiktok-dc':   {bg:'#F0F0F0',fg:'#010101',label:'DC TikTok'},
   'tiktok-aligner':{bg:'#E8F4FB',fg:'#2E86C1',label:'Aligner TikTok'},
@@ -4491,7 +4503,7 @@ function openPipelinePage(){
   // channel filter
   parts.push('<div class="filter-row">');
   parts.push('<span>\u0e0a\u0e48\u0e2d\u0e07:</span>');
-  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['dc-dental','DC Dental'],['dc-aligner','DC Aligner'],['junfun','junfun'],['implant','implant'],['dr-north','dr.north'],['dr-daran','dr.daran'],['north-tiktok','TikTok']].forEach(function(pair){
+  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['dc-dental','DC Dental'],['dc-aligner','DC Aligner'],['junfun','junfun'],['implant','implant'],['dr-north','dr.north'],['dr-daran','dr.daran'],['dr-pearn','dr.pearn'],['north-tiktok','TikTok']].forEach(function(pair){
     parts.push('<button class="pill'+(pair[0]==='all'?' active':'')+'" data-ch="'+pair[0]+'" onclick="setChF(\''+pair[0]+'\',this)">'+pair[1]+'</button>');
   });
   parts.push('</div>');
@@ -4525,6 +4537,7 @@ function openPipelinePage(){
   parts.push('<option value="implant">implant review</option>');
   parts.push('<option value="dr-north">dr.north</option>');
   parts.push('<option value="dr-daran">dr.daran</option>');
+  parts.push('<option value="dr-pearn">dr.pearn</option>');
   parts.push('<option value="north-tiktok">TikTok</option>');
   parts.push('</select></div>');
   parts.push('<div class="form-row"><label>\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07 (Deadline)</label><input type="date" id="plDl"></div>');
@@ -4534,7 +4547,7 @@ function openPipelinePage(){
   parts.push('<button class="btn-save" onclick="saveItem()">\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button></div>');
   parts.push('</div></div></div>');
   parts.push('<div class="noti" id="noti"></div>');
-  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option><option value="dc-dental">DC Dental</option><option value="dc-aligner">DC Aligner</option><option value="junfun">junfun</option><option value="implant">implant</option><option value="dr-north">dr.north</option><option value="dr-daran">dr.daran</option><option value="north-tiktok">TikTok</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
+  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option><option value="dc-dental">DC Dental</option><option value="dc-aligner">DC Aligner</option><option value="junfun">junfun</option><option value="implant">implant</option><option value="dr-north">dr.north</option><option value="dr-daran">dr.daran</option><option value="dr-pearn">dr.pearn</option><option value="north-tiktok">TikTok</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
 
   // script — inject data as JSON, ไม่มี quote ซ้อน
   parts.push('<script>');
@@ -5706,66 +5719,54 @@ async function confirmImportDraft(){
 'use strict';
 /* ── ฐานข้อมูลไอเดีย 12 เดือน (ก.ย. 2026 - ส.ค. 2027) — เน้นจัดฟันใส DC Aligner + รากฟันเทียม ~70% ── */
 const CONTENT_IDEAS = {
-'2026-09':{theme:'จัดฟันใสวัยทำงาน/นักศึกษา "ไม่มีใครรู้ว่าจัดอยู่" + ปูความรู้รากเทียมก่อนแคมเปญปลายปี',sections:[
+'2026-09':{theme:'จัดฟันใสวัยทำงาน/นักศึกษา "ไม่มีใครรู้ว่าจัดอยู่" + ปูความรู้รากเทียมให้คนเข้าใจก่อนตัดสินใจ',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['วันเยาวชนแห่งชาติ 20 ก.ย. — ยิ้มมั่นใจวัยทีนด้วยจัดฟันใส','ใกล้ปิดเทอม ต.ค. — ชวนนักศึกษาจองคิวปรึกษาจัดฟันใสล่วงหน้า']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['POV ประชุม/สัมภาษณ์งานทั้งวัน ไม่มีใครรู้เลยว่าจัดฟันอยู่ (DC Aligner)','Q&A: จัดฟันใสเจ็บไหม ใส่วันละกี่ชั่วโมง ถอดกินข้าวได้จริงหรอ','รากเทียมยุคใหม่ใช้ Digital Guide แม่นกว่าเดิมยังไง (ต่อยอดคลิป 381)','เทียบชัดๆ จัดฟันใส vs จัดฟันเหล็ก ใครเหมาะแบบไหน']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุด before/after จัดฟันใส 3 เคส มุมยิ้มเดียวกันทุกภาพ','อินโฟกราฟิก 5 สัญญาณว่าถึงเวลาทำรากเทียม (ฟันหลุด เคี้ยวลำบาก)','แนะนำทีมหมอเฉพาะทางจัดฟันใส/รากเทียม สร้างความเชื่อมั่น']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['ฟรีค่าปรึกษา + สแกนฟัน 3D จัดฟันใส เดือนนี้','ตรวจประเมินรากเทียม + X-ray ราคาพิเศษ']}]},
-'2026-10':{theme:'วันทันตสาธารณสุข 21 ต.ค. + ปิดเทอม — ความรู้คู่การขาย จัดฟันใส/รากเทียม',sections:[
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุด before/after จัดฟันใส 3 เคส มุมยิ้มเดียวกันทุกภาพ','อินโฟกราฟิก 5 สัญญาณว่าถึงเวลาทำรากเทียม (ฟันหลุด เคี้ยวลำบาก)','แนะนำทีมหมอเฉพาะทางจัดฟันใส/รากเทียม สร้างความเชื่อมั่น']}]},
+'2026-10':{theme:'วันทันตสาธารณสุข 21 ต.ค. + ปิดเทอม — ชุดความรู้จัดฟันใส/รากเทียม',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['21 ต.ค. วันทันตสาธารณสุขแห่งชาติ — ชุดคอนเทนต์ให้ความรู้','ปิดเทอมตุลา — นักศึกษาว่าง เริ่มจัดฟันใสได้เต็มที่','31 ต.ค. ฮาโลวีน — คอนเทนต์สนุกแทรกได้']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['นศ.เริ่มจัดฟันใสช่วงปิดเทอม เรียนจบพอดียิ้มสวยรับปริญญา (ไทม์ไลน์)','Q&A: รากเทียม 1 ซี่ใช้เวลากี่เดือน เจ็บแค่ไหน พักฟื้นนานไหม','วันทันตฯ: เช็คสุขภาพฟัน 5 ข้อด้วยตัวเองที่บ้าน','ฮาโลวีนฟันหลอน: ปล่อยช่องฟันหลุดว่างไว้นานๆ เกิดอะไรขึ้น (ชวนเข้ารากเทียม)']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['อินโฟกราฟิกรากเทียม Myth vs Fact รับวันทันตฯ','รีวิวเคสจัดฟันใสนักศึกษา ก่อน-หลัง','ทีมงานแต่งฮาโลวีนที่คลินิก']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['แคมเปญวันทันตฯ: ตรวจฟรี + ประเมินจัดฟันใส/รากเทียม','โปรจองจัดฟันใสช่วงปิดเทอม']}]},
-'2026-11':{theme:'ลอยกระทง + 11.11 — ยิ้มใสไร้เหล็กในรูปคู่ + เปิดดีลมัดจำเคสใหญ่',sections:[
- {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ลอยกระทง (ปลาย พ.ย.) — ถ่ายรูปคู่ ยิ้มต้องพร้อม','11.11 — วัฒนธรรมแฟลชเซล คนพร้อมตัดสินใจ','อากาศเริ่มเย็น — คอนเทนต์เสียวฟัน']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['อินโฟกราฟิกรากเทียม Myth vs Fact รับวันทันตฯ','รีวิวเคสจัดฟันใสนักศึกษา ก่อน-หลัง','ทีมงานแต่งฮาโลวีนที่คลินิก']}]},
+'2026-11':{theme:'ลอยกระทง — ยิ้มใสไร้เหล็กในรูปคู่ + อากาศเย็นกับอาการเสียวฟัน',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ลอยกระทง (ปลาย พ.ย.) — ถ่ายรูปคู่ ยิ้มต้องพร้อม','อากาศเริ่มเย็น — คอนเทนต์เสียวฟัน']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['ลอยกระทงถ่ายรูปคู่ ยิ้มเต็มที่ไม่มีเหล็กบัง = ข้อดีจัดฟันใส','Q&A: ใส่ aligner ไปงานลอยกระทง กินของในงานได้ไหม (ถอดได้!)','พาดูขั้นตอนทำรากเทียมจริงในห้องทำ เจ็บน้อยกว่าที่คิด','อากาศเย็นแล้วเสียวฟัน ปกติหรือสัญญาณรากฟันมีปัญหา']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมลอยกระทง แสงเทียน + รอยยิ้มใส','before/after รากเทียม "กลับมาเคี้ยวได้อีกครั้ง"','กราฟิก countdown ดีล 11.11']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['11.11 มัดจำจัดฟันใสราคาพิเศษ จำกัดสิทธิ์','11.11 ส่วนลดรากเทียม + ตรวจประเมินฟรี']}]},
-'2026-12':{theme:'โบนัสออก = ฤดูเคสใหญ่ — จัดฟันใสให้ตัวเอง รากเทียมให้พ่อแม่',sections:[
- {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['5 ธ.ค. วันพ่อ — พาพ่อมาเช็คฟัน/ปรึกษารากเทียม','ปีใหม่ + 12.12 + โบนัส — กำลังซื้อสูงสุดของปี','คริสต์มาส — ธีมของขวัญ']},
- {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['"โบนัสปีนี้ให้รางวัลตัวเอง = รอยยิ้มใหม่" เริ่มจัดฟันใส','ของขวัญปีใหม่ที่ดีที่สุดให้พ่อแม่ = รากเทียม เคี้ยวอร่อยรับปีใหม่','วันพ่อ: พ่ออายุเยอะทำรากเทียมได้ไหม (ต่อยอดคลิป 388 คนไข้อายุเยอะสุด)','สรุป transformation จัดฟันใส/รากเทียมแห่งปี 2026']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['การ์ดอวยพรปีใหม่จากทีมหมอ','อัลบั้ม "รอยยิ้มแห่งปี 2026" เน้นเคสจัดฟันใส/รากเทียม','ตกแต่งคลินิกธีมคริสต์มาส']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['แพ็คปีใหม่จัดฟันใส ผ่อน 0% รับโบนัส','โปรวันพ่อ/ปีใหม่ รากเทียมลดพิเศษ','ดีล 12.12 ส่งท้ายปี']}]},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมลอยกระทง แสงเทียน + รอยยิ้มใส','before/after รากเทียม "กลับมาเคี้ยวได้อีกครั้ง"','อินโฟกราฟิก เสียวฟันหน้าหนาว เกิดจากอะไร แก้ยังไง']}]},
+'2026-12':{theme:'ส่งท้ายปี — เรื่องเล่ารอยยิ้มแห่งปี + วันพ่อกับรากเทียม',sections:[
+ {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['5 ธ.ค. วันพ่อ — พาพ่อมาเช็คฟัน/ปรึกษารากเทียม','คริสต์มาส — ธีมของขวัญ']},
+ {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['เทรนด์ "ปีนี้ได้อะไรเป็นรางวัลชีวิต" — คนไข้ตอบ: ยิ้มได้เต็มปากแล้ว (จัดฟันใส)','ของขวัญปีใหม่ที่ดีที่สุดให้พ่อแม่ = รากเทียม เคี้ยวอร่อยรับปีใหม่','วันพ่อ: พ่ออายุเยอะทำรากเทียมได้ไหม (ต่อยอดคลิป 388 คนไข้อายุเยอะสุด)','สรุป transformation จัดฟันใส/รากเทียมแห่งปี 2026']},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['การ์ดอวยพรปีใหม่จากทีมหมอ','อัลบั้ม "รอยยิ้มแห่งปี 2026" เน้นเคสจัดฟันใส/รากเทียม','ตกแต่งคลินิกธีมคริสต์มาส']}]},
 '2027-01':{theme:'New Year New Smile — เริ่มจัดฟันใสต้นปีเห็นผลปลายปี + ปีนี้พาพ่อแม่มาเคี้ยวอร่อย',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ปีใหม่ — เทรนด์ตั้งเป้าหมาย "ปีนี้ขอยิ้มสวย"','วันเด็ก (เสาร์ที่ 2) + 16 ม.ค. วันครู — คอนเทนต์แทรก']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['เริ่มจัดฟันใส ม.ค. สิ้นปีฟันเรียงสวยแค่ไหน ดูไทม์ไลน์จริง','Q&A: จัดฟันใสราคาเท่าไหร่ ผ่อนได้ไหม ต่างจากยี่ห้ออื่นยังไง','เป้าหมายปีใหม่ของลูกกตัญญู: พาพ่อแม่ฟันหลุดมาปรึกษารากเทียม','วันเด็ก: ลูกฟันซ้อนเก ปรึกษาจัดฟันตอนไหนดี']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['เช็คลิสต์ "ยิ้มสวยปี 2027" (เซฟเก็บได้)','รีวิวรากเทียมผู้สูงอายุ ก่อน-หลัง คุณภาพชีวิตเปลี่ยน','ภาพกิจกรรมวันเด็กที่คลินิก']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['ต้อนรับปีใหม่ ฟรีสแกนฟัน 3D ประเมินจัดฟันใส','แพ็คพาพ่อแม่ตรวจประเมินรากเทียม']}]},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['เช็คลิสต์ "ยิ้มสวยปี 2027" (เซฟเก็บได้)','รีวิวรากเทียมผู้สูงอายุ ก่อน-หลัง คุณภาพชีวิตเปลี่ยน','ภาพกิจกรรมวันเด็กที่คลินิก']}]},
 '2027-02':{theme:'วาเลนไทน์ + ตรุษจีน — เดตมั่นใจไร้เหล็ก + ปู่ย่าเคี้ยวของไหว้ได้ทุกอย่าง',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ตรุษจีน (ต้น ก.พ.) — ธีมแดง-ทอง ยิ้มรับทรัพย์','14 ก.พ. วาเลนไทน์ — คอนเทนต์คู่รัก','มาฆบูชา']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['เดตวาเลนไทน์ทั้งที ยิ้มมั่นใจไม่มีเหล็ก (จัดฟันใส)','POV คู่รักจัดฟันใสด้วยกัน เทียบ progress ใครไวกว่า','ตรุษจีน: ปู่ย่าเคี้ยวขนมเข่ง/ของไหว้ไม่ไหว = สัญญาณควรทำรากเทียม','Q&A: จัดฟันใสถ่ายรูปคู่/ใกล้ชิดแฟน มีอะไรให้เห็นไหม']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมตรุษจีนแดง-ทอง','before/after คู่รักจัดฟันใส "ยิ้มสวยทั้งคู่"','กราฟิกวาเลนไทน์ "รักตัวเอง เริ่มที่รอยยิ้ม"']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['โปรคู่รัก จัดฟันใสมา 2 คนลดเพิ่ม','อั่งเปาตรุษจีน ส่วนลดรากเทียม']}]},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมตรุษจีนแดง-ทอง','before/after คู่รักจัดฟันใส "ยิ้มสวยทั้งคู่"','กราฟิกวาเลนไทน์ "รักตัวเอง เริ่มที่รอยยิ้ม"']}]},
 '2027-03':{theme:'ปิดเทอมใหญ่ + จบใหม่ — จัดฟันใสรับสัมภาษณ์งาน + พาพ่อแม่มาช่วงลูกหลานว่าง',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['20 มี.ค. World Oral Health Day','ปิดเทอมใหญ่ (มี.ค.-พ.ค.) — นักศึกษา/ครอบครัวว่างพร้อมกัน','เริ่มหน้าร้อน']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['จบใหม่เตรียมสัมภาษณ์งาน ยิ้มมั่นใจด้วยจัดฟันใส','Q&A: จัดฟันใสต้องมาหาหมอบ่อยไหม เหมาะกับคนทำงาน/อยู่ไกล','ปิดเทอมลูกหลานว่าง = จังหวะดีพาพ่อแม่มาทำรากเทียม (มีคนดูแล)','World Oral Health Day: ฟันหายไป 1 ซี่ กระทบทั้งปากยังไง']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['อินโฟกราฟิกวันสุขภาพช่องปากโลก','รีวิวจัดฟันใสวัยทำงาน/นักศึกษา','ภาพธีมซัมเมอร์ยิ้มใส']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['แพ็คจัดฟันใสปิดเทอม ฟรีปรึกษา + สแกน','โปรรากเทียมครอบครัว พามาหลายคนลดเพิ่ม']}]},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['อินโฟกราฟิกวันสุขภาพช่องปากโลก','รีวิวจัดฟันใสวัยทำงาน/นักศึกษา','ภาพธีมซัมเมอร์ยิ้มใส']}]},
 '2027-04':{theme:'สงกรานต์กลับบ้าน — เห็นพ่อแม่เคี้ยวลำบาก อย่าปล่อยไว้ + aligner ถอดเล่นน้ำได้',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['13-15 เม.ย. สงกรานต์ — ลูกหลานกลับบ้าน เจอพ่อแม่','14 เม.ย. วันครอบครัว','หน้าร้อนเต็มตัว']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['กลับบ้านสงกรานต์ สังเกตฟันพ่อแม่: 5 สัญญาณควรพามาปรึกษารากเทียม','เล่นน้ำสงกรานต์สบายใจ จัดฟันใสถอดเก็บได้ ไม่ต้องห่วงเหล็ก','Q&A: ผู้สูงอายุ 60-70+ ทำรากเทียมได้ไหม อันตรายไหม','รดน้ำดำหัวผู้ใหญ่ ยิ้มสวยรับพร (แทรกฟอกสีฟัน)']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมสงกรานต์ลายดอก','เคสรากเทียมคุณตา-คุณยาย ครอบครัวยิ้มพร้อมหน้า','before/after จัดฟันใส "ยิ้มรับปีใหม่ไทย"']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['สงกรานต์พาพ่อแม่ตรวจประเมินรากเทียมฟรี','โปรจัดฟันใสรับซัมเมอร์']}]},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดภาพธีมสงกรานต์ลายดอก','เคสรากเทียมคุณตา-คุณยาย ครอบครัวยิ้มพร้อมหน้า','before/after จัดฟันใส "ยิ้มรับปีใหม่ไทย"']}]},
 '2027-05':{theme:'กลับสู่โหมดทำงาน/เรียน — จัดฟันใสวัยทำงาน + ความรู้ดูแลรากเทียม',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['เปิดเทอมใหญ่ กลาง พ.ค.','วิสาขบูชา','ฝนเริ่มตก']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['วัยทำงานจัดฟันใส: เข้าประชุม เจอลูกค้า ไม่มีใครสังเกตเห็น','Q&A: ใส่ aligner แล้วพูดชัดไหม ต้องปรับตัวกี่วัน','รากเทียมอยู่ได้กี่ปี ดูแลยังไงให้อยู่ตลอดชีวิต','เปิดเทอม: ลูกฟันแท้ขึ้นซ้อน ปรึกษาก่อนบานปลาย']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['รีวิวจัดฟันใสพนักงานออฟฟิศ','อินโฟกราฟิกดูแลรากเทียมหลังทำ','กราฟิก back to school']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['จัดฟันใสผ่อนสบายฉบับวัยทำงาน','แพ็คตรวจฟัน + ประเมินรากเทียม']}]},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['รีวิวจัดฟันใสพนักงานออฟฟิศ','อินโฟกราฟิกดูแลรากเทียมหลังทำ','กราฟิก back to school']}]},
 '2027-06':{theme:'ครึ่งปี — โชว์ progress จัดฟันใส 6 เดือน + รีวิวรากเทียมเปลี่ยนชีวิต',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['ครึ่งปี 2027 — จังหวะเช็คสุขภาพฟันกลางปี','Pride Month — ยิ้มมั่นใจในแบบตัวเอง','วันไหว้ครู']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['อัพเดทเคสจัดฟันใสครบ 6 เดือน ฟันขยับแค่ไหน (ก่อน-หลังชัดๆ)','Q&A: ทำไมจัดฟันใสต้องเปลี่ยนถาดทุก 1-2 สัปดาห์','สัมภาษณ์คนไข้รากเทียม: กลับมากินของแข็ง/ยิ้มมั่นใจอีกครั้ง','Pride: รอยยิ้มที่มั่นใจในแบบของตัวเอง']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['timeline จัดฟันใสเดือนต่อเดือน (carousel)','ธีมสีรุ้ง Pride + รอยยิ้มหลากหลาย','meme หน้าฝน: "ฝนตกก็ต้องไปตามนัดหมอฟัน"']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['Mid-Year ฟรีสแกนประเมินจัดฟันใส','โปรตรวจ + ขูดหินปูนครึ่งปี']}]},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['timeline จัดฟันใสเดือนต่อเดือน (carousel)','ธีมสีรุ้ง Pride + รอยยิ้มหลากหลาย','meme หน้าฝน: "ฝนตกก็ต้องไปตามนัดหมอฟัน"']}]},
 '2027-07':{theme:'เข้าพรรษา — งดหวานดีต่อฟัน + จัดฟันใสถอดล้างง่าย + รากเทียมสายบุญ',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['อาสาฬหบูชา + เข้าพรรษา — เทรนด์งดของหวาน 3 เดือน','วันหยุดยาว — คนเลื่อนฟีดเยอะ']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['เข้าพรรษางดหวาน: ทำไมดีต่อคนจัดฟันใสเป็นพิเศษ (ถอดล้าง แปรงง่าย)','Q&A: กาแฟ/ชากับถาด aligner คราบติดไหม ดูแลยังไง','พาแม่ทำบุญ + ยิ้มสวยใส่บาตร (เคสรากเทียมผู้สูงวัย)','ฟันหลุดแล้วปล่อยไว้ ฟันข้างเคียงล้มยังไง (โมเดล/อนิเมชั่น)']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดกราฟิกแคมเปญงดหวานเข้าพรรษา (ซีรีส์ 4 สัปดาห์)','before/after รากเทียม + โมเดลอธิบายฟันล้ม','ภาพทำบุญเข้าพรรษาทีมคลินิก']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['ชาเลนจ์งดหวาน โพสต์แท็กคลินิกรับส่วนลด','โปรรากเทียมเดือนแห่งบุญ']}]},
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['ชุดกราฟิกแคมเปญงดหวานเข้าพรรษา (ซีรีส์ 4 สัปดาห์)','before/after รากเทียม + โมเดลอธิบายฟันล้ม','ภาพทำบุญเข้าพรรษาทีมคลินิก']}]},
 '2027-08':{theme:'วันแม่ 12 ส.ค. = เดือนพีครากเทียม — พาแม่มายิ้มสวย + จัดฟันใสแม่ลูก',sections:[
  {icon:'🎉',t:'วันสำคัญ/โอกาส',items:['12 ส.ค. วันแม่แห่งชาติ — ธีมฟ้า ดอกมะลิ','เดือนทองของมุม "ลูกกตัญญูพาแม่มาทำรากเทียม"']},
  {icon:'🎬',t:'ไอเดียคลิป (TikTok/Reels)',items:['เซอร์ไพรส์พาแม่มาทำรากเทียม เก็บโมเมนต์รอยยิ้มแม่ (เรียกน้ำตา)','Q&A: แม่กลัวเจ็บ/กลัวหมอฟัน รากเทียมแบบ Digital Guide ช่วยยังไง','แม่ลูกจัดฟันใสด้วยกัน — อายุไม่ใช่ข้อจำกัด','ค่ารากเทียมคุ้มไหม เทียบกับคุณภาพชีวิตแม่ที่ได้คืนมา']},
- {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['การ์ดวันแม่ธีมฟ้า-ดอกมะลิ','รีวิวเคสคุณแม่รากเทียม ก่อน-หลัง','ภาพทีมงานกับคุณแม่ตัวเอง (humanize แบรนด์)']},
- {icon:'💰',t:'โปร/แคมเปญ',items:['โปรวันแม่: รากเทียมลดพิเศษ + พาแม่ตรวจฟรี','แพ็คแม่ลูกจัดฟันใส/ขูดหินปูนคู่']}]}
+ {icon:'📸',t:'ไอเดียรูป (FB/IG)',items:['การ์ดวันแม่ธีมฟ้า-ดอกมะลิ','รีวิวเคสคุณแม่รากเทียม ก่อน-หลัง','ภาพทีมงานกับคุณแม่ตัวเอง (humanize แบรนด์)']}]}
 };
 /* ไอเดียใช้ได้ทุกเดือน */
 const IDEA_EVERGREEN = ['Q&A ตอบคอมเมนต์เรื่องจัดฟันใส/รากเทียมประจำสัปดาห์ (สไตล์คลิปที่ทำอยู่)','เคสรีวิวจัดฟันใส: เทียบถาดแรก vs ถาดปัจจุบัน','เบื้องหลังเทคโนโลยี: สแกนฟัน 3D + Digital Guide รากเทียม','Myth-busting: ความเชื่อผิดๆ เรื่องจัดฟันใส/รากเทียม','รีวิวคนไข้จริง สัมภาษณ์สั้นหลังทำเสร็จ'];
@@ -5925,8 +5926,6 @@ const FESTIVAL_IDEAS = [
  {k:'Halloween', ideas:['ฟันหลอน: ปล่อยช่องฟันว่างนานๆ กระดูกละลาย ฟันข้างๆ ล้ม (สนุกแต่ได้ความรู้)','แต่งฮาโลวีนเป็นแวมไพร์ แต่ฟันเขี้ยวต้องเรียงสวย 🧛']},
  {k:'วันเด็ก', ideas:['ความรู้: เด็กควรเริ่มพบหมอจัดฟันตอนกี่ขวบ','เทรนด์ "ตอนเด็กอยากเป็นอะไร" — ทีมหมอตอบ']},
  {k:'วันครู', ideas:['ครูยิ้มบ่อยทั้งวัน — จัดฟันใสสอนหน้าห้องได้ ไม่มีใครรู้']},
- {k:'11.11', ideas:['เทรนด์ตลก 11.11: ใส่ตะกร้าทุกอย่าง ยกเว้นนัดเช็คฟัน 😅 (ชวนดูแลฟัน ไม่ใช่ขายโปร)','ความรู้: "จัดฟันราคาถูก" ต้องเช็คอะไรบ้างก่อนตัดสินใจ']},
- {k:'12.12', ideas:['ของที่ใช้ได้เป็นสิบปี vs ของที่ใช้ครั้งเดียว — ความคุ้มของการดูแลฟัน (ความรู้ ไม่ใช่โปร)']},
  {k:'เข้าพรรษา', ideas:['เทรนด์งดของหวาน 3 เดือนช่วงเข้าพรรษา — ฟันได้อะไรบ้าง','ใส่ถาดจัดฟันใสครบ 22 ชม. = ช่วยลดกินจุบจิบโดยไม่ตั้งใจ']},
  {k:'บูชา', ideas:['ทำบุญตักบาตรตอนเช้า — ทิปถอด/ใส่ถาดจัดฟันใสเมื่อออกนอกบ้าน','ความรู้เบาๆ: อาหารเจ/มังสวิรัติกับสุขภาพฟัน']}
 ];

@@ -887,7 +887,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 // ================================================
 // CONSTANTS & GLOBAL STATE
 // ================================================
-const SHEET_URL='https://script.google.com/macros/s/AKfycbzVzar0AHaGjyfYrLwZq52Tj3GuD0K2MLTw6_DThXRdNR2KzushDxxs2K5LxQ2C7ex47g/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwA6fMLI3L81KkT4BGFiUjN7fFQgKsDJy2kf2OV2mpBiWmOpsaacn3H47vTN7tlWZ5hcg/exec';
 const DRAFT_API_URL='https://script.google.com/macros/s/AKfycbxCO8KueLzZhyZXW0fK2F-LSdEek0DB0gRcq7N6Ro3U5dfB_VMGRYEXBVSL1nNPnupbaw/exec';
 const GROQ_KEY='';
 const CLOUDINARY_CLOUD='djxw6mu0w';
@@ -1495,7 +1495,7 @@ function hideChannelLoading(){
 
 // ช่องที่ Apps Script ตัวที่ deploy อยู่ยังไม่รู้จักชีต — ถ้าเปิดใช้ ระบบจะอ่าน/เขียนชีต DC Dental แทน
 // ซ่อนไว้ก่อน ลบชื่อออกจากลิสต์นี้หลัง deploy .gs เวอร์ชันที่มีชีตของช่องนั้นใน ALLOWED_SHEETS แล้ว
-const CHANNELS_PENDING_SERVER=['dr-pearn'];
+const CHANNELS_PENDING_SERVER=[];
 document.addEventListener('DOMContentLoaded',function(){
   CHANNELS_PENDING_SERVER.forEach(function(ch){
     document.querySelectorAll('[data-ch="'+ch+'"],option[value="'+ch+'"]').forEach(function(el){ el.remove(); });

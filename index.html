@@ -121,6 +121,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .copy-head{display:flex;align-items:center;gap:6px;}
 .copy-btn{background:white;border:1.5px solid #D0DCE8;border-radius:8px;padding:3px 10px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;color:var(--blue-dark);cursor:pointer;text-transform:none;letter-spacing:0;transition:all 0.15s;white-space:nowrap;}
 .copy-btn:hover{border-color:var(--blue);background:var(--blue-light);}
+.btn-copy-posted{background:var(--green) !important;box-shadow:0 2px 8px rgba(39,174,96,0.35) !important;}
 .copy-btn.done{border-color:var(--green);background:#D5F5E3;color:var(--green);}
 .vfl{font-size:11px;font-weight:700;color:var(--gray-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
 .vfv{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
@@ -385,6 +386,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <!-- Normal mode -->
       <div id="gridNormalBtns" style="display:flex;align-items:center;gap:8px;">
         <button onclick="openGridSandbox()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">🎨 ทดลองจัด</button>
+        <button onclick="openAutoDate()" title="จัดวันลงปฏิทินให้รูปใน Grid แบบวันคี่/วันคู่" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">📅 จัดวันคี่/คู่</button>
         <button id="btnGridSelect" onclick="toggleGridSelectMode()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">☑️ เลือก</button>
         <button id="btnGridDeleteSelected" onclick="deleteSelectedGridSlots()" style="display:none;background:#E74C3C;border:none;color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">🗑 ลบที่เลือก (<span id="selectedCount">0</span>)</button>
         <button id="btnGridSelectAll" onclick="selectAllGridSlots()" style="display:none;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">เลือกทั้งหมด</button>
@@ -876,6 +878,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
         <div class="vfv" id="vNote" style="font-size:12px"></div></div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal('viewModal')">ปิด</button>
+        <button class="btn-save btn-copy-posted" id="vCopyPostedBtn" onclick="copyAndMarkPosted(this)">📋 คัดลอก + ✅ โพสต์แล้ว</button>
         <button class="btn-save" onclick="editFromView()">✏️ แก้ไข</button>
       </div>
     </div>
@@ -2158,6 +2161,26 @@ function copyPostText(what,btn){
   const cap=document.getElementById('vCaption').textContent, tag=document.getElementById('vHashtag').textContent;
   copyToClipboard(what==='caption'?cap:what==='hashtag'?tag:joinCaption(cap,tag),btn);
 }
+// ปุ่มเดียวตอนลงโพสต์จริง: คัดลอกแคปชั่น+แฮชแท็ก แล้วเปลี่ยนสถานะเป็น Posted ทุกช่องที่โพสต์นี้อยู่
+// ต้องคัดลอกก่อนอย่างอื่น — clipboard ใช้ได้เฉพาะตอนยังอยู่ในจังหวะคลิกของผู้ใช้
+async function copyAndMarkPosted(btn){
+  const p=posts.find(x=>x.id===viewingId); if(!p) return;
+  const text=joinCaption(p.caption,p.hashtag);
+  if(text) copyToClipboard(text,null);
+  const post={...p,status:'posted'};
+  const i=posts.findIndex(x=>x.id===post.id); if(i>=0) posts[i]=post;
+  const chs=[...new Set([post.doctor||activeChannel,...collabList(post)])];
+  chs.forEach(ch=>{ if(ch!==activeChannel) upsertPostInCache(ch,post); });
+  closeModal('viewModal');
+  render();
+  showNoti((text?'📋 คัดลอกแคปชั่นแล้ว + ':'')+'✅ เปลี่ยนเป็น Posted — กำลังซิงก์ขึ้น Sheets','#27AE60');
+  const results=await Promise.all(chs.map(ch=>apiCall({action:'save',post},ch).then(r=>!!(r&&r.ok),()=>false).then(ok=>{
+    if(ok) clearPendingSync(ch,post.id); else markPendingSync(ch,post);
+    return {ch,ok};
+  })));
+  const failed=results.filter(r=>!r.ok);
+  if(failed.length) showNoti('⚠️ '+failed.map(r=>CHANNEL_META[r.ch]?.label||r.ch).join(', ')+' ซิงก์ไม่สำเร็จ — เก็บเข้าคิวไว้ จะลองใหม่ตอนเปิดช่องนั้น','#E67E22',5000);
+}
 function copyFieldText(id,btn){
   const text=id==='all'?joinCaption(document.getElementById('fCaption').value,document.getElementById('fHashtag').value):document.getElementById(id).value;
   copyToClipboard(text,btn);
@@ -2377,6 +2400,9 @@ function openView(id){
   const hw=document.getElementById('vHashtagWrap');
   document.getElementById('vHashtag').textContent=p.hashtag||'';hw.style.display=p.hashtag?'block':'none';
   document.getElementById('vCopyAllBtn').style.display=p.hashtag?'':'none';
+  const cpb=document.getElementById('vCopyPostedBtn');
+  cpb.style.display=p.status==='posted'?'none':'';
+  cpb.textContent=(p.caption||p.hashtag)?'📋 คัดลอก + ✅ โพสต์แล้ว':'✅ โพสต์แล้ว';
   const nw=document.getElementById('vNoteWrap');
   document.getElementById('vNote').textContent=p.note||'';nw.style.display=p.note?'block':'none';
   const cc=document.getElementById('vCaptionCheck');
@@ -6025,6 +6051,126 @@ function festToPost(i){
 }
 document.getElementById('festModal').addEventListener('click', function(e){ if(e.target===this) closeFestival(); });
 renderFestivalAlert();
+</script>
+<!-- ══════════ 📅 AUTO DATE — จัดวันลงปฏิทินจาก IG Grid แบบวันคี่/วันคู่ ══════════ -->
+<style>
+.ad-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #E0EAF4;border-radius:10px;margin-bottom:7px;cursor:pointer;font-size:13px;background:white;transition:all 0.15s;}
+.ad-opt:hover{border-color:var(--blue-mid);}
+.ad-opt input{accent-color:var(--blue);width:16px;height:16px;flex-shrink:0;}
+.ad-days{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.ad-day{min-width:26px;text-align:center;padding:2px 5px;border-radius:6px;font-size:11px;font-weight:700;background:var(--blue-light);color:var(--blue-dark);}
+.ad-day.taken{background:#EEF2F6;color:#AAB7C4;text-decoration:line-through;}
+.ad-summary{background:#F4F8FB;border-radius:10px;padding:10px 13px;font-size:12.5px;line-height:1.7;margin:12px 0;}
+.ad-warn{color:#C0392B;font-weight:700;}
+</style>
+
+<div class="modal-overlay" id="autoDateModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h2 style="flex:1;">📅 จัดวันอัตโนมัติ — <span id="adMonthLabel"></span></h2>
+      <button class="modal-close" onclick="closeAutoDate()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-dark);margin-bottom:6px;">ลงวันไหน</div>
+      <label class="ad-opt"><input type="radio" name="adPattern" value="odd" onchange="renderAutoDatePreview()"><span><b>วันคี่</b> — 1, 3, 5 … 29</span></label>
+      <label class="ad-opt"><input type="radio" name="adPattern" value="even" onchange="renderAutoDatePreview()"><span><b>วันคู่</b> — 2, 4, 6 … 30</span></label>
+      <label class="ad-opt" style="margin-top:12px;"><input type="checkbox" id="adRedoAll" onchange="renderAutoDatePreview()"><span>จัดวันใหม่ให้<b>ทุกรูป</b>ในเดือนนี้ (รวมรูปที่มีวันแล้ว)<br><span style="font-size:11px;color:var(--gray-dark);">ไม่ติ๊ก = จัดเฉพาะรูปที่ "ยังไม่มีวัน" ลงวันที่ยังว่าง</span></span></label>
+      <div class="ad-summary" id="adSummary"></div>
+      <div class="modal-actions" style="margin-top:0;">
+        <button class="btn-cancel" onclick="closeAutoDate()">ยกเลิก</button>
+        <button class="btn-save" id="adApplyBtn" onclick="applyAutoDate()">📅 จัดวัน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ช่องหลักลงสลับวันกัน: DC Dental วันคี่ / DC Aligner วันคู่ — ช่องอื่นเลือกเองในหน้าต่าง
+const GRID_DAY_PATTERN={'dc-dental':'odd','dc-aligner':'even'};
+
+// ไม่ใช้วันที่ 31 — ไม่งั้นเดือน 31 วัน ช่องวันคี่จะลง 31 แล้วต่อด้วยวันที่ 1 ติดกัน 2 วัน
+function autoDateDays(y,m,pattern){
+  const last=Math.min(30,new Date(y,m+1,0).getDate());
+  const out=[];
+  for(let d=pattern==='odd'?1:2;d<=last;d+=2) out.push(d);
+  return out;
+}
+function autoDateDs(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+
+// รูปของเดือนที่เปิดอยู่ เรียงตามตำแหน่งที่เห็นบนจอ: ช่องล่างขวา = โพสต์แรกของเดือน แล้วไล่ไปทางซ้าย ขึ้นแถวบน (แบบหน้าโปรไฟล์ IG)
+// ต้องตรงกับ renderGrid(): หั่นทีละ 3 แล้ววาดแต่ละแถวกลับด้าน [chunk[2],chunk[1],chunk[0]] → ขวาสุดของแถวคือ chunk[0]
+function autoDateMonthSlots(){
+  const key=cy+'-'+String(cm+1).padStart(2,'0');
+  const items=gridSlots.filter(function(s){
+    if(s.date){ const d=new Date(s.date+'T00:00:00'); return d.getFullYear()===cy&&d.getMonth()===cm; }
+    return (s.createdMonth||key)===key;
+  });
+  const rows=[];
+  for(let i=0;i<items.length;i+=3) rows.push(items.slice(i,i+3));
+  const out=[];
+  rows.reverse().forEach(function(row){ row.forEach(function(s){ if(s&&s.type!=='blank') out.push(s); }); });
+  return out;
+}
+
+function autoDatePlan(){
+  const pattern=(document.querySelector('input[name="adPattern"]:checked')||{}).value||'odd';
+  const redo=document.getElementById('adRedoAll').checked;
+  const slots=autoDateMonthSlots();
+  const days=autoDateDays(cy,cm,pattern);
+  const targets=redo?slots:slots.filter(function(s){ return !s.date; });
+  const taken=redo?[]:slots.filter(function(s){ return s.date; }).map(function(s){ return Number(s.date.slice(8,10)); });
+  const free=days.filter(function(d){ return taken.indexOf(d)===-1; });
+  const plan=targets.slice(0,free.length).map(function(s,i){ return {slot:s,date:autoDateDs(cy,cm,free[i])}; });
+  return {pattern:pattern,redo:redo,days:days,taken:taken,targets:targets,plan:plan,left:targets.length-plan.length};
+}
+
+function openAutoDate(){
+  const def=GRID_DAY_PATTERN[activeChannel]||'odd';
+  document.querySelectorAll('input[name="adPattern"]').forEach(function(r){ r.checked=r.value===def; });
+  document.getElementById('adRedoAll').checked=false;
+  document.getElementById('adMonthLabel').textContent=MONTHS[cm]+' '+(cy+543);
+  renderAutoDatePreview();
+  document.getElementById('autoDateModal').classList.add('open');
+}
+function closeAutoDate(){ document.getElementById('autoDateModal').classList.remove('open'); }
+
+function renderAutoDatePreview(){
+  const p=autoDatePlan();
+  const used=p.plan.map(function(x){ return Number(x.date.slice(8,10)); });
+  let h='วันที่จะใช้ในเดือนนี้ ('+p.days.length+' วัน'+(new Date(cy,cm+1,0).getDate()===31?' · ข้ามวันที่ 31':'')+'):'
+    +'<div class="ad-days">'+p.days.map(function(d){ return '<span class="ad-day'+(p.taken.indexOf(d)!==-1?' taken':'')+'" title="'+(p.taken.indexOf(d)!==-1?'มีรูปลงวันนี้แล้ว':'')+'">'+d+'</span>'; }).join('')+'</div>';
+  if(!p.targets.length){
+    h+='<div style="margin-top:8px;">✅ ทุกรูปในเดือนนี้มีวันแล้ว — ถ้าอยากจัดใหม่ ให้ติ๊ก "จัดวันใหม่ให้ทุกรูป"</div>';
+  } else {
+    h+='<div style="margin-top:8px;">จะจัดวันให้ <b>'+p.plan.length+' รูป</b>'+(p.plan.length?' (วันที่ '+used[0]+(used.length>1?' – '+used[used.length-1]:'')+')':'')+' เริ่มจากรูปล่างขวาของ grid</div>';
+    if(p.left>0) h+='<div class="ad-warn">⚠️ วันไม่พอ — เหลืออีก '+p.left+' รูปที่ยังไม่ได้วัน</div>';
+    if(p.redo) h+='<div class="ad-warn">⚠️ รูปที่มีวันอยู่แล้วจะถูกย้ายวันในปฏิทินด้วย</div>';
+  }
+  document.getElementById('adSummary').innerHTML=h;
+  document.getElementById('adApplyBtn').disabled=!p.plan.length;
+}
+
+async function applyAutoDate(){
+  const p=autoDatePlan();
+  if(!p.plan.length) return;
+  const changed=p.plan.filter(function(x){ return x.slot.date!==x.date; });
+  changed.forEach(function(x){ x.slot.date=x.date; });
+  closeAutoDate();
+  renderGrid(); renderUnscheduled(); render();
+  if(!changed.length){ showNoti('✅ วันตรงอยู่แล้ว ไม่มีอะไรต้องเปลี่ยน','#27AE60'); return; }
+  showNoti('📅 จัดวันให้ '+changed.length+' รูปแล้ว — กำลังซิงก์ Grid + Calendar','#27AE60');
+  // grid กับ calendar คนละชีต ยิงขนานได้ ส่วนโพสต์ในปฏิทินส่งทีละ 4 คำขอ ไม่ให้ GAS โดน throttle
+  const calJobs=changed.map(function(x){ return function(){ return syncSlotToCalendar(x.slot); }; });
+  const calResults=[];
+  const worker=async function(){ while(calJobs.length){ calResults.push(await calJobs.shift()().catch(function(){ return null; })); } };
+  await Promise.all([saveGridSlots(false)].concat([1,2,3,4].map(worker)));
+  render();
+  const failed=calResults.filter(function(r){ return !(r&&r.ok); }).length;
+  if(failed) showNoti('⚠️ sync Calendar ไม่สำเร็จ '+failed+' โพสต์ — เก็บเข้าคิวไว้แล้ว จะลองใหม่ตอนเปิดช่องนี้','#E67E22',5000);
+  else showNoti('✅ ซิงก์ครบ '+changed.length+' โพสต์แล้ว','#27AE60');
+}
+document.getElementById('autoDateModal').addEventListener('click',function(e){ if(e.target===this) closeAutoDate(); });
 </script>
 </body>
 </html>

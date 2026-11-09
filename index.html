@@ -3215,11 +3215,13 @@ function openGridSandbox(){
     <div style="background:var(--blue-dark);color:white;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px;flex-wrap:wrap;">
       <div>
         <div style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;">🎨 ทดลองจัด Grid</div>
-        <div style="font-size:11px;opacity:0.7;margin-top:2px;">เพิ่มชื่อคอนเทนต์ได้เลย ยังไม่ต้องมีรูป · ลากสลับตำแหน่ง · พอใจแล้วกด "ย้ายเข้า Grid"</div>
+        <div style="font-size:11px;opacity:0.7;margin-top:2px;">เพิ่มชื่อคอนเทนต์ได้เลย ยังไม่ต้องมีรูป · ลากสลับตำแหน่ง · พอใจแล้วกด "ลงวันคี่/คู่" = ลง Grid + ปฏิทินพร้อมวันในคลิกเดียว (ช่องล่างขวา = วันแรก)</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <span id="sbCount" style="font-size:12px;opacity:0.8;">0 ช่อง</span>
-        <button id="sbConfirm" onclick="confirmSandbox()" style="background:#27AE60;color:white;border:none;border-radius:9px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;opacity:0.5;" disabled>✅ ย้ายเข้า Grid</button>
+        <button class="sb-date-btn" data-pattern="odd" onclick="confirmSandbox('odd')" title="ย้ายเข้า Grid + ลงปฏิทินวันคี่ (1,3,5…29) ให้ทุกช่อง" style="background:#1A6FB5;color:white;border:none;border-radius:9px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;opacity:0.5;" disabled>📅 ลงวันคี่</button>
+        <button class="sb-date-btn" data-pattern="even" onclick="confirmSandbox('even')" title="ย้ายเข้า Grid + ลงปฏิทินวันคู่ (2,4,6…30) ให้ทุกช่อง" style="background:#1A6FB5;color:white;border:none;border-radius:9px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;opacity:0.5;" disabled>📅 ลงวันคู่</button>
+        <button id="sbConfirm" onclick="confirmSandbox()" title="ย้ายเข้า Grid เฉยๆ ยังไม่ลงวัน" style="background:#27AE60;color:white;border:none;border-radius:9px;padding:8px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;opacity:0.5;" disabled>✅ ย้ายเข้า Grid</button>
         <button onclick="closeSandbox()" style="background:rgba(255,255,255,0.15);color:white;border:none;border-radius:9px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;">✕ ปิด</button>
       </div>
     </div>
@@ -3361,6 +3363,10 @@ function renderSandbox(){
   const countEl=document.getElementById('sbCount');if(countEl) countEl.textContent=sandboxSlots.length+' ช่อง';
   const confirmBtn=document.getElementById('sbConfirm');
   if(confirmBtn){confirmBtn.disabled=realCount===0;confirmBtn.style.opacity=realCount>0?'1':'0.5';}
+  document.querySelectorAll('.sb-date-btn').forEach(function(b){
+    b.disabled=realCount===0; b.style.opacity=realCount>0?'1':'0.5';
+    b.style.boxShadow=(typeof GRID_DAY_PATTERN!=='undefined'&&GRID_DAY_PATTERN[activeChannel]===b.dataset.pattern)?'0 0 0 2px #fff':'none';
+  });
   grid.innerHTML='';
 
   // จัด layout reverse เหมือน IG (ใหม่อยู่บน)
@@ -3455,9 +3461,12 @@ function renderSandbox(){
   saveSandboxDraft();
 }
 
-async function confirmSandbox(){
+// pattern = 'odd'/'even' → ย้ายเข้า Grid + ลงวันให้ทุกช่องในคลิกเดียว (กติกาเดียวกับปุ่ม 📅 จัดวันคี่/คู่: ข้ามวันที่ 31, ช่องล่างขวา = วันแรก)
+// ไม่ส่ง pattern = ย้ายเข้า Grid เฉยๆ เหมือนเดิม (สร้าง draft ในปฏิทินเฉพาะ text/รอปก ยังไม่มีวัน)
+async function confirmSandbox(pattern){
   if(!sandboxSlots.length) return;
   const toAdd=sandboxSlots;
+  const withDates=pattern==='odd'||pattern==='even';
   showNoti('⏳ กำลังย้าย '+toAdd.length+' ช่องเข้า Grid...','#1A6FB5');
 
   const createdMonth=cy+'-'+String(cm+1).padStart(2,'0');
@@ -3474,44 +3483,57 @@ async function confirmSandbox(){
       createdMonth:createdMonth,
     };
   });
-
   gridSlots=[...newSlots,...gridSlots];
-  const ok=await saveGridSlots(true);
 
-  // สร้าง draft ใน Calendar เฉพาะ text และ pending เท่านั้น — blank และช่องว่างไม่เข้า Calendar
-  const calCards=toAdd.filter(s=>s.type==='text'||s.type==='pending');
-  let calSaved=0;
-  for(let i=0;i<calCards.length;i++){
-    const s=calCards[i];
-    const matchSlot=newSlots[toAdd.indexOf(s)];
-    const calPost={
-      id:matchSlot.id,
-      title:s.title||'โพสต์ใหม่',
-      date:'',
-      time:'19:00',
-      platform:'both',
-      type:'video',
-      doctor:activeChannel,
-      collab:'',
-      contentStyle:s.contentStyle||'',
-      status:'draft',
-      thumbData:s.img||'',
-      caption:'',hashtag:'',note:'',captionCheck:'',
-    };
-    posts.push(calPost);
-    const res=await apiCall({action:'save',post:calPost},activeChannel);
-    if(res&&res.ok) calSaved++;
+  // ลงวัน: ช่องใหม่อยู่บนสุดของ grid เดือนนี้ layout จึงตรงกับที่เห็นใน sandbox
+  let left=0;
+  if(withDates){
+    const newIds=new Set(newSlots.map(n=>n.id));
+    const ordered=autoDateMonthSlots();
+    const targets=ordered.filter(x=>newIds.has(x.id));
+    const taken=ordered.filter(x=>!newIds.has(x.id)&&x.date).map(x=>Number(x.date.slice(8,10)));
+    const free=autoDateDays(cy,cm,pattern).filter(d=>taken.indexOf(d)===-1);
+    targets.forEach((x,k)=>{ if(k<free.length) x.date=autoDateDs(cy,cm,free[k]); });
+    left=Math.max(0,targets.length-free.length);
   }
 
-  clearSandboxDraft();closeSandbox();renderGrid();renderUnscheduled();render();
+  // โพสต์ในปฏิทิน: ลงวัน → ทุกช่องที่ไม่ใช่ blank (รวมรูป) / ไม่ลงวัน → เฉพาะ text กับ รอปก เหมือนเดิม
+  const calSlots=newSlots.filter((n,k)=>withDates?n.type!=='blank':(toAdd[k].type==='text'||toAdd[k].type==='pending'));
+  const calPosts=calSlots.map(n=>{
+    const s=toAdd[newSlots.indexOf(n)];
+    return {
+      id:n.id,title:s.title||'โพสต์ใหม่',date:n.date||'',time:'19:00',platform:'both',type:'video',
+      doctor:activeChannel,collab:'',contentStyle:s.contentStyle||'',status:'draft',
+      thumbData:s.img||'',caption:'',hashtag:'',note:'',captionCheck:'',
+    };
+  });
+  posts.push(...calPosts);
 
-  if(ok){
-    const msg=calSaved>0
-      ?`✅ ย้าย ${toAdd.length} ช่อง · สร้าง Draft ${calSaved} โพสต์ใน Calendar!`
-      :`✅ ย้าย ${toAdd.length} ช่องเข้า Grid แล้ว!`;
-    showNoti(msg,'#27AE60');
+  clearSandboxDraft();closeSandbox();renderGrid();renderUnscheduled();render();
+  const dated=newSlots.filter(n=>n.date).length;
+  showNoti(withDates
+    ?'📅 ลง Grid + ปฏิทิน '+dated+' โพสต์ ('+(pattern==='odd'?'วันคี่':'วันคู่')+') — กำลังซิงก์ขึ้น Sheets'
+    :'⏳ ย้าย '+toAdd.length+' ช่องแล้ว — กำลังซิงก์ขึ้น Sheets','#27AE60');
+
+  // grid กับ calendar คนละชีต ยิงขนานได้ — โพสต์ในปฏิทินส่งทีละ 4 คำขอ ไม่ให้ GAS โดน throttle
+  const queue=calPosts.slice();
+  let calSaved=0;
+  const worker=async()=>{ while(queue.length){
+    const post=queue.shift();
+    const res=await apiCall({action:'save',post},activeChannel).catch(()=>null);
+    if(res&&res.ok){ calSaved++; clearPendingSync(activeChannel,post.id); }
+    else markPendingSync(activeChannel,post);
+  }};
+  const [ok]=await Promise.all([saveGridSlots(false),...[1,2,3,4].map(worker)]);
+  render();
+
+  const failed=calPosts.length-calSaved;
+  if(ok&&!failed){
+    showNoti(withDates
+      ?`✅ ลง Grid + ปฏิทินครบ ${calSaved} โพสต์แล้ว`+(left?` (วันไม่พอ ${left} ช่อง ยังไม่มีวัน)`:'')
+      :(calSaved>0?`✅ ย้าย ${toAdd.length} ช่อง · สร้าง Draft ${calSaved} โพสต์ใน Calendar!`:`✅ ย้าย ${toAdd.length} ช่องเข้า Grid แล้ว!`),'#27AE60',left?6000:3000);
   } else {
-    showNoti('⚠️ ย้ายแล้วแต่บันทึก Sheet ไม่สำเร็จ','#E67E22');
+    showNoti('⚠️ '+(!ok?'บันทึก Grid ไม่สำเร็จ':'')+(failed?(!ok?' · ':'')+'ปฏิทินซิงก์ไม่สำเร็จ '+failed+' โพสต์ — เก็บเข้าคิวไว้แล้ว จะลองใหม่ตอนเปิดช่องนี้':''),'#E67E22',6000);
   }
 }
 

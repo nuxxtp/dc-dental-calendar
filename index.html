@@ -2604,6 +2604,20 @@ async function deleteSelectedGridSlots(){
 // ================================================
 // IG GRID — Render, Sync, Drag & Drop
 // ================================================
+// วาง grid แบบไล่จากล่างขึ้นบน: list เรียงแบบ gridSlots (index 0 = โพสต์ล่าสุด)
+// โพสต์แรก (ตัวท้ายของ list) อยู่ล่างขวา ไล่ไปทางซ้าย แล้วขึ้นแถวบน — แถวบนสุดถ้าไม่เต็ม ช่องว่างอยู่ทางซ้าย
+// คืนค่าเป็นแถวจากบนลงล่าง แต่ละแถวเรียงซ้าย→ขวา (null = ช่องว่าง)
+function igLayoutRows(list){
+  const n=list.length, rows=Math.ceil(n/3), out=[];
+  for(let r=0;r<rows;r++){
+    const k=rows-1-r;
+    out.push([3*k+2,3*k+1,3*k].map(pos=>pos<n?list[n-1-pos]:null));
+  }
+  return out;
+}
+// เลขลำดับโพสต์ที่โชว์บนช่อง: #1 = โพสต์แรก (ล่างขวา)
+function igPostNo(list,item){ return list.length-list.indexOf(item); }
+
 function renderGrid(){
   const ch=GRID_CHANNEL_META[activeChannel]||GRID_CHANNEL_META['dc-dental'];
   const chMeta=CHANNEL_META[activeChannel];
@@ -2657,11 +2671,8 @@ function renderGrid(){
   }
 
   grid.style.display='grid';
-  let items=[...monthSlots];
-  while(items.length%3!==0) items.push(null);
-  const chunks=[];
-  for(let i=0;i<items.length;i+=3) chunks.push(items.slice(i,i+3));
-  // แสดงแบบหน้าโปรไฟล์ IG: index 0 (โพสต์ล่าสุด) อยู่บนซ้าย อ่านซ้าย→ขวา ช่องที่เหลือของแถวสุดท้ายว่างทางขวา
+  // ไล่จากล่างขวาขึ้นไป: ช่องล่างขวา = โพสต์แรกของเดือน, บนซ้าย = ล่าสุด
+  const chunks=igLayoutRows(monthSlots);
   chunks.forEach(chunk=>{
     [chunk[0],chunk[1],chunk[2]].forEach(item=>{
       const cell=document.createElement('div');
@@ -2673,7 +2684,7 @@ function renderGrid(){
         cell.innerHTML=`<div style="font-size:22px;pointer-events:none;">🖼️</div><div style="font-size:10px;font-weight:700;color:white;pointer-events:none;">รอปก</div>`;
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.45);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
-        numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
+        numBadge.textContent='#'+igPostNo(monthSlots,item);cell.appendChild(numBadge);
         if(item.date){
           const d=new Date(item.date+'T00:00:00');
           const dateBadge=document.createElement('div');
@@ -2697,7 +2708,7 @@ function renderGrid(){
         cell.draggable=gridEditMode;
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.3);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
-        numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
+        numBadge.textContent='#'+igPostNo(monthSlots,item);cell.appendChild(numBadge);
         // ปุ่มลบ — hover (desktop) หรือ tap (mobile)
         const blankOverlay=document.createElement('div');
         blankOverlay.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,0);transition:background 0.2s;display:flex;align-items:center;justify-content:center;';
@@ -2735,7 +2746,7 @@ function renderGrid(){
         cell.appendChild(img);
         const numBadge=document.createElement('div');
         numBadge.style.cssText='position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.55);color:white;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;pointer-events:none;z-index:3;';
-        numBadge.textContent='#'+(realIdx+1);cell.appendChild(numBadge);
+        numBadge.textContent='#'+igPostNo(monthSlots,item);cell.appendChild(numBadge);
         if(item.isCollab){
           const srcMeta=CHANNEL_META[item.collabFrom]||{emoji:'📤'};
           const collabBadge=document.createElement('div');
@@ -3217,7 +3228,7 @@ function openGridSandbox(){
     <div style="background:var(--blue-dark);color:white;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px;flex-wrap:wrap;">
       <div>
         <div style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;">🎨 ทดลองจัด Grid</div>
-        <div style="font-size:11px;opacity:0.7;margin-top:2px;">เพิ่มชื่อคอนเทนต์ได้เลย ยังไม่ต้องมีรูป · ลากสลับตำแหน่ง · พอใจแล้วกด "ลงวันคี่/คู่" = ลง Grid + ปฏิทินพร้อมวันในคลิกเดียว (ช่องล่างสุด = วันแรก, บนซ้าย = ล่าสุด แบบ IG)</div>
+        <div style="font-size:11px;opacity:0.7;margin-top:2px;">เพิ่มชื่อคอนเทนต์ได้เลย ยังไม่ต้องมีรูป · ลากสลับตำแหน่ง · พอใจแล้วกด "ลงวันคี่/คู่" = ลง Grid + ปฏิทินพร้อมวันในคลิกเดียว (ไล่จากช่องล่างขวา = วันแรก ขึ้นไปบนซ้าย = ล่าสุด)</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <span id="sbCount" style="font-size:12px;opacity:0.8;">0 ช่อง</span>
@@ -3371,12 +3382,8 @@ function renderSandbox(){
   });
   grid.innerHTML='';
 
-  // จัด layout reverse เหมือน IG (ใหม่อยู่บน)
-  const sbN=sandboxSlots.length;
-  let sbItems=[...sandboxSlots];
-  while(sbItems.length%3!==0) sbItems.push(null);
-  const sbChunks=[];
-  for(let i=0;i<sbItems.length;i+=3) sbChunks.push(sbItems.slice(i,i+3));
+  // ไล่จากล่างขวาขึ้นไปเหมือน grid จริง (ของที่เพิ่มใหม่ขึ้นบน)
+  const sbChunks=igLayoutRows(sandboxSlots);
 
   sbChunks.forEach(chunk=>{
     [chunk[0],chunk[1],chunk[2]].forEach(slot=>{
@@ -3420,7 +3427,7 @@ function renderSandbox(){
       cell.appendChild(del);
 
       // เลขลำดับ
-      const num=document.createElement('div');num.textContent='#'+(idx+1);
+      const num=document.createElement('div');num.textContent='#'+igPostNo(sandboxSlots,slot);
       num.style.cssText='position:absolute;top:4px;left:6px;font-size:10px;font-weight:700;color:white;text-shadow:0 1px 3px rgba(0,0,0,0.7);z-index:2;pointer-events:none;';
       cell.appendChild(num);
 
@@ -6128,8 +6135,8 @@ function autoDateDays(y,m,pattern){
 }
 function autoDateDs(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
 
-// รูปของเดือนที่เปิดอยู่ เรียงตามลำดับโพสต์: index 0 ใน gridSlots = โพสต์ล่าสุด (บนซ้ายแบบ IG)
-// → โพสต์แรกของเดือนคือ index ท้ายสุด (ช่องล่างสุด) ไล่ย้อนขึ้นไปบนซ้าย
+// รูปของเดือนที่เปิดอยู่ เรียงตามลำดับโพสต์: index 0 ใน gridSlots = โพสต์ล่าสุด (บนซ้าย)
+// → โพสต์แรกของเดือนคือ index ท้ายสุด (ช่องล่างขวา) ไล่ย้อนขึ้นไป — ตรงกับ igLayoutRows()
 function autoDateMonthSlots(){
   const key=cy+'-'+String(cm+1).padStart(2,'0');
   return gridSlots.filter(function(s){
@@ -6169,7 +6176,7 @@ function renderAutoDatePreview(){
   if(!p.targets.length){
     h+='<div style="margin-top:8px;">✅ ทุกรูปในเดือนนี้มีวันแล้ว — ถ้าอยากจัดใหม่ ให้ติ๊ก "จัดวันใหม่ให้ทุกรูป"</div>';
   } else {
-    h+='<div style="margin-top:8px;">จะจัดวันให้ <b>'+p.plan.length+' รูป</b>'+(p.plan.length?' (วันที่ '+used[0]+(used.length>1?' – '+used[used.length-1]:'')+')':'')+' เริ่มจากรูปล่างสุดของ grid</div>';
+    h+='<div style="margin-top:8px;">จะจัดวันให้ <b>'+p.plan.length+' รูป</b>'+(p.plan.length?' (วันที่ '+used[0]+(used.length>1?' – '+used[used.length-1]:'')+')':'')+' เริ่มจากช่องล่างขวาของ grid ไล่ขึ้นไป</div>';
     if(p.left>0) h+='<div class="ad-warn">⚠️ วันไม่พอ — เหลืออีก '+p.left+' รูปที่ยังไม่ได้วัน</div>';
     if(p.redo) h+='<div class="ad-warn">⚠️ รูปที่มีวันอยู่แล้วจะถูกย้ายวันในปฏิทินด้วย</div>';
   }

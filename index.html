@@ -2661,8 +2661,9 @@ function renderGrid(){
   while(items.length%3!==0) items.push(null);
   const chunks=[];
   for(let i=0;i<items.length;i+=3) chunks.push(items.slice(i,i+3));
+  // แสดงแบบหน้าโปรไฟล์ IG: index 0 (โพสต์ล่าสุด) อยู่บนซ้าย อ่านซ้าย→ขวา ช่องที่เหลือของแถวสุดท้ายว่างทางขวา
   chunks.forEach(chunk=>{
-    [chunk[2],chunk[1],chunk[0]].forEach(item=>{
+    [chunk[0],chunk[1],chunk[2]].forEach(item=>{
       const cell=document.createElement('div');
       cell.style.cssText='position:relative;aspect-ratio:4/5;overflow:hidden;border-radius:2px;';
       if(item&&item.type==='pending'){
@@ -3120,7 +3121,8 @@ function openBulkUpload(){
         } else throw new Error();
       }catch(e){if(st){st.style.background='rgba(231,76,60,0.6)';st.textContent='❌';}failed++;}
     }
-    [...newSlots].reverse().forEach(s=>gridSlots.unshift(s));
+    // ไฟล์ที่เลือกก่อน = โพสต์ก่อน → ไฟล์สุดท้ายเป็นโพสต์ล่าสุด อยู่บนซ้ายแบบ IG
+    newSlots.forEach(s=>gridSlots.unshift(s));
     showNoti('⏳ กำลังบันทึกลง Server...','#1A6FB5');
     const ok=await saveGridSlots(true);
     renderGrid();renderUnscheduled();
@@ -3215,7 +3217,7 @@ function openGridSandbox(){
     <div style="background:var(--blue-dark);color:white;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px;flex-wrap:wrap;">
       <div>
         <div style="font-family:'Prompt',sans-serif;font-size:16px;font-weight:700;">🎨 ทดลองจัด Grid</div>
-        <div style="font-size:11px;opacity:0.7;margin-top:2px;">เพิ่มชื่อคอนเทนต์ได้เลย ยังไม่ต้องมีรูป · ลากสลับตำแหน่ง · พอใจแล้วกด "ลงวันคี่/คู่" = ลง Grid + ปฏิทินพร้อมวันในคลิกเดียว (ช่องล่างขวา = วันแรก)</div>
+        <div style="font-size:11px;opacity:0.7;margin-top:2px;">เพิ่มชื่อคอนเทนต์ได้เลย ยังไม่ต้องมีรูป · ลากสลับตำแหน่ง · พอใจแล้วกด "ลงวันคี่/คู่" = ลง Grid + ปฏิทินพร้อมวันในคลิกเดียว (ช่องล่างสุด = วันแรก, บนซ้าย = ล่าสุด แบบ IG)</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <span id="sbCount" style="font-size:12px;opacity:0.8;">0 ช่อง</span>
@@ -3248,7 +3250,7 @@ async function handleSandboxFiles(files){
       const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd,signal:_cldAbort5.signal});
       clearTimeout(_cldT5);
       const data=await res.json();
-      if(data.secure_url){sandboxSlots.push({id:activeChannel+'-sb-'+Date.now()+'-'+done,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,'')});done++;renderSandbox();}
+      if(data.secure_url){sandboxSlots.unshift({id:activeChannel+'-sb-'+Date.now()+'-'+done,img:data.secure_url,title:file.name.replace(/\.[^.]+$/,'')});done++;renderSandbox();}
     }catch(e){console.error(e);}
   }
   showNoti('✅ อัปโหลด '+done+' รูปสำเร็จ!','#27AE60');
@@ -3301,7 +3303,7 @@ function sbConfirmTextCard(){
   const title=document.getElementById('sbTextInput').value.trim();
   if(!title){document.getElementById('sbTextInput').focus();return;}
   const style=document.getElementById('sbSelectedStyle').value||'';
-  sandboxSlots.push({id:activeChannel+'-txt-'+Date.now(),type:'text',img:'',title,contentStyle:style});
+  sandboxSlots.unshift({id:activeChannel+'-txt-'+Date.now(),type:'text',img:'',title,contentStyle:style});
   // ลบ popup
   const pop=document.getElementById('sbTextInput')?.closest('div[style*="position:fixed"]');
   if(pop) pop.remove();
@@ -3377,7 +3379,7 @@ function renderSandbox(){
   for(let i=0;i<sbItems.length;i+=3) sbChunks.push(sbItems.slice(i,i+3));
 
   sbChunks.forEach(chunk=>{
-    [chunk[2],chunk[1],chunk[0]].forEach(slot=>{
+    [chunk[0],chunk[1],chunk[2]].forEach(slot=>{
       if(!slot){const empty=document.createElement('div');empty.style.cssText='aspect-ratio:4/5;';grid.appendChild(empty);return;}
       const idx=sandboxSlots.indexOf(slot);
       const cell=document.createElement('div');
@@ -3451,9 +3453,9 @@ function renderSandbox(){
       <input type="file" accept="image/*" multiple style="display:none;" onchange="handleSandboxFiles(this.files)">
       <span style="font-size:18px;">🖼️</span>เพิ่มรูป
     </label>
-    <button onclick="(()=>{const m=cy+'-'+String(cm+1).padStart(2,'0');sandboxSlots.push({id:activeChannel+'-pend-'+Date.now(),type:'pending',img:'',title:'รอปก',createdMonth:m});renderSandbox();})()"
+    <button onclick="(()=>{const m=cy+'-'+String(cm+1).padStart(2,'0');sandboxSlots.unshift({id:activeChannel+'-pend-'+Date.now(),type:'pending',img:'',title:'รอปก',createdMonth:m});renderSandbox();})()"
       style="flex:1;min-width:90px;background:linear-gradient(135deg,#8B6F3E,#C8956C);border:none;border-radius:8px;padding:10px;color:white;font-size:11px;font-weight:600;cursor:pointer;">รอปก</button>
-    <button onclick="(()=>{const m=cy+'-'+String(cm+1).padStart(2,'0');sandboxSlots.push({id:activeChannel+'-blank-'+Date.now(),type:'blank',img:'',title:'',createdMonth:m});renderSandbox();})()"
+    <button onclick="(()=>{const m=cy+'-'+String(cm+1).padStart(2,'0');sandboxSlots.unshift({id:activeChannel+'-blank-'+Date.now(),type:'blank',img:'',title:'',createdMonth:m});renderSandbox();})()"
       style="flex:1;min-width:90px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px;color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer;">▭ คั่น</button>
     <button onclick="(()=>{sandboxSlots=[];clearSandboxDraft();renderSandbox();})()"
       style="flex:1;min-width:90px;background:rgba(231,76,60,0.25);border:1px solid rgba(231,76,60,0.45);border-radius:8px;padding:10px;color:rgba(255,160,140,1);font-size:11px;font-weight:600;cursor:pointer;">🗑 เริ่มใหม่</button>`;
@@ -3461,7 +3463,7 @@ function renderSandbox(){
   saveSandboxDraft();
 }
 
-// pattern = 'odd'/'even' → ย้ายเข้า Grid + ลงวันให้ทุกช่องในคลิกเดียว (กติกาเดียวกับปุ่ม 📅 จัดวันคี่/คู่: ข้ามวันที่ 31, ช่องล่างขวา = วันแรก)
+// pattern = 'odd'/'even' → ย้ายเข้า Grid + ลงวันให้ทุกช่องในคลิกเดียว (กติกาเดียวกับปุ่ม 📅 จัดวันคี่/คู่: ข้ามวันที่ 31, ช่องล่างสุด = วันแรก)
 // ไม่ส่ง pattern = ย้ายเข้า Grid เฉยๆ เหมือนเดิม (สร้าง draft ในปฏิทินเฉพาะ text/รอปก ยังไม่มีวัน)
 async function confirmSandbox(pattern){
   if(!sandboxSlots.length) return;
@@ -3485,7 +3487,7 @@ async function confirmSandbox(pattern){
   });
   gridSlots=[...newSlots,...gridSlots];
 
-  // ลงวัน: ช่องใหม่อยู่บนสุดของ grid เดือนนี้ layout จึงตรงกับที่เห็นใน sandbox
+  // ลงวัน: ช่องใหม่อยู่บนสุดของ grid เดือนนี้ (ใหม่กว่ารูปเดิม) layout จึงตรงกับที่เห็นใน sandbox
   let left=0;
   if(withDates){
     const newIds=new Set(newSlots.map(n=>n.id));
@@ -6126,19 +6128,15 @@ function autoDateDays(y,m,pattern){
 }
 function autoDateDs(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
 
-// รูปของเดือนที่เปิดอยู่ เรียงตามตำแหน่งที่เห็นบนจอ: ช่องล่างขวา = โพสต์แรกของเดือน แล้วไล่ไปทางซ้าย ขึ้นแถวบน (แบบหน้าโปรไฟล์ IG)
-// ต้องตรงกับ renderGrid(): หั่นทีละ 3 แล้ววาดแต่ละแถวกลับด้าน [chunk[2],chunk[1],chunk[0]] → ขวาสุดของแถวคือ chunk[0]
+// รูปของเดือนที่เปิดอยู่ เรียงตามลำดับโพสต์: index 0 ใน gridSlots = โพสต์ล่าสุด (บนซ้ายแบบ IG)
+// → โพสต์แรกของเดือนคือ index ท้ายสุด (ช่องล่างสุด) ไล่ย้อนขึ้นไปบนซ้าย
 function autoDateMonthSlots(){
   const key=cy+'-'+String(cm+1).padStart(2,'0');
-  const items=gridSlots.filter(function(s){
+  return gridSlots.filter(function(s){
+    if(s.type==='blank') return false;
     if(s.date){ const d=new Date(s.date+'T00:00:00'); return d.getFullYear()===cy&&d.getMonth()===cm; }
     return (s.createdMonth||key)===key;
-  });
-  const rows=[];
-  for(let i=0;i<items.length;i+=3) rows.push(items.slice(i,i+3));
-  const out=[];
-  rows.reverse().forEach(function(row){ row.forEach(function(s){ if(s&&s.type!=='blank') out.push(s); }); });
-  return out;
+  }).reverse();
 }
 
 function autoDatePlan(){
@@ -6171,7 +6169,7 @@ function renderAutoDatePreview(){
   if(!p.targets.length){
     h+='<div style="margin-top:8px;">✅ ทุกรูปในเดือนนี้มีวันแล้ว — ถ้าอยากจัดใหม่ ให้ติ๊ก "จัดวันใหม่ให้ทุกรูป"</div>';
   } else {
-    h+='<div style="margin-top:8px;">จะจัดวันให้ <b>'+p.plan.length+' รูป</b>'+(p.plan.length?' (วันที่ '+used[0]+(used.length>1?' – '+used[used.length-1]:'')+')':'')+' เริ่มจากรูปล่างขวาของ grid</div>';
+    h+='<div style="margin-top:8px;">จะจัดวันให้ <b>'+p.plan.length+' รูป</b>'+(p.plan.length?' (วันที่ '+used[0]+(used.length>1?' – '+used[used.length-1]:'')+')':'')+' เริ่มจากรูปล่างสุดของ grid</div>';
     if(p.left>0) h+='<div class="ad-warn">⚠️ วันไม่พอ — เหลืออีก '+p.left+' รูปที่ยังไม่ได้วัน</div>';
     if(p.redo) h+='<div class="ad-warn">⚠️ รูปที่มีวันอยู่แล้วจะถูกย้ายวันในปฏิทินด้วย</div>';
   }

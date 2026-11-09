@@ -64,6 +64,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 .day-num-text{font-size:12px;font-weight:700;}
 .festival-badge{font-size:8px;color:var(--orange);font-weight:700;background:#FEF3E2;
   padding:1px 5px;border-radius:4px;white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis;}
+.festival-dot{width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0;}
 .day-add-btn{opacity:0;font-size:15px;color:var(--blue);cursor:pointer;transition:opacity 0.2s;background:none;border:none;line-height:1;flex-shrink:0;}
 .day-cell:hover .day-add-btn{opacity:1;}
 .post-card{border-radius:7px;overflow:hidden;margin-bottom:3px;border:1px solid #E4EDF5;border-left-width:3px;
@@ -878,7 +879,22 @@ const CLOUDINARY_CLOUD='djxw6mu0w';
 const CLOUDINARY_PRESET='dc-dental';
 
 const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-const FESTIVALS={'01-01':'วันปีใหม่','02-14':'Valentine 💕','04-06':'วันจักรี','04-13':'สงกรานต์','05-01':'วันแรงงาน','06-03':'วันเฉลิมฯ','08-12':'วันแม่','10-23':'วันจุฬาลงกรณ์','12-05':'วันพ่อ','12-10':'รัฐธรรมนูญ','12-31':'สิ้นปี'};
+const FESTIVALS={'01-01':'วันปีใหม่ 🎆','01-16':'วันครู','02-14':'Valentine 💕','03-20':'World Oral Health Day 🦷','04-06':'วันจักรี','04-13':'สงกรานต์ 💦','04-14':'สงกรานต์ · วันครอบครัว','04-15':'สงกรานต์','05-01':'วันแรงงาน','05-04':'วันฉัตรมงคล','06-03':'วันเฉลิมฯ พระราชินี','07-28':'วันเฉลิมฯ ร.10','08-12':'วันแม่ 💙','10-13':'วันนวมินทรมหาราช','10-21':'วันทันตสาธารณสุข 🦷','10-23':'วันปิยมหาราช','10-31':'Halloween 🎃','11-11':'11.11','12-05':'วันพ่อ 💛','12-10':'รัฐธรรมนูญ','12-12':'12.12','12-24':'คริสต์มาสอีฟ','12-25':'คริสต์มาส 🎄','12-31':'สิ้นปี 🎉'};
+// วันตามจันทรคติ/ปฏิทินจีน — เปลี่ยนทุกปี ต้องเติมปีใหม่เอง (2027 คำนวณจากมาฆบูชาที่ประกาศแล้ว อาจคลาด ±1 วัน)
+const FESTIVALS_BY_DATE={
+  '2025-01-29':'ตรุษจีน 🧧','2025-02-12':'มาฆบูชา','2025-05-11':'วิสาขบูชา','2025-07-10':'อาสาฬหบูชา','2025-07-11':'เข้าพรรษา','2025-10-07':'ออกพรรษา','2025-11-05':'ลอยกระทง 🏮',
+  '2026-02-17':'ตรุษจีน 🧧','2026-03-03':'มาฆบูชา','2026-05-31':'วิสาขบูชา','2026-07-29':'อาสาฬหบูชา','2026-07-30':'เข้าพรรษา','2026-10-26':'ออกพรรษา','2026-11-24':'ลอยกระทง 🏮',
+  '2027-02-06':'ตรุษจีน 🧧','2027-02-21':'มาฆบูชา','2027-05-20':'วิสาขบูชา','2027-07-18':'อาสาฬหบูชา','2027-07-19':'เข้าพรรษา','2027-10-16':'ออกพรรษา','2027-11-14':'ลอยกระทง 🏮',
+  '2028-01-26':'ตรุษจีน 🧧'
+};
+function getFestival(date,ds){
+  const list=[];
+  if(FESTIVALS_BY_DATE[ds])list.push(FESTIVALS_BY_DATE[ds]);
+  if(FESTIVALS[ds.slice(5)])list.push(FESTIVALS[ds.slice(5)]);
+  // วันเด็ก = เสาร์ที่ 2 ของมกราคม
+  if(date.getMonth()===0&&date.getDay()===6&&date.getDate()>=8&&date.getDate()<=14)list.push('วันเด็ก 🎈');
+  return list.join(' · ');
+}
 const PTEXT={'fb':'Facebook','ig':'Instagram','both':'FB+IG','tiktok':'🎵 TikTok'};
 const TCLASS={'video':'t-video','photo':'t-photo','reel':'t-reel','story':'t-story','carousel':'t-carousel'};
 const TTEXT={'video':'🎬 วิดีโอ','photo':'📷 รูป','reel':'⚡ Reels','story':'📱 Story','carousel':'🎠 Carousel'};
@@ -1963,10 +1979,10 @@ function renderCal(){
     const isMobile=window.innerWidth<=640;
     const DAYS_SHORT=['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
     const isWeekend=date.getDay()===0||date.getDay()===6;
-    const fest=FESTIVALS[ds.slice(5)];
+    const fest=getFestival(date,ds);
     const top=document.createElement('div');top.className='day-top';
     const dayLabel=isMobile&&!other?`<span style="font-size:10px;font-weight:500;color:${isWeekend?'var(--red)':'var(--gray-dark)'};margin-right:3px;">${DAYS_SHORT[date.getDay()]}</span>`:'';
-    top.innerHTML=`<span class="day-num-text" style="color:${isWeekend&&!isMobile?'var(--red)':''}">${dayLabel}${date.getDate()}</span>${fest&&!isMobile?`<span class="festival-badge">${fest}</span>`:''}
+    top.innerHTML=`<span class="day-num-text" style="color:${isWeekend&&!isMobile?'var(--red)':''}">${dayLabel}${date.getDate()}</span>${fest?(isMobile?`<span class="festival-dot" title="${fest}"></span>`:`<span class="festival-badge" title="${fest}">${fest}</span>`):''}
       <button class="day-add-btn" onclick="openAdd('${ds}')">＋</button>`;
     cell.appendChild(top);
     const dayPosts=applyFilter(posts.filter(p=>p.date===ds));

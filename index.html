@@ -2614,6 +2614,25 @@ function igLayoutRows(list){
   }
   return out;
 }
+// เรียงรูปของเดือนตามวันโพสต์ ให้ตรงกับ IG จริง: ใหม่สุดก่อน (บนซ้าย) → เก่าสุดท้าย (ล่างขวา)
+// รูปที่ยังไม่มีวันถือว่าเป็นโพสต์ถัดไป อยู่บนสุด / วันเท่ากันใช้ลำดับเดิมใน gridSlots
+function igSortByDate(list){
+  return list.map((s,i)=>({s,i})).sort((a,b)=>{
+    const da=a.s.date||'9999-99-99', db=b.s.date||'9999-99-99';
+    return da===db ? a.i-b.i : (da<db?1:-1);
+  }).map(x=>x.s);
+}
+// ลากสลับช่อง: สลับตำแหน่งใน gridSlots และถ้ามีวันทั้งคู่ก็สลับวันด้วย (grid เรียงตามวัน
+// ถ้าไม่สลับวัน รูปจะเด้งกลับที่เดิม) — แล้วซิงก์วันใหม่ไปปฏิทิน ไม่งั้นตอนโหลดวันเก่าจะดึงกลับมาทับ
+function igSwapSlots(a,b){
+  const A=gridSlots[a], B=gridSlots[b];
+  gridSlots[a]=B; gridSlots[b]=A;
+  if(A&&B&&A.date&&B.date&&A.date!==B.date){
+    const t=A.date; A.date=B.date; B.date=t;
+    [A,B].forEach(s=>{ const cp=posts.find(p=>p.id===s.id); if(cp){ cp.date=s.date; syncSlotToCalendar(s); } });
+    render();
+  }
+}
 // เลขลำดับโพสต์ที่โชว์บนช่อง: #1 = โพสต์แรก (ล่างขวา)
 function igPostNo(list,item){ return list.length-list.indexOf(item); }
 // โหมดเลือก: ช่องรอปก/ช่องคั่นก็ติ๊กเลือกเพื่อลบได้เหมือนรูป
@@ -2645,7 +2664,7 @@ function renderGrid(){
   const lbl=document.getElementById('igChannelLabel');
   if(lbl&&chMeta) lbl.textContent=chMeta.label;
   const curMonthKey=cy+'-'+String(cm+1).padStart(2,'0');
-  const monthSlots=gridSlots.filter(s=>{
+  const monthSlots=igSortByDate(gridSlots.filter(s=>{
     // รูปที่มีวันโพสต์ → ดูจากวันที่
     if(s.date){
       const d=new Date(s.date+'T00:00:00');
@@ -2654,7 +2673,7 @@ function renderGrid(){
     // blank/pending/รูปที่ยังไม่มีวัน → ดูจาก createdMonth
     const slotMonth=s.createdMonth||curMonthKey;
     return slotMonth===curMonthKey;
-  });
+  }));
   const scheduledInMonth=monthSlots.filter(s=>s.date).length;
   document.getElementById('igPostCount').textContent=MONTHS[cm]+' '+(cy+543)+' · '+scheduledInMonth+' จัดวันแล้ว · '+gridSlots.filter(s=>!s.date&&s.type!=='blank'&&(s.createdMonth||curMonthKey)===curMonthKey).length+' รอจัดวัน';
   const grid=document.getElementById('igGrid');grid.innerHTML='';
@@ -2720,7 +2739,7 @@ function renderGrid(){
         cell.addEventListener('drop',async e=>{
           e.preventDefault();e.stopPropagation();cell.style.outline='none';
           if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
-          const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
+          igSwapSlots(dragSrcIdx,realIdx);
           dragSrcIdx=null;markGridDirty();renderGrid();
         });
       } else if(item&&item.type==='blank'){
@@ -2757,7 +2776,7 @@ function renderGrid(){
         cell.addEventListener('drop',async e=>{
           e.preventDefault();e.stopPropagation();cell.style.outline='none';
           if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
-          const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
+          igSwapSlots(dragSrcIdx,realIdx);
           dragSrcIdx=null;markGridDirty();renderGrid();
       });
       } else if(item&&item.img){
@@ -2816,7 +2835,7 @@ function renderGrid(){
           cell.addEventListener('drop',async e=>{
             e.preventDefault();e.stopPropagation();cell.style.outline='none';
             if(dragSrcIdx===null||dragSrcIdx===realIdx){dragSrcIdx=null;return;}
-            const tmp=gridSlots[dragSrcIdx];gridSlots[dragSrcIdx]=gridSlots[realIdx];gridSlots[realIdx]=tmp;
+            igSwapSlots(dragSrcIdx,realIdx);
             dragSrcIdx=null;markGridDirty();renderGrid();
           });
         }
@@ -6206,15 +6225,15 @@ function autoDateDays(y,m,pattern){
 }
 function autoDateDs(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
 
-// รูปของเดือนที่เปิดอยู่ เรียงตามลำดับโพสต์: index 0 ใน gridSlots = โพสต์ล่าสุด (บนซ้าย)
-// → โพสต์แรกของเดือนคือ index ท้ายสุด (ช่องล่างขวา) ไล่ย้อนขึ้นไป — ตรงกับ igLayoutRows()
+// รูปของเดือนที่เปิดอยู่ เรียงตามที่เห็นใน grid (igSortByDate) แล้วกลับด้าน
+// → ตัวแรกคือช่องล่างขวา ไล่ขึ้นไป — วันที่จัดให้จะตรงกับตำแหน่งที่เห็น
 function autoDateMonthSlots(){
   const key=cy+'-'+String(cm+1).padStart(2,'0');
-  return gridSlots.filter(function(s){
+  return igSortByDate(gridSlots.filter(function(s){
     if(s.type==='blank') return false;
     if(s.date){ const d=new Date(s.date+'T00:00:00'); return d.getFullYear()===cy&&d.getMonth()===cm; }
     return (s.createdMonth||key)===key;
-  }).reverse();
+  })).reverse();
 }
 
 function autoDatePlan(){

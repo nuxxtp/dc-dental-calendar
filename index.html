@@ -367,6 +367,7 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
       <button id="tabCalBtn" onclick="switchTab('calendar')" style="background:rgba(255,255,255,0.25);border:none;color:white;padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s">📅 Calendar</button>
       <button id="tabGridBtn" onclick="switchTab('grid')" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">📸 IG Grid</button>
       <button id="tabPipelineBtn" onclick="openPipelinePage()" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🎬 Process</button>
+      <button id="tabDashBtn" onclick="switchTab('dashboard')" style="background:transparent;border:none;color:rgba(255,255,255,0.7);padding:7px 16px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">📊 Dashboard</button>
     </div>
     <button id="btnGlobalSearch" onclick="openGlobalSearch()" title="ค้นหาทั้งหมด (Ctrl+K)" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">🔍</button>
     <button id="btnDayReport" onclick="window.open('report.html','_blank')" title="เขียน Report ประจำวัน" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">📝 Report</button>
@@ -497,6 +498,79 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
   </div>
 
   <button id="btnToggleUnsched" onclick="toggleUnscheduled()" style="background:white;border:1.5px solid #D0DCE8;border-radius:20px;padding:3px 12px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#7F8C8D;transition:all 0.2s;display:none;white-space:nowrap;flex-shrink:0;">📋 รอจัดวัน <span id="unschedBadge" style="background:#E74C3C;color:white;border-radius:8px;padding:0 5px;font-size:10px;margin-left:2px;">0</span></button>
+  </div>
+</div>
+
+<!-- ================= DASHBOARD ================= -->
+<style>
+#dashboardSection{display:none;padding:20px 28px 60px;min-height:80vh;background:var(--bg);}
+.db-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.db-title{font-family:'Prompt',sans-serif;font-size:20px;font-weight:700;color:var(--text);}
+.db-sub{font-size:12px;color:var(--gray-dark);}
+.db-btn{background:white;border:1.5px solid #D0DCE8;color:var(--blue-dark);border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.db-btn:hover{border-color:var(--blue);}
+.db-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.db-tile{background:white;border-radius:14px;padding:14px 16px;border:1px solid #E4EDF5;}
+.db-tile .v{font-family:'Prompt',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1.1;}
+.db-tile .l{font-size:12px;color:var(--gray-dark);margin-top:4px;}
+.db-tile .s{font-size:11px;color:#9AA8B5;margin-top:2px;}
+.db-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:14px;}
+.db-card{background:white;border-radius:14px;padding:16px 18px;border:1px solid #E4EDF5;min-width:0;}
+.db-card h3{font-family:'Prompt',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin:0 0 4px;}
+.db-card .hint{font-size:11px;color:#9AA8B5;margin-bottom:12px;}
+.db-full{grid-column:1/-1;}
+.db-ins{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+.db-ins li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;background:#F7FAFC;font-size:13px;line-height:1.5;color:var(--text);}
+.db-ins li .ic{flex-shrink:0;font-size:16px;line-height:1.3;}
+.db-bars{display:flex;flex-direction:column;gap:6px;}
+.db-bar{display:grid;grid-template-columns:150px 1fr 48px;gap:8px;align-items:center;font-size:12px;color:var(--text);}
+.db-bar .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.db-bar .track{height:14px;position:relative;}
+.db-bar .fill{height:100%;border-radius:0 4px 4px 0;min-width:2px;}
+.db-bar .val{text-align:right;font-variant-numeric:tabular-nums;color:var(--text);font-weight:600;}
+.db-table{width:100%;border-collapse:collapse;font-size:12px;}
+.db-table th{text-align:left;font-size:11px;font-weight:700;color:var(--gray-dark);padding:6px 8px;border-bottom:1.5px solid #E4EDF5;white-space:nowrap;position:sticky;top:0;background:white;}
+.db-table td{padding:6px 8px;border-bottom:1px solid #F0F4F8;color:var(--text);vertical-align:top;}
+.db-table td.num,.db-table th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.db-table tr:hover td{background:#F7FAFC;}
+.db-scroll{overflow-x:auto;max-height:420px;overflow-y:auto;}
+.db-plan{border-collapse:separate;border-spacing:3px;font-size:11px;}
+.db-plan th{font-weight:600;color:var(--gray-dark);padding:2px 4px;text-align:center;white-space:nowrap;}
+.db-plan th.ch{text-align:left;color:var(--text);min-width:120px;}
+.db-plan td{width:34px;height:30px;border-radius:6px;text-align:center;font-weight:700;cursor:default;color:white;}
+.db-plan td.empty{background:#F4F7FB;color:#C5CDD6;}
+.db-plan td.gap{box-shadow:inset 0 0 0 1.5px #F1948A;}
+.db-pill{display:inline-block;border-radius:6px;padding:1px 7px;font-size:10px;font-weight:700;white-space:nowrap;}
+.db-up{border:2px dashed #D0DCE8;border-radius:12px;padding:14px;text-align:center;font-size:12px;color:var(--gray-dark);transition:background 0.15s;}
+.db-up.drag{background:var(--blue-light);border-color:var(--blue);}
+.db-empty{color:#9AA8B5;font-size:12px;padding:10px 0;}
+.db-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--gray-dark);margin-top:8px;}
+.db-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
+.db-subgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:12px;}
+.db-subgrid h4{font-size:13px;font-weight:700;color:var(--text);margin:0 0 8px;}
+@media(max-width:640px){#dashboardSection{padding:12px 10px 80px;}.db-grid{grid-template-columns:1fr;}.db-bar{grid-template-columns:100px 1fr 40px;}}
+</style>
+<div id="dashboardSection">
+  <div class="db-head">
+    <div><div class="db-title">📊 Dashboard</div><div class="db-sub" id="dbUpdated">กำลังโหลด...</div></div>
+    <button class="db-btn" onclick="loadDashboard(true)">🔄 โหลดใหม่</button>
+  </div>
+  <div class="db-tiles" id="dbTiles"></div>
+  <div class="db-grid">
+    <div class="db-card db-full"><h3>💡 สิ่งที่ควรทำต่อ</h3><div class="hint">สรุปอัตโนมัติจาก Progress, ปฏิทิน และข้อมูล Meta ที่อัปโหลด</div><ul class="db-ins" id="dbInsights"></ul></div>
+    <div class="db-card"><h3>🎬 งานค้างแต่ละขั้น</h3><div class="hint">จากแท็บ Progress — ไม่นับ complete และแถวที่หมายเหตุว่า ฆ่า / ยกเลิก</div><div id="dbStages"></div></div>
+    <div class="db-card"><h3>📂 งานค้างแยกตามช่องหลัก</h3><div class="hint">จำนวนคลิปที่ยังไม่ complete</div><div id="dbCats"></div></div>
+    <div class="db-card db-full"><h3>📋 รายการงานค้าง</h3><div class="hint">เรียงจากขั้นที่ใกล้เสร็จที่สุดก่อน แล้วตามลำดับ id</div><div class="db-scroll" id="dbPending"></div></div>
+    <div class="db-card db-full"><h3>📅 แพลนการลง 14 วันข้างหน้า</h3><div class="hint">ตัวเลข = จำนวนโพสต์ในวันนั้น · ชี้เพื่อดูชื่อโพสต์ · กรอบแดง = ภายใน 7 วันนี้ยังไม่มีโพสต์</div><div class="db-scroll" id="dbPlan"></div>
+      <div class="db-legend"><span><i style="background:#27AE60"></i>ลงแล้ว</span><span><i style="background:#E67E22"></i>พร้อมลง</span><span><i style="background:#95A5A6"></i>Draft</span></div></div>
+    <div class="db-card"><h3>🗓️ เดือนนี้แต่ละช่อง</h3><div class="hint">โพสต์ในปฏิทินเดือนปัจจุบัน — ลงแล้ว / ทั้งหมด</div><div id="dbMonth"></div></div>
+    <div class="db-card"><h3>⏰ เลยวันแล้วยังไม่ลง</h3><div class="hint">วันที่ผ่านมาแล้ว (ย้อนหลัง 30 วัน) แต่สถานะยังไม่ใช่ Posted</div><div class="db-scroll" id="dbOverdue"></div></div>
+    <div class="db-card db-full"><h3>📣 Meta Ads</h3><div class="hint">Export จาก Ads Manager เป็น CSV (ระดับ Ad) — ควรมีคอลัมน์ ชื่อโฆษณา, จำนวนเงินที่ใช้จ่าย, อิมเพรสชัน, การเข้าถึง, การเริ่มการสนทนาทางข้อความ · ชื่อแอดลงท้าย _TOF / _MOF / _BOF / _RT จะแยก funnel ให้</div>
+      <div class="db-up" data-kind="ads">ลากไฟล์ CSV มาวาง หรือ <label class="db-btn">เลือกไฟล์<input type="file" accept=".csv,text/csv" multiple style="display:none" onchange="uploadMetaFiles('ads',this.files);this.value='';"></label><div id="dbAdsInfo" style="margin-top:6px;"></div></div>
+      <div id="dbAds"></div></div>
+    <div class="db-card db-full"><h3>📱 โพสต์ปกติ (Organic)</h3><div class="hint">Export จาก Meta Business Suite → Insights → Content เป็น CSV — เลือกได้หลายไฟล์พร้อมกัน (FB + IG)</div>
+      <div class="db-up" data-kind="organic">ลากไฟล์ CSV มาวาง หรือ <label class="db-btn">เลือกไฟล์<input type="file" accept=".csv,text/csv" multiple style="display:none" onchange="uploadMetaFiles('organic',this.files);this.value='';"></label><div id="dbOrgInfo" style="margin-top:6px;"></div></div>
+      <div id="dbOrg"></div></div>
   </div>
 </div>
 
@@ -2457,6 +2531,11 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('cl
 async function switchTab(tab){
   const isGrid=tab==='grid';
   const isCalendar=tab==='calendar';
+  const isDash=tab==='dashboard';
+  document.getElementById('dashboardSection').style.display=isDash?'block':'none';
+  document.getElementById('tabDashBtn').style.background=isDash?'rgba(255,255,255,0.25)':'transparent';
+  document.getElementById('tabDashBtn').style.color=isDash?'white':'rgba(255,255,255,0.7)';
+  document.getElementById('tabDashBtn').style.fontWeight=isDash?'700':'600';
   document.getElementById('igGridSection').style.display=isGrid?'block':'none';
   document.querySelector('.calendar-wrap').style.display=isCalendar?'block':'none';
   document.querySelector('.stats-bar').style.display=isCalendar?'flex':'none';
@@ -2468,6 +2547,7 @@ async function switchTab(tab){
   document.getElementById('tabGridBtn').style.background=isGrid?'rgba(255,255,255,0.25)':'transparent';
   document.getElementById('tabGridBtn').style.color=isGrid?'white':'rgba(255,255,255,0.7)';
   document.getElementById('tabGridBtn').style.fontWeight=isGrid?'700':'600';
+  if(isDash){ loadDashboard(false); return; }
   if(isGrid){
     await loadGridSlots();
     mergeCollabToGrid();
@@ -5075,6 +5155,377 @@ document.addEventListener('DOMContentLoaded',async function(){
   clearTimeout(overlayGuard);
   hideOverlay();
 });
+
+// ================================================
+// DASHBOARD — งานค้าง (Progress) + แพลนการลง (ปฏิทินทุกช่อง) + Meta Ads / Organic (CSV)
+// ================================================
+const DB_CAL_STATUS={posted:{c:'#27AE60',l:'ลงแล้ว'},ready:{c:'#E67E22',l:'พร้อมลง'},draft:{c:'#95A5A6',l:'Draft'}};
+const DB_DAYS=['อา','จ','อ','พ','พฤ','ศ','ส'];
+let dbState={progress:null,cal:{},calLoadedAt:0,meta:{ads:null,organic:null},loading:false};
+
+function dbIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dbAddDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function dbNum(v){if(v==null)return 0;const s=String(v).replace(/[^\d.\-]/g,'');const n=parseFloat(s);return isNaN(n)?0:n;}
+function dbFmt(n,dp){if(!isFinite(n))return '–';return n.toLocaleString('th-TH',{minimumFractionDigits:dp||0,maximumFractionDigits:dp||0});}
+function dbBaht(n){return isFinite(n)&&n>0?'฿'+dbFmt(n,n<100?2:0):'–';}
+function dbDateThai(iso){if(!iso)return '';const d=new Date(iso.length===10?iso+'T00:00:00':iso);if(isNaN(d))return iso;return d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3)+'.';}
+function dbDaysAgo(v){if(!v)return null;const d=new Date(v);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/864e5);}
+function dbNormDate(raw){
+  const s=String(raw||'');if(!s)return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  const d=new Date(s);if(isNaN(d))return '';
+  const local=new Date(d.getTime()+7*3600*1000);
+  return local.getUTCFullYear()+'-'+String(local.getUTCMonth()+1).padStart(2,'0')+'-'+String(local.getUTCDate()).padStart(2,'0');
+}
+function dbIsCancelled(it){return /ฆ่า|ยกเลิก|cancel/i.test(it.note||'');}
+function dbStageMeta(k){return PL_STAGES.find(s=>s.key===k)||PL_STAGES[0];}
+
+// ---------- โหลดข้อมูล ----------
+function dbCalFromCache(){
+  Object.keys(CHANNEL_META).forEach(ch=>{
+    if(dbState.cal[ch])return;
+    try{const a=JSON.parse(localStorage.getItem('dcCache_'+ch)||'null');if(Array.isArray(a))dbState.cal[ch]=a;}catch(e){}
+  });
+}
+async function dbFetchJson(url,ms){
+  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),ms||25000);
+  try{const r=await fetch(url,{method:'GET',redirect:'follow',signal:ctl.signal});return JSON.parse(await r.text());}
+  finally{clearTimeout(t);}
+}
+async function dbLoadChannel(ch){
+  const sheet=CHANNEL_META[ch].sheetName;
+  const data=await dbFetchJson(SHEET_URL+'?t='+Date.now()+'&sheet='+encodeURIComponent(sheet));
+  if(!Array.isArray(data))return;
+  dbState.cal[ch]=data.map(r=>({id:String(r.id||''),title:String(r.title||''),date:dbNormDate(r.date),
+    status:String(r.status||'draft'),doctor:String(r.doctor||ch),collab:String(r.collab||'')}))
+    .filter(r=>r.id&&r.title&&(!r.doctor||r.doctor===ch||collabList(r).includes(ch)));
+}
+async function loadDashboard(force){
+  if(dbState.loading)return;
+  dbState.loading=true;
+  dbCalFromCache();
+  renderDashboard();
+  document.getElementById('dbUpdated').textContent='⏳ กำลังดึงข้อมูลล่าสุด...';
+  const jobs=[
+    dbFetchJson(DRAFT_API_URL+'?t='+Date.now()).then(j=>{if(j&&j.ok){dbState.progress=j.rows;renderDashboard();}}),
+    dbFetchJson(DRAFT_API_URL+'?action=meta&t='+Date.now()).then(j=>{if(j&&j.ok){dbState.meta.ads=j.ads||null;dbState.meta.organic=j.organic||null;renderDashboard();}}),
+  ];
+  if(force||Date.now()-dbState.calLoadedAt>5*60*1000){
+    Object.keys(CHANNEL_META).forEach(ch=>jobs.push(dbLoadChannel(ch).then(renderDashboard)));
+  }
+  const res=await Promise.allSettled(jobs);
+  if(force||Date.now()-dbState.calLoadedAt>5*60*1000)dbState.calLoadedAt=Date.now();
+  const failed=res.filter(r=>r.status==='rejected').length;
+  dbState.loading=false;
+  renderDashboard();
+  document.getElementById('dbUpdated').textContent=(failed?'⚠️ โหลดไม่ครบ '+failed+' แหล่ง · ':'')+'อัปเดต '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ---------- ชิ้นส่วน UI ----------
+function dbBars(rows,opt){
+  // rows: [{label,value,color,tip,display}]
+  if(!rows.length)return '<div class="db-empty">ยังไม่มีข้อมูล</div>';
+  const max=Math.max(...rows.map(r=>r.value),1);
+  return '<div class="db-bars">'+rows.map(r=>{
+    const w=Math.max(r.value/max*100,r.value>0?1:0);
+    const tip=escHtml(r.tip||(r.label+': '+(r.display!=null?r.display:dbFmt(r.value))));
+    return '<div class="db-bar" title="'+tip+'"><div class="n">'+escHtml(r.label)+'</div><div class="track"><div class="fill" style="width:'+w+'%;background:'+(r.color||'var(--blue)')+'"></div></div><div class="val">'+(r.display!=null?r.display:dbFmt(r.value))+'</div></div>';
+  }).join('')+'</div>';
+}
+function dbTile(v,l,s){return '<div class="db-tile"><div class="v">'+v+'</div><div class="l">'+l+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>';}
+function dbStagePill(k){const s=dbStageMeta(k);return '<span class="db-pill" style="background:'+s.bg+';color:'+s.color+'">'+s.icon+' '+s.label+'</span>';}
+
+// ---------- คำนวณ ----------
+function dbProgressStats(){
+  const rows=dbState.progress;if(!rows)return null;
+  const live=rows.filter(r=>!dbIsCancelled(r));
+  const pending=live.filter(r=>r.stage!=='complete');
+  const byStage={};PL_STAGES.forEach(s=>byStage[s.key]=[]);
+  pending.forEach(r=>(byStage[r.stage]||(byStage[r.stage]=[])).push(r));
+  const byCat={};pending.forEach(r=>{const k=r.category||'(ไม่ระบุ)';byCat[k]=(byCat[k]||0)+1;});
+  const nearDone=pending.filter(r=>r.stage==='caption'||r.stage==='scheduling');
+  return {live,pending,byStage,byCat,nearDone,cancelled:rows.length-live.length};
+}
+function dbCalStats(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayIso=dbIso(today);
+  const days=[...Array(14)].map((_,i)=>dbIso(dbAddDays(today,i)));
+  const week=new Set(days.slice(0,7));
+  const monthKey=todayIso.slice(0,7);
+  const past30=dbIso(dbAddDays(today,-30));
+  const chans=Object.keys(CHANNEL_META).filter(ch=>dbState.cal[ch]);
+  const plan={},month={},overdue=[],noWeek=[];let next7=0;
+  chans.forEach(ch=>{
+    const ps=dbState.cal[ch].filter(p=>p.date);
+    plan[ch]={};days.forEach(d=>plan[ch][d]=[]);
+    ps.forEach(p=>{if(plan[ch][p.date])plan[ch][p.date].push(p);});
+    const w=ps.filter(p=>week.has(p.date)).length;next7+=w;
+    if(!w)noWeek.push(ch);
+    const m=ps.filter(p=>p.date.slice(0,7)===monthKey);
+    month[ch]={total:m.length,posted:m.filter(p=>p.status==='posted').length,ready:m.filter(p=>p.status==='ready').length};
+    ps.forEach(p=>{if(p.date<todayIso&&p.date>=past30&&p.status!=='posted')overdue.push({...p,ch});});
+  });
+  overdue.sort((a,b)=>b.date.localeCompare(a.date));
+  return {days,week,plan,month,overdue,noWeek,next7,chans};
+}
+
+// ---------- Meta: อ่าน CSV ----------
+function dbParseCsv(text){
+  text=text.replace(/^﻿/,'');
+  const first=text.slice(0,text.indexOf('\n')>0?text.indexOf('\n'):text.length);
+  const delim=(first.split('\t').length>first.split(',').length)?'\t':',';
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+    else if(c==='"')q=true;
+    else if(c===delim){row.push(f);f='';}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';if(row.some(x=>x!==''))rows.push(row);row=[];}
+    else f+=c;
+  }
+  row.push(f);if(row.some(x=>x!==''))rows.push(row);
+  return rows;
+}
+async function dbReadFile(file){
+  const buf=await file.arrayBuffer();
+  const b=new Uint8Array(buf);
+  const enc=(b[0]===0xFF&&b[1]===0xFE)?'utf-16le':(b[0]===0xFE&&b[1]===0xFF)?'utf-16be':'utf-8';
+  return new TextDecoder(enc).decode(buf);
+}
+function dbNormH(h){return String(h||'').toLowerCase().replace(/\s+/g,' ').trim();}
+// หาคอลัมน์: ตรงเป๊ะก่อน แล้วค่อยหาแบบมีคำนั้นอยู่ — ตัดคอลัมน์ที่มีคำใน excl ออก (เช่น "ต้นทุนต่อ...")
+function dbCol(headers,cands,excl){
+  const H=headers.map(dbNormH);excl=excl||[];
+  const ok=h=>!excl.some(x=>h.includes(x));
+  for(const c of cands){const i=H.findIndex(h=>h===c&&ok(h));if(i>=0)return i;}
+  for(const c of cands){const i=H.findIndex(h=>h.startsWith(c)&&ok(h));if(i>=0)return i;}
+  for(const c of cands){const i=H.findIndex(h=>h.includes(c)&&ok(h));if(i>=0)return i;}
+  return -1;
+}
+const DB_COST_EXCL=['cost','ต้นทุน','ราคา','ต่อ','per '];
+
+function dbAdsStats(){
+  const m=dbState.meta.ads;if(!m||!m.headers||!m.rows.length)return null;
+  const H=m.headers;
+  const c={
+    name:dbCol(H,['ad name','ชื่อโฆษณา']),
+    campaign:dbCol(H,['campaign name','ชื่อแคมเปญ']),
+    spend:dbCol(H,['amount spent','จำนวนเงินที่ใช้จ่าย','ยอดใช้จ่าย','spend']),
+    imp:dbCol(H,['impressions','อิมเพรสชัน','อิมเพรสชั่น','การแสดงผล'],DB_COST_EXCL),
+    reach:dbCol(H,['reach','การเข้าถึง'],DB_COST_EXCL),
+    msg:dbCol(H,['messaging conversations started','การเริ่มการสนทนาทางข้อความ','การสนทนาทางข้อความที่เริ่มต้น','new messaging contacts','ผู้ติดต่อทางข้อความใหม่'],DB_COST_EXCL),
+    res:dbCol(H,['results','ผลลัพธ์'],DB_COST_EXCL.concat(['indicator','ตัวบ่งชี้','type','ประเภท'])),
+    start:dbCol(H,['reporting starts','วันที่เริ่มการรายงาน','เริ่มการรายงาน']),
+    end:dbCol(H,['reporting ends','วันที่สิ้นสุดการรายงาน','สิ้นสุดการรายงาน']),
+  };
+  if(c.name<0)c.name=c.campaign;
+  const msgCol=c.msg>=0?c.msg:c.res;
+  const by={};let dmin='',dmax='';
+  m.rows.forEach(r=>{
+    const name=String(r[c.name]||'').trim();if(!name)return;
+    const a=by[name]||(by[name]={name,campaign:c.campaign>=0?r[c.campaign]:'',spend:0,imp:0,reach:0,msg:0});
+    a.spend+=dbNum(r[c.spend]);a.imp+=dbNum(r[c.imp]);a.reach+=dbNum(r[c.reach]);a.msg+=msgCol>=0?dbNum(r[msgCol]):0;
+    if(c.start>=0&&r[c.start]&&(!dmin||r[c.start]<dmin))dmin=r[c.start];
+    if(c.end>=0&&r[c.end]&&(!dmax||r[c.end]>dmax))dmax=r[c.end];
+  });
+  const ads=Object.values(by).map(a=>{
+    const f=(a.name.match(/_(TOF|MOF|BOF|RT)\s*$/i)||[])[1];
+    return {...a,funnel:f?f.toUpperCase():'',cpm:a.imp?a.spend/a.imp*1000:NaN,freq:a.reach?a.imp/a.reach:NaN,cpme:a.msg?a.spend/a.msg:NaN};
+  }).sort((x,y)=>y.spend-x.spend);
+  const T=ads.reduce((t,a)=>({spend:t.spend+a.spend,imp:t.imp+a.imp,reach:t.reach+a.reach,msg:t.msg+a.msg}),{spend:0,imp:0,reach:0,msg:0});
+  T.cpme=T.msg?T.spend/T.msg:NaN;T.cpm=T.imp?T.spend/T.imp*1000:NaN;
+  ads.forEach(a=>{
+    const big=a.spend>=Math.max(100,T.spend*0.05);
+    if(big&&!a.msg)a.rec={i:'🛑',t:'ใช้เงินแต่ยังไม่มีแชท — พิจารณาปิด',c:'#C0392B',bg:'#FDECEC'};
+    else if(big&&a.msg&&a.cpme>T.cpme*1.5)a.rec={i:'⚠️',t:'CPMe แพงกว่าค่าเฉลี่ย '+dbFmt(a.cpme/T.cpme,1)+' เท่า — ลองเปลี่ยน creative',c:'#B9770E',bg:'#FEF5E7'};
+    else if(a.msg>=3&&a.cpme<T.cpme*0.7)a.rec={i:'🚀',t:'CPMe ถูกกว่าค่าเฉลี่ย — เพิ่มงบได้',c:'#1E8449',bg:'#E9F7EF'};
+    else if(a.freq>=3.5)a.rec={i:'😴',t:'คนเห็นซ้ำเฉลี่ย '+dbFmt(a.freq,1)+' ครั้ง — เสี่ยงเบื่อ',c:'#6C3483',bg:'#F4ECF7'};
+  });
+  const fun={};ads.forEach(a=>{const k=a.funnel||'ไม่ระบุ';const f=fun[k]||(fun[k]={spend:0,msg:0,imp:0});f.spend+=a.spend;f.msg+=a.msg;f.imp+=a.imp;});
+  return {ads,T,fun,range:dmin?(dmin+(dmax&&dmax!==dmin?' – '+dmax:'')):'',hasMsg:msgCol>=0,msgLabel:msgCol>=0?H[msgCol]:''};
+}
+
+function dbOrgStats(){
+  const m=dbState.meta.organic;if(!m||!m.headers||!m.rows.length)return null;
+  const H=m.headers;
+  const ex=DB_COST_EXCL;
+  const c={
+    acct:dbCol(H,['page name','account name','account username','ชื่อเพจ','ชื่อบัญชี','ชื่อผู้ใช้บัญชี']),
+    desc:dbCol(H,['description','title','คำอธิบาย','ชื่อ']),
+    time:dbCol(H,['publish time','เวลาที่เผยแพร่','เวลาเผยแพร่','date','วันที่']),
+    type:dbCol(H,['post type','ประเภทโพสต์','ประเภท']),
+    link:dbCol(H,['permalink','ลิงก์ถาวร','ลิงก์']),
+    reach:dbCol(H,['reach','การเข้าถึง'],ex),
+    views:dbCol(H,['views','ยอดดู','การดู','impressions','อิมเพรสชัน'],ex.concat(['second','วินาที','average','เฉลี่ย'])),
+    rcs:dbCol(H,['reactions, comments and shares','การแสดงความรู้สึก ความคิดเห็น และการแชร์','การแสดงความรู้สึก, ความคิดเห็น และการแชร์']),
+    react:dbCol(H,['reactions','likes','การแสดงความรู้สึก','ถูกใจ'],[',',' และ','ความคิดเห็น']),
+    comm:dbCol(H,['comments','ความคิดเห็น'],['reaction','การแสดงความรู้สึก']),
+    share:dbCol(H,['shares','การแชร์'],['reaction','การแสดงความรู้สึก']),
+    save:dbCol(H,['saves','การบันทึก','บันทึก']),
+  };
+  if(c.reach<0)return {error:'หาคอลัมน์ Reach / การเข้าถึง ในไฟล์ไม่เจอ',headers:H};
+  const posts=m.rows.map(r=>{
+    const eng=c.rcs>=0?dbNum(r[c.rcs]):[c.react,c.comm,c.share,c.save].reduce((s,i)=>s+(i>=0?dbNum(r[i]):0),0);
+    return {acct:c.acct>=0?r[c.acct]:'',desc:c.desc>=0?String(r[c.desc]||''):'',time:c.time>=0?r[c.time]:'',type:c.type>=0?(r[c.type]||'อื่นๆ'):'อื่นๆ',
+      link:c.link>=0?r[c.link]:'',reach:dbNum(r[c.reach]),views:c.views>=0?dbNum(r[c.views]):0,eng};
+  }).filter(p=>p.reach||p.views||p.desc);
+  const T={posts:posts.length,reach:posts.reduce((s,p)=>s+p.reach,0),eng:posts.reduce((s,p)=>s+p.eng,0),views:posts.reduce((s,p)=>s+p.views,0)};
+  T.avgReach=T.posts?T.reach/T.posts:0;T.er=T.reach?T.eng/T.reach:0;
+  const grp=key=>{const g={};posts.forEach(p=>{const k=p[key]||'อื่นๆ';const x=g[k]||(g[k]={n:0,reach:0,eng:0});x.n++;x.reach+=p.reach;x.eng+=p.eng;});
+    return Object.entries(g).map(([k,x])=>({k,n:x.n,avg:x.reach/x.n,er:x.reach?x.eng/x.reach:0})).sort((a,b)=>b.avg-a.avg);};
+  return {posts,T,byType:grp('type'),byAcct:c.acct>=0?grp('acct'):[],top:[...posts].sort((a,b)=>b.reach-a.reach).slice(0,10)};
+}
+
+// ---------- อัปโหลด ----------
+async function uploadMetaFiles(kind,files){
+  files=[...(files||[])].filter(f=>/\.(csv|tsv|txt)$/i.test(f.name)||/csv/.test(f.type));
+  const info=document.getElementById(kind==='ads'?'dbAdsInfo':'dbOrgInfo');
+  if(!files.length){info.textContent='⚠️ รองรับเฉพาะไฟล์ .csv — ตอน export ให้เลือกรูปแบบ CSV';return;}
+  info.textContent='⏳ กำลังอ่านไฟล์...';
+  try{
+    // รวมหลายไฟล์: ใช้หัวคอลัมน์ของทุกไฟล์รวมกัน
+    let headers=[];const rows=[];
+    for(const f of files){
+      const t=dbParseCsv(await dbReadFile(f));
+      if(t.length<2)continue;
+      const h=t[0].map(x=>String(x).trim());
+      h.forEach(x=>{if(x&&!headers.includes(x))headers.push(x);});
+      const idx=h.map(x=>headers.indexOf(x));
+      t.slice(1).forEach(r=>{const o=[];idx.forEach((j,i)=>{if(j>=0)o[j]=r[i];});rows.push(o);});
+    }
+    if(!headers.length){info.textContent='⚠️ ไม่พบข้อมูลในไฟล์';return;}
+    rows.forEach(r=>{for(let i=0;i<headers.length;i++)if(r[i]==null)r[i]='';});
+    const filename=files.map(f=>f.name).join(', ');
+    dbState.meta[kind]={headers,rows,filename,uploadedAt:new Date().toISOString()};
+    renderDashboard();
+    info.textContent='⏳ อ่านได้ '+rows.length+' แถว กำลังบันทึกลง Sheet...';
+    const r=await fetch(DRAFT_API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'saveMeta',kind,filename,headers,rows})});
+    const d=JSON.parse(await r.text());
+    if(!d||!d.ok)throw new Error(d&&d.error||'save failed');
+    renderDashboard();
+    showNoti('✅ บันทึกข้อมูล Meta ลง Sheet แล้ว','#27AE60');
+  }catch(e){
+    console.warn('meta upload',e);
+    info.textContent='⚠️ แสดงผลได้ แต่บันทึกลง Sheet ไม่สำเร็จ ('+e.message+') — รีเฟรชแล้วข้อมูลจะหาย';
+  }
+}
+function dbBindDrop(){
+  document.querySelectorAll('#dashboardSection .db-up').forEach(el=>{
+    if(el._bound)return;el._bound=true;
+    el.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();el.classList.add('drag');});
+    el.addEventListener('dragleave',()=>el.classList.remove('drag'));
+    el.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();el.classList.remove('drag');uploadMetaFiles(el.dataset.kind,e.dataTransfer.files);});
+  });
+}
+
+// ---------- วาด ----------
+function renderDashboard(){
+  const sec=document.getElementById('dashboardSection');if(!sec||sec.style.display==='none')return;
+  dbBindDrop();
+  const P=dbProgressStats(),C=dbCalStats(),A=dbAdsStats(),O=dbOrgStats();
+  const chLabel=ch=>(CHANNEL_META[ch]||{}).label||ch;
+
+  // tiles
+  let t='';
+  if(P){
+    t+=dbTile(dbFmt(P.pending.length),'งานค้างทั้งหมด','จาก '+dbFmt(P.live.length)+' คลิป');
+    t+=dbTile(dbFmt(P.nearDone.length),'ใกล้เสร็จ','ถึงขั้นแคปชั่น / ลงแพลน');
+  }else t+=dbTile('…','งานค้าง','กำลังโหลด Progress');
+  t+=dbTile(dbFmt(C.next7),'โพสต์ใน 7 วันข้างหน้า','รวมทุกช่อง');
+  t+=dbTile(dbFmt(C.overdue.length),'เลยวันแล้วยังไม่ลง','ย้อนหลัง 30 วัน');
+  if(A)t+=dbTile(dbBaht(A.T.spend),'ค่าโฆษณา','CPMe '+dbBaht(A.T.cpme)+' · '+dbFmt(A.T.msg)+' แชท');
+  if(O&&!O.error)t+=dbTile(dbFmt(O.T.avgReach),'Reach เฉลี่ย/โพสต์','Engagement '+dbFmt(O.T.er*100,1)+'% · '+O.T.posts+' โพสต์');
+  document.getElementById('dbTiles').innerHTML=t;
+
+  // insights
+  const ins=[];
+  if(P){
+    const sched=P.byStage.scheduling||[];
+    if(sched.length)ins.push(['📅','<b>'+sched.length+' คลิปถึงขั้นลงแพลนแล้ว</b> — จับลงปฏิทินได้เลย: '+sched.slice(0,4).map(r=>escHtml(r.title)).join(', ')+(sched.length>4?' …':'')]);
+    const cap=P.byStage.caption||[];
+    if(cap.length)ins.push(['✍️','<b>'+cap.length+' คลิปรอแคปชั่น</b> — เขียนแคปชั่นชุดนี้แล้วจะพร้อมลงทันที']);
+    const counts=PL_STAGES.filter(s=>s.key!=='complete').map(s=>({s,n:(P.byStage[s.key]||[]).length})).sort((a,b)=>b.n-a.n);
+    if(counts[0]&&counts[0].n>=5)ins.push(['🚧','<b>คอขวดอยู่ที่ขั้น '+counts[0].s.label+'</b> ('+counts[0].n+' คลิป) — ถ้าเคลียร์ขั้นนี้ได้ งานจะไหลไปขั้นถัดไปเร็วขึ้น']);
+    const old=[...P.pending].sort((a,b)=>(parseInt(a.id)||0)-(parseInt(b.id)||0)).slice(0,3);
+    if(old.length)ins.push(['🕰️','<b>งานค้างนานสุด</b>: '+old.map(r=>'#'+escHtml(r.id)+' '+escHtml(r.title.replace(/^\d+\s*/,'').slice(0,40))+' ('+dbStageMeta(r.stage).label+')').join(' · ')+' — ทำต่อหรือติด "ฆ่า" ในหมายเหตุ']);
+  }
+  if(C.noWeek.length)ins.push(['📭','<b>ยังไม่มีโพสต์ใน 7 วันข้างหน้า</b>: '+C.noWeek.map(chLabel).join(', ')]);
+  if(C.overdue.length)ins.push(['⏰','<b>'+C.overdue.length+' โพสต์เลยวันแล้วแต่ยังไม่ได้ติ๊ก Posted</b> — ถ้าลงแล้วอย่าลืมเปลี่ยนสถานะ ถ้ายังไม่ลงให้ย้ายวัน']);
+  if(A){
+    const bad=A.ads.filter(a=>a.rec&&(a.rec.i==='🛑'||a.rec.i==='⚠️'));
+    const good=A.ads.filter(a=>a.rec&&a.rec.i==='🚀');
+    if(good.length)ins.push(['🚀','<b>แอดที่ควรเพิ่มงบ</b>: '+good.slice(0,3).map(a=>escHtml(a.name)+' (CPMe '+dbBaht(a.cpme)+')').join(', ')]);
+    if(bad.length)ins.push(['🛑','<b>แอดที่ควรปิดหรือเปลี่ยน creative</b>: '+bad.slice(0,3).map(a=>escHtml(a.name)+(a.msg?' (CPMe '+dbBaht(a.cpme)+')':' (0 แชท)')).join(', ')]);
+  }
+  if(O&&!O.error&&O.byType.length>1){
+    const ok=O.byType.filter(x=>x.n>=3);
+    if(ok.length>1)ins.push(['📈','<b>'+escHtml(ok[0].k)+'</b> ได้ reach เฉลี่ยสูงสุด ('+dbFmt(ok[0].avg)+'/โพสต์) สูงกว่า '+escHtml(ok[ok.length-1].k)+' '+dbFmt(ok[0].avg/Math.max(ok[ok.length-1].avg,1),1)+' เท่า — ลองเพิ่มสัดส่วนแบบนี้']);
+  }
+  if(!A&&!O)ins.push(['📥','ยังไม่มีข้อมูล Meta — อัปโหลด CSV ด้านล่างเพื่อดูคำแนะนำเรื่องแอดและโพสต์']);
+  document.getElementById('dbInsights').innerHTML=ins.length?ins.map(x=>'<li><span class="ic">'+x[0]+'</span><span>'+x[1]+'</span></li>').join(''):'<li><span class="ic">✅</span><span>ไม่มีอะไรค้างเร่งด่วน</span></li>';
+
+  // progress
+  if(P){
+    document.getElementById('dbStages').innerHTML=dbBars(PL_STAGES.filter(s=>s.key!=='complete').map(s=>({label:s.icon+' '+s.label,value:(P.byStage[s.key]||[]).length,color:s.color})));
+    document.getElementById('dbCats').innerHTML=dbBars(Object.entries(P.byCat).sort((a,b)=>b[1]-a[1]).map(([k,n])=>({label:k,value:n})));
+    const order=PL_STAGES.map(s=>s.key);
+    const list=[...P.pending].sort((a,b)=>order.indexOf(b.stage)-order.indexOf(a.stage)||(parseInt(a.id)||0)-(parseInt(b.id)||0));
+    document.getElementById('dbPending').innerHTML=list.length?'<table class="db-table"><thead><tr><th class="num">id</th><th>ชื่อคลิป</th><th>ช่องหลัก</th><th>ขั้นตอน</th><th>เพิ่มเมื่อ</th></tr></thead><tbody>'+list.map(r=>{
+      const ago=dbDaysAgo(r.addedAt);
+      return '<tr><td class="num">'+escHtml(r.id)+'</td><td>'+escHtml(r.title)+(r.note?'<div style="font-size:10px;color:#9AA8B5">📎 '+escHtml(r.note)+'</div>':'')+'</td><td>'+escHtml(r.category)+'</td><td>'+dbStagePill(r.stage)+'</td><td style="white-space:nowrap">'+(r.addedAt?dbDateThai(r.addedAt)+(ago!=null?' <span style="color:#9AA8B5">('+ago+' วัน)</span>':''):'<span style="color:#C5CDD6">–</span>')+'</td></tr>';
+    }).join('')+'</tbody></table>':'<div class="db-empty">ไม่มีงานค้าง 🎉</div>';
+  }else['dbStages','dbCats','dbPending'].forEach(id=>document.getElementById(id).innerHTML='<div class="db-empty">⏳ กำลังโหลดจาก Progress...</div>');
+
+  // plan grid
+  if(C.chans.length){
+    let h='<table class="db-plan"><thead><tr><th class="ch"></th>'+C.days.map(d=>{const x=new Date(d+'T00:00:00');const we=x.getDay()===0||x.getDay()===6;return '<th style="'+(we?'color:#C0392B':'')+'">'+DB_DAYS[x.getDay()]+'<br>'+x.getDate()+'</th>';}).join('')+'</tr></thead><tbody>';
+    C.chans.forEach(ch=>{
+      h+='<tr><th class="ch">'+escHtml(chLabel(ch))+'</th>';
+      C.days.forEach(d=>{
+        const ps=C.plan[ch][d];
+        if(!ps.length){h+='<td class="empty'+(C.week.has(d)?' gap':'')+'" title="'+escHtml(chLabel(ch)+' · '+dbDateThai(d)+': ยังไม่มีโพสต์')+'">·</td>';return;}
+        const st=ps.every(p=>p.status==='posted')?'posted':ps.some(p=>p.status==='ready'||p.status==='posted')?'ready':'draft';
+        const tip=chLabel(ch)+' · '+dbDateThai(d)+'\n'+ps.map(p=>'• '+p.title+' ('+(DB_CAL_STATUS[p.status]||DB_CAL_STATUS.draft).l+')').join('\n');
+        h+='<td style="background:'+DB_CAL_STATUS[st].c+'" title="'+escHtml(tip)+'">'+ps.length+'</td>';
+      });
+      h+='</tr>';
+    });
+    document.getElementById('dbPlan').innerHTML=h+'</tbody></table>';
+    document.getElementById('dbMonth').innerHTML='<table class="db-table"><thead><tr><th>ช่อง</th><th class="num">ทั้งหมด</th><th class="num">ลงแล้ว</th><th class="num">พร้อมลง</th><th style="width:35%">ความคืบหน้า</th></tr></thead><tbody>'+C.chans.map(ch=>{
+      const m=C.month[ch];const pct=m.total?m.posted/m.total*100:0;
+      return '<tr title="'+escHtml(chLabel(ch)+': ลงแล้ว '+m.posted+'/'+m.total)+'"><td>'+escHtml(chLabel(ch))+'</td><td class="num">'+m.total+'</td><td class="num">'+m.posted+'</td><td class="num">'+m.ready+'</td><td><div style="height:10px;background:#F0F4F8;border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:#27AE60"></div></div></td></tr>';
+    }).join('')+'</tbody></table>';
+    document.getElementById('dbOverdue').innerHTML=C.overdue.length?'<table class="db-table"><thead><tr><th>วันที่</th><th>ช่อง</th><th>โพสต์</th><th>สถานะ</th></tr></thead><tbody>'+C.overdue.map(p=>'<tr><td style="white-space:nowrap">'+dbDateThai(p.date)+'</td><td style="white-space:nowrap">'+escHtml(chLabel(p.ch))+'</td><td>'+escHtml(p.title)+'</td><td><span class="db-pill" style="background:#F4F7FB;color:'+(DB_CAL_STATUS[p.status]||DB_CAL_STATUS.draft).c+'">'+(DB_CAL_STATUS[p.status]||DB_CAL_STATUS.draft).l+'</span></td></tr>').join('')+'</tbody></table>':'<div class="db-empty">ไม่มีโพสต์ค้าง 👍</div>';
+  }else['dbPlan','dbMonth','dbOverdue'].forEach(id=>document.getElementById(id).innerHTML='<div class="db-empty">⏳ กำลังโหลดปฏิทิน...</div>');
+
+  // meta ads
+  const ma=dbState.meta.ads;
+  document.getElementById('dbAdsInfo').innerHTML=ma?'📄 '+escHtml(ma.filename||'ข้อมูลใน Sheet')+(ma.uploadedAt?' · อัปโหลด '+new Date(ma.uploadedAt).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'')+(A&&A.range?' · ช่วง '+escHtml(A.range):''):'';
+  if(A){
+    let h='';
+    if(!A.hasMsg)h+='<div class="db-empty">⚠️ ไม่เจอคอลัมน์จำนวนแชท (การเริ่มการสนทนาทางข้อความ / ผลลัพธ์) — CPMe จะคำนวณไม่ได้</div>';
+    h+='<div class="db-subgrid"><div><h4>ค่าใช้จ่ายแยกตาม Funnel</h4>'+dbBars(Object.entries(A.fun).sort((a,b)=>b[1].spend-a[1].spend).map(([k,f])=>({label:k,value:f.spend,display:dbBaht(f.spend),tip:k+': ใช้ '+dbBaht(f.spend)+' · '+dbFmt(f.msg)+' แชท · CPMe '+dbBaht(f.msg?f.spend/f.msg:NaN)})))+'</div>';
+    h+='<div><h4>CPMe แยกตาม Funnel</h4>'+dbBars(Object.entries(A.fun).filter(([k,f])=>f.msg).map(([k,f])=>({label:k,value:f.spend/f.msg,display:dbBaht(f.spend/f.msg)})).sort((a,b)=>a.value-b.value))+'</div></div>';
+    h+='<div class="db-scroll" style="margin-top:14px"><table class="db-table"><thead><tr><th>โฆษณา</th><th>Funnel</th><th class="num">ใช้จ่าย</th><th class="num">Impr.</th><th class="num">Reach</th><th class="num">Freq.</th><th class="num">CPM</th><th class="num">แชท</th><th class="num">CPMe</th><th>คำแนะนำ</th></tr></thead><tbody>';
+    h+=A.ads.map(a=>'<tr><td>'+escHtml(a.name)+(a.campaign?'<div style="font-size:10px;color:#9AA8B5">'+escHtml(a.campaign)+'</div>':'')+'</td><td>'+(a.funnel?'<span class="db-pill" style="background:#EBF5FB;color:#1A6FB5">'+a.funnel+'</span>':'')+'</td><td class="num">'+dbBaht(a.spend)+'</td><td class="num">'+dbFmt(a.imp)+'</td><td class="num">'+dbFmt(a.reach)+'</td><td class="num">'+(isFinite(a.freq)?dbFmt(a.freq,2):'–')+'</td><td class="num">'+dbBaht(a.cpm)+'</td><td class="num">'+dbFmt(a.msg)+'</td><td class="num">'+dbBaht(a.cpme)+'</td><td>'+(a.rec?'<span class="db-pill" style="background:'+a.rec.bg+';color:'+a.rec.c+';white-space:normal">'+a.rec.i+' '+a.rec.t+'</span>':'')+'</td></tr>').join('');
+    h+='<tr style="font-weight:700"><td>รวม</td><td></td><td class="num">'+dbBaht(A.T.spend)+'</td><td class="num">'+dbFmt(A.T.imp)+'</td><td class="num">'+dbFmt(A.T.reach)+'</td><td class="num">'+(A.T.reach?dbFmt(A.T.imp/A.T.reach,2):'–')+'</td><td class="num">'+dbBaht(A.T.cpm)+'</td><td class="num">'+dbFmt(A.T.msg)+'</td><td class="num">'+dbBaht(A.T.cpme)+'</td><td></td></tr></tbody></table></div>';
+    document.getElementById('dbAds').innerHTML=h;
+  }else document.getElementById('dbAds').innerHTML=ma?'<div class="db-empty">⚠️ อ่านไฟล์ได้แต่ไม่เจอคอลัมน์ชื่อโฆษณา — export ใหม่แบบระดับ "โฆษณา (Ad)"</div>':'';
+
+  // organic
+  const mo=dbState.meta.organic;
+  document.getElementById('dbOrgInfo').innerHTML=mo?'📄 '+escHtml(mo.filename||'ข้อมูลใน Sheet')+(mo.uploadedAt?' · อัปโหลด '+new Date(mo.uploadedAt).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''):'';
+  if(O&&O.error){document.getElementById('dbOrg').innerHTML='<div class="db-empty">⚠️ '+escHtml(O.error)+'<br>คอลัมน์ที่เจอ: '+escHtml(O.headers.join(', '))+'</div>';}
+  else if(O){
+    let h='<div class="db-subgrid">';
+    h+='<div><h4>Reach เฉลี่ยต่อโพสต์ แยกตามประเภท</h4>'+dbBars(O.byType.map(x=>({label:x.k+' ('+x.n+')',value:x.avg,tip:x.k+': '+x.n+' โพสต์ · reach เฉลี่ย '+dbFmt(x.avg)+' · engagement '+dbFmt(x.er*100,1)+'%'})))+'</div>';
+    if(O.byAcct.length>1)h+='<div><h4>Reach เฉลี่ยต่อโพสต์ แยกตามเพจ/บัญชี</h4>'+dbBars(O.byAcct.map(x=>({label:x.k+' ('+x.n+')',value:x.avg,tip:x.k+': '+x.n+' โพสต์ · reach เฉลี่ย '+dbFmt(x.avg)+' · engagement '+dbFmt(x.er*100,1)+'%'})))+'</div>';
+    h+='</div><h4 style="font-size:13px;margin:16px 0 8px">🏆 10 โพสต์ reach สูงสุด</h4><div class="db-scroll"><table class="db-table"><thead><tr><th>เผยแพร่</th>'+(O.byAcct.length>1?'<th>บัญชี</th>':'')+'<th>ประเภท</th><th>โพสต์</th><th class="num">Reach</th><th class="num">Views</th><th class="num">Engagement</th></tr></thead><tbody>';
+    h+=O.top.map(p=>'<tr><td style="white-space:nowrap">'+escHtml(p.time)+'</td>'+(O.byAcct.length>1?'<td>'+escHtml(p.acct)+'</td>':'')+'<td>'+escHtml(p.type)+'</td><td>'+(p.link?'<a href="'+escHtml(p.link)+'" target="_blank" rel="noopener" style="color:var(--blue)">':'')+escHtml(p.desc.slice(0,70)||'(ไม่มีคำอธิบาย)')+(p.link?'</a>':'')+'</td><td class="num">'+dbFmt(p.reach)+'</td><td class="num">'+dbFmt(p.views)+'</td><td class="num">'+dbFmt(p.eng)+'</td></tr>').join('');
+    document.getElementById('dbOrg').innerHTML=h+'</tbody></table></div>';
+  }else document.getElementById('dbOrg').innerHTML='';
+}
 
 // ===== GLOBAL SEARCH =====
 // ================================================

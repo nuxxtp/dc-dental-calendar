@@ -4187,6 +4187,7 @@ const PL_CHANNEL_COLORS={
   'north-tiktok':{bg:'#F0F0F0',fg:'#010101',label:'TikTok'},
   'tiktok-dc':   {bg:'#F0F0F0',fg:'#010101',label:'DC TikTok'},
   'tiktok-aligner':{bg:'#E8F4FB',fg:'#2E86C1',label:'Aligner TikTok'},
+  'check-in':    {bg:'#FCE4EC',fg:'#D81B60',label:'Check in'},
 };
 
 // ================================================
@@ -4203,9 +4204,11 @@ async function loadPipelineItems(){
   try{
     const plAbort=new AbortController();
     const plTimeout=setTimeout(()=>plAbort.abort(),12000);
-    const res=await fetch(SHEET_URL+'?t='+Date.now()+'&sheet=Pipeline',{method:'GET',redirect:'follow',signal:plAbort.signal});
+    // ข้อมูล Process มาจากแท็บ Progress ใน DC platform โดยตรง (draft-sync.gs)
+    const res=await fetch(DRAFT_API_URL+'?t='+Date.now(),{method:'GET',redirect:'follow',signal:plAbort.signal});
     clearTimeout(plTimeout);
-    const data=JSON.parse(await res.text());
+    const j=JSON.parse(await res.text());
+    const data=j&&j.ok?j.rows:null;
     if(Array.isArray(data)&&data.length>0){
       pipelineItems=data.map(r=>({
         id:String(r.id||''),
@@ -4654,7 +4657,7 @@ function openPipelinePage(){
   parts.push('<div class="top-sub">\u0e20\u0e32\u0e1e\u0e23\u0e27\u0e21\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e01\u0e32\u0e23\u0e1c\u0e25\u0e34\u0e15\u0e04\u0e2d\u0e19\u0e40\u0e17\u0e19\u0e15\u0e4c\u0e17\u0e38\u0e01\u0e0a\u0e48\u0e2d\u0e07 \u00b7 \u0e01\u0e14\u0e17\u0e35\u0e48 pill \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e2a\u0e16\u0e32\u0e19\u0e30\u0e17\u0e31\u0e19\u0e17\u0e35</div></div>');
   parts.push('<div class="top-actions">');
   parts.push('<input type="text" id="plSearch" placeholder="\uD83D\uDD0D \u0e04\u0e49\u0e19\u0e2b\u0e32\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b..." oninput="clearTimeout(window._dpl);window._dpl=setTimeout(renderPL,200)">');
-  parts.push('<button style="background:#16A085;color:white;border:none;border-radius:10px;padding:8px 18px;font-family:\'Sarabun\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;" onclick="openImportDraft()">\ud83d\udce5 Import \u0e08\u0e32\u0e01 Draft</button>');
+  parts.push('<span id="syncBadge" title="\u0e14\u0e36\u0e07\u0e08\u0e32\u0e01\u0e41\u0e17\u0e47\u0e1a Progress \u0e17\u0e38\u0e01 15 \u0e27\u0e34" onclick="refreshFromSheet(true)" style="cursor:pointer;background:rgba(255,255,255,0.18);color:white;border-radius:20px;padding:6px 12px;font-size:11px;font-weight:600;white-space:nowrap;">\u23f3 \u0e01\u0e33\u0e25\u0e31\u0e07\u0e40\u0e0a\u0e37\u0e48\u0e2d\u0e21 Sheet...</span>');
   parts.push('<button class="btn-add" onclick="openAdd()">\uff0b \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e25\u0e34\u0e1b</button>');
   parts.push('</div></div>');
 
@@ -4662,13 +4665,8 @@ function openPipelinePage(){
   parts.push('<div class="wrap">');
   parts.push('<div id="plSummary" class="summary-grid"></div>');
 
-  // channel filter
-  parts.push('<div class="filter-row">');
-  parts.push('<span>\u0e0a\u0e48\u0e2d\u0e07:</span>');
-  [['all','\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14'],['dc-dental','DC Dental'],['dc-aligner','DC Aligner'],['junfun','junfun'],['implant','implant'],['dr-north','dr.north'],['dr-daran','dr.daran'],['dr-pearn','dr.pearn'],['north-tiktok','TikTok']].forEach(function(pair){
-    parts.push('<button class="pill'+(pair[0]==='all'?' active':'')+'" data-ch="'+pair[0]+'" onclick="setChF(\''+pair[0]+'\',this)">'+pair[1]+'</button>');
-  });
-  parts.push('</div>');
+  // channel filter \u2014 \u0e2a\u0e23\u0e49\u0e32\u0e07\u0e08\u0e32\u0e01\u0e04\u0e48\u0e32 "\u0e0a\u0e48\u0e2d\u0e07\u0e2b\u0e25\u0e31\u0e01" \u0e17\u0e35\u0e48\u0e21\u0e35\u0e08\u0e23\u0e34\u0e07\u0e43\u0e19 Sheet (renderChPills)
+  parts.push('<div class="filter-row" id="chPills"><span>\u0e0a\u0e48\u0e2d\u0e07:</span></div>');
 
   // stage filter
   parts.push('<div class="filter-row">');
@@ -4691,25 +4689,16 @@ function openPipelinePage(){
   parts.push('<div class="modal-body">');
   parts.push('<input type="hidden" id="plEId">');
   parts.push('<div class="form-row"><label>\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b *</label><input type="text" id="plTit" placeholder="\u0e40\u0e0a\u0e48\u0e19 171 \u0e23\u0e32\u0e01\u0e1f\u0e31\u0e19\u0e40\u0e17\u0e35\u0e22\u0e21"></div>');
-  parts.push('<div class="form-row"><label>\u0e42\u0e1f\u0e25\u0e40\u0e14\u0e2d\u0e23\u0e4c</label><input type="text" id="plFol" placeholder="\u0e40\u0e0a\u0e48\u0e19 171 \u0e23\u0e32\u0e01\u0e1f\u0e31\u0e19\u0e40\u0e17\u0e35\u0e22\u0e21\u0e04\u0e37\u0e2d"></div>');
-  parts.push('<div class="form-row"><label>\u0e0a\u0e48\u0e2d\u0e07</label><select id="plCh">');
-  parts.push('<option value="dc-dental">DC Dental Clinic</option>');
-  parts.push('<option value="dc-aligner">DC Aligner</option>');
-  parts.push('<option value="junfun">judfunreview</option>');
-  parts.push('<option value="implant">implant review</option>');
-  parts.push('<option value="dr-north">dr.north</option>');
-  parts.push('<option value="dr-daran">dr.daran</option>');
-  parts.push('<option value="dr-pearn">dr.pearn</option>');
-  parts.push('<option value="north-tiktok">TikTok</option>');
-  parts.push('</select></div>');
-  parts.push('<div class="form-row"><label>\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07 (Deadline)</label><input type="date" id="plDl"></div>');
-  parts.push('<div class="form-row"><label>\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38</label><textarea id="plNt" placeholder="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21..."></textarea></div>');
-  parts.push('<div class="modal-actions"><button class="btn-delete" id="plDelBtn" onclick="deleteItem()" style="display:none">\uD83D\uDDD1 \u0e25\u0e1a</button>');
+  parts.push('<div class="form-row"><label>\u0e0a\u0e48\u0e2d\u0e07\u0e2b\u0e25\u0e31\u0e01</label><select id="plCh"></select></div>');
+  parts.push('<div class="form-row" id="plAddedRow" style="display:none"><label>\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48/\u0e40\u0e27\u0e25\u0e32\u0e17\u0e35\u0e48\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e07\u0e32\u0e19</label><div id="plAdded" style="font-size:13px;color:#8B6F5E;padding:4px 0;"></div></div>');
+  parts.push('<div class="form-row"><label>\u0e2b\u0e21\u0e32\u0e22\u0e40\u0e2b\u0e15\u0e38 (\u0e04\u0e2d\u0e25\u0e31\u0e21\u0e19\u0e4c\u0e16\u0e31\u0e14\u0e08\u0e32\u0e01 complete)</label><textarea id="plNt" placeholder="\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21..."></textarea></div>');
+  parts.push('<div style="font-size:11px;color:#B09080;margin-bottom:8px;">\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27\u0e40\u0e02\u0e35\u0e22\u0e19\u0e25\u0e07\u0e41\u0e17\u0e47\u0e1a Progress \u0e43\u0e19 DC platform \u0e17\u0e31\u0e19\u0e17\u0e35 \u00b7 \u0e25\u0e1a\u0e04\u0e25\u0e34\u0e1b\u0e43\u0e2b\u0e49\u0e25\u0e1a\u0e43\u0e19 Sheet</div>');
+  parts.push('<div class="modal-actions">');
   parts.push('<button class="btn-cancel" onclick="closeModal()">\u0e22\u0e01\u0e40\u0e25\u0e34\u0e01</button>');
   parts.push('<button class="btn-save" onclick="saveItem()">\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01</button></div>');
   parts.push('</div></div></div>');
   parts.push('<div class="noti" id="noti"></div>');
-  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option><option value="dc-dental">DC Dental</option><option value="dc-aligner">DC Aligner</option><option value="junfun">junfun</option><option value="implant">implant</option><option value="dr-north">dr.north</option><option value="dr-daran">dr.daran</option><option value="dr-pearn">dr.pearn</option><option value="north-tiktok">TikTok</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
+  parts.push('<div class="bulk-bar" id="bulkBar"><span id="bulkCount" style="font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;">เลือก 0 คลิป</span><select id="bulkStage" class="bulk-sel"><option value="">— เลือก Stage —</option></select><button class="btn-bulk-ok" onclick="doBulkSet()">✅ เปลี่ยน Stage</button><span style="width:1px;background:rgba(255,255,255,0.3);align-self:stretch;margin:0 4px;"></span><select id="bulkChannel" class="bulk-sel"><option value="">— เลือก ช่อง —</option></select><button class="btn-bulk-ok" onclick="doBulkSetChannel()">✏️ แก้ช่อง</button><button class="btn-bulk-x" onclick="clearSelection()">✕</button></div>');
 
   // script — inject data as JSON, ไม่มี quote ซ้อน
   parts.push('<script>');
@@ -4717,12 +4706,69 @@ function openPipelinePage(){
   parts.push('var DRAFT_URL='+JSON.stringify(DRAFT_API_URL)+';');
   parts.push('var STAGES='+stagesData+';');
   parts.push('var CH_COLORS='+chData+';');
-  parts.push('var items=[],stF="all",chF="all",sortMode="stage",selectedIds=new Set(),currentFiltered=[];');
+  parts.push('var items=[],categories=[],stF="all",chF="all",sortMode="stage",selectedIds=new Set(),currentFiltered=[];');
+  // ── sync กับแท็บ Progress (DC platform) : ข้อมูลจริงอยู่ใน Sheet ชุดเดียว ──
+  parts.push('var CACHE_KEY="dcProcess",POLL_MS=15000,pendingWrites=0,lastWriteAt=0,lastSig="",lastSyncAt=0,syncErr=false;');
+  parts.push('function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}');
+  parts.push('function normRow(r){return{id:String(r.id||""),title:String(r.title||""),category:String(r.category||""),channel:String(r.channel||"dc-dental"),stage:String(r.stage||"storyboard"),addedAt:String(r.addedAt||""),note:String(r.note||"")};}');
+  parts.push('function fmtAdded(v){if(!v)return"";var d=new Date(v);if(isNaN(d))return v;return d.toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"2-digit"})+" "+d.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});}');
+  parts.push('function setSyncBadge(){var b=document.getElementById("syncBadge");if(!b)return;if(syncErr){b.textContent="\u26A0\uFE0F \u0e40\u0e0a\u0e37\u0e48\u0e2d\u0e21 Sheet \u0e44\u0e21\u0e48\u0e44\u0e14\u0e49 (\u0e01\u0e14\u0e25\u0e2d\u0e07\u0e43\u0e2b\u0e21\u0e48)";b.style.background="rgba(231,76,60,0.85)";return;}if(pendingWrites>0){b.textContent="\u23F3 \u0e01\u0e33\u0e25\u0e31\u0e07\u0e40\u0e02\u0e35\u0e22\u0e19\u0e25\u0e07 Sheet...";b.style.background="rgba(255,255,255,0.18)";return;}if(!lastSyncAt)return;b.textContent="\uD83D\uDFE2 Sync \u0e01\u0e31\u0e1a Sheet \u00b7 "+new Date(lastSyncAt).toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit",second:"2-digit"});b.style.background="rgba(39,174,96,0.85)";}');
+  parts.push('function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify({items:items,categories:categories}));}catch(e){}}');
+  parts.push('function applyServerData(j){');
+  parts.push('  var rows=(j.rows||[]).map(normRow).filter(function(r){return r.id&&r.title;});');
+  parts.push('  if(Array.isArray(j.categories)&&j.categories.length)categories=j.categories;');
+  parts.push('  var sig=JSON.stringify(rows);if(sig===lastSig)return false;');
+  parts.push('  lastSig=sig;items=rows;');
+  parts.push('  var ids={};items.forEach(function(it){ids[it.id]=1;});selectedIds.forEach(function(id){if(!ids[id])selectedIds.delete(id);});');
+  parts.push('  saveCache();return true;');
+  parts.push('}');
+  // ดึงจาก Sheet — ข้ามรอบถ้ากำลังเขียนอยู่ เพื่อไม่ให้ค่าเก่าจาก Sheet มาเด้งทับสิ่งที่เพิ่งกด
+  parts.push('async function refreshFromSheet(force){');
+  parts.push('  if(!force&&(pendingWrites>0||Date.now()-lastWriteAt<4000))return;');
+  parts.push('  if(!force&&document.hidden)return;');
+  parts.push('  try{');
+  parts.push('    var res=await fetch(DRAFT_URL+"?t="+Date.now(),{method:"GET",redirect:"follow"});');
+  parts.push('    var j=JSON.parse(await res.text());');
+  parts.push('    if(!j||!j.ok)throw new Error(j&&j.error||"load error");');
+  parts.push('    if(pendingWrites>0||(!force&&Date.now()-lastWriteAt<4000))return;');
+  parts.push('    syncErr=false;lastSyncAt=Date.now();');
+  parts.push('    if(applyServerData(j)){renderChPills();buildCatSelects();renderPL();updateBulkBar();}');
+  parts.push('  }catch(e){console.warn("sync err",e);syncErr=true;}');
+  parts.push('  setSyncBadge();');
+  parts.push('}');
+  parts.push('async function pushToSheet(posts){');
+  parts.push('  pendingWrites++;lastWriteAt=Date.now();setSyncBadge();');
+  parts.push('  try{');
+  parts.push('    var res=await fetch(DRAFT_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"saveMany",posts:posts})});');
+  parts.push('    var d=JSON.parse(await res.text());');
+  parts.push('    if(d&&d.error)console.warn("save err",d.error);');
+  parts.push('    return d;');
+  parts.push('  }catch(e){console.warn("save err",e);return null;}');
+  parts.push('  finally{pendingWrites--;lastWriteAt=Date.now();setSyncBadge();}');
+  parts.push('}');
+  parts.push('function chMeta(it){var c=CH_COLORS[it.channel]||{bg:"#ECF0F1",fg:"#7F8C8D"};return{bg:c.bg,fg:c.fg,label:it.category||c.label||it.channel};}');
+  parts.push('function renderChPills(){');
+  parts.push('  var box=document.getElementById("chPills");if(!box)return;');
+  parts.push('  var cnt={};items.forEach(function(it){var k=it.category||"-";cnt[k]=(cnt[k]||0)+1;});');
+  parts.push('  var keys=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});');
+  parts.push('  if(chF!=="all"&&!cnt[chF])chF="all";');
+  parts.push('  var h="<span>\u0e0a\u0e48\u0e2d\u0e07:</span><button class=\\"pill"+(chF==="all"?" active":"")+"\\" data-ch=\\"all\\">\u0e17\u0e31\u0e49\u0e07\u0e2b\u0e21\u0e14</button>";');
+  parts.push('  keys.forEach(function(k){h+="<button class=\\"pill"+(chF===k?" active":"")+"\\" data-ch=\\""+esc(k)+"\\">"+esc(k)+" <span style=\\"opacity:0.6\\">"+cnt[k]+"</span></button>";});');
+  parts.push('  box.innerHTML=h;');
+  parts.push('  box.querySelectorAll("[data-ch]").forEach(function(b){b.onclick=function(){setChF(b.dataset.ch);};});');
+  parts.push('}');
+  parts.push('function buildCatSelects(){');
+  parts.push('  var opts=categories.slice();items.forEach(function(it){if(it.category&&opts.indexOf(it.category)<0)opts.push(it.category);});');
+  parts.push('  var o=opts.map(function(c){return"<option value=\\""+esc(c)+"\\">"+esc(c)+"</option>";}).join("");');
+  parts.push('  var m=document.getElementById("plCh");if(m){var v=m.value;m.innerHTML=o;if(v)m.value=v;}');
+  parts.push('  var b=document.getElementById("bulkChannel");if(b){var bv=b.value;b.innerHTML="<option value=\\"\\">\u2014 \u0e40\u0e25\u0e37\u0e2d\u0e01 \u0e0a\u0e48\u0e2d\u0e07 \u2014</option>"+o;b.value=bv;}');
+  parts.push('}');
   parts.push('function getStIdx(k){return STAGES.findIndex(function(s){return s.key===k;});}');
   parts.push('function getSt(k){return STAGES.find(function(s){return s.key===k;})||STAGES[0];}');
-  parts.push('function setChF(v,btn){chF=v;document.querySelectorAll("[data-ch]").forEach(function(b){b.classList.toggle("active",b.dataset.ch===v);});renderPL();}');
+  parts.push('function setChF(v){chF=v;document.querySelectorAll("[data-ch]").forEach(function(b){b.classList.toggle("active",b.dataset.ch===v);});renderPL();}');
   parts.push('function setStF(v,btn){stF=v;document.querySelectorAll("[data-st]").forEach(function(b){b.classList.toggle("active",b.dataset.st===v);});renderPL();}');
-  parts.push('function toggleSort(){sortMode=sortMode==="stage"?"number":"stage";var btn=document.getElementById("sortBtn");if(btn){btn.textContent=sortMode==="number"?"เรียง: เลข ▾":"เรียง: Stage ▾";btn.style.background=sortMode==="number"?"#1A6FB5":"white";btn.style.color=sortMode==="number"?"white":"#7F8C8D";btn.style.borderColor=sortMode==="number"?"#1A6FB5":"#D0DCE8";}renderPL();}');
+  parts.push('var SORT_LABEL={stage:"เรียง: Stage ▾",number:"เรียง: เลข ▾",added:"เรียง: เพิ่มล่าสุด ▾"};');
+  parts.push('function toggleSort(){sortMode=sortMode==="stage"?"number":sortMode==="number"?"added":"stage";var btn=document.getElementById("sortBtn");if(btn){var on=sortMode!=="stage";btn.textContent=SORT_LABEL[sortMode];btn.style.background=on?"#1A6FB5":"white";btn.style.color=on?"white":"#7F8C8D";btn.style.borderColor=on?"#1A6FB5":"#D0DCE8";}renderPL();}');
   parts.push('function renderSummary(){');
   parts.push('  var bar=document.getElementById("plSummary");if(!bar)return;');
   parts.push('  var c={};STAGES.forEach(function(s){c[s.key]=0;});');
@@ -4742,10 +4788,10 @@ function openPipelinePage(){
   parts.push('  var q=(document.getElementById("plSearch").value||"").toLowerCase();');
   parts.push('  var list=items.filter(function(it){');
   parts.push('    if(stF!=="all"&&it.stage!==stF)return false;');
-  parts.push('    if(chF!=="all"&&it.channel!==chF)return false;');
-  parts.push('    if(q&&it.title.toLowerCase().indexOf(q)<0&&(it.folder||"").toLowerCase().indexOf(q)<0)return false;');
+  parts.push('    if(chF!=="all"&&(it.category||"-")!==chF)return false;');
+  parts.push('    if(q&&it.title.toLowerCase().indexOf(q)<0&&(it.note||"").toLowerCase().indexOf(q)<0)return false;');
   parts.push('    return true;');
-  parts.push('  }).sort(function(a,b){if(sortMode==="number"){var na=parseInt((a.title.match(/^\\d+/)||[""])[0],10),nb=parseInt((b.title.match(/^\\d+/)||[""])[0],10);if(!isNaN(na)&&!isNaN(nb))return na-nb;if(!isNaN(na))return -1;if(!isNaN(nb))return 1;return 0;}return getStIdx(a.stage)-getStIdx(b.stage);});');
+  parts.push('  }).sort(function(a,b){if(sortMode==="added"){var ta=Date.parse(a.addedAt)||0,tb=Date.parse(b.addedAt)||0;if(ta!==tb)return tb-ta;return (parseInt(b.id,10)||0)-(parseInt(a.id,10)||0);}if(sortMode==="number"){var na=parseInt((a.title.match(/^\\d+/)||[""])[0],10),nb=parseInt((b.title.match(/^\\d+/)||[""])[0],10);if(!isNaN(na)&&!isNaN(nb))return na-nb;if(!isNaN(na))return -1;if(!isNaN(nb))return 1;return 0;}return getStIdx(a.stage)-getStIdx(b.stage);});');
   parts.push('  currentFiltered=list;');
   parts.push('  var chkAll=document.getElementById("chkAll");');
   parts.push('  if(chkAll)chkAll.checked=list.length>0&&list.every(function(it){return selectedIds.has(it.id);});');
@@ -4758,7 +4804,7 @@ function openPipelinePage(){
   parts.push('  var rows="";');
   parts.push('  list.forEach(function(it,ri){');
   parts.push('    var ci=getStIdx(it.stage);');
-  parts.push('    var ch=CH_COLORS[it.channel]||{bg:"#ECF0F1",fg:"#7F8C8D",label:it.channel};');
+  parts.push('    var ch=chMeta(it);ch.label=esc(ch.label);');
   parts.push('    var pills="";');
   parts.push('    STAGES.forEach(function(s,i){');
   parts.push('      var done=i<ci,cur=i===ci;');
@@ -4771,9 +4817,9 @@ function openPipelinePage(){
   parts.push('    var bg=ri%2===0?"white":"#FAFAF8";');
   parts.push('    rows+="<div class=\\"pl-row\\" style=\\"background:"+bg+";\\">";');
   parts.push('    var dlB="";if(it.deadline&&it.stage!=="complete"){var td=new Date();td.setHours(0,0,0,0);var dl=new Date(it.deadline);dl.setHours(0,0,0,0);var dff=Math.round((dl-td)/864e5);if(dff<0)dlB="<span style=\\"background:#FDECEC;color:#C0392B;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:6px;\\">\uD83D\uDEA8 \u0E40\u0E01\u0E34\u0E19 "+Math.abs(dff)+"\u0E27\u0E31\u0E19</span>";else if(dff<=3)dlB="<span style=\\"background:#FEF3E2;color:#E67E22;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:6px;\\">\u26A0\uFE0F \u0E2D\u0E35\u0E01 "+dff+"\u0E27\u0E31\u0E19</span>";else dlB="<span style=\\"background:#EBF5FB;color:#2980B9;border-radius:5px;padding:1px 6px;font-size:9px;margin-left:6px;\\">\uD83D\uDCC5 "+it.deadline+"</span>";}');
-  parts.push('    rows+="<div style=\\"min-width:0\\"><div class=\\"clip-title\\" title=\\""+it.title+"\\">"+it.title+dlB+"</div>";');
-  parts.push('    if(it.folder)rows+="<div class=\\"clip-sub\\">\uD83D\uDCC1 "+it.folder+"</div>";');
-  parts.push('    if(it.note)rows+="<div class=\\"clip-sub\\">\uD83D\uDCCE "+it.note+"</div>";');
+  parts.push('    rows+="<div style=\\"min-width:0\\"><div class=\\"clip-title\\" title=\\""+esc(it.title)+"\\">"+esc(it.title)+dlB+"</div>";');
+  parts.push('    if(it.addedAt)rows+="<div class=\\"clip-sub\\">\uD83D\uDD52 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e07\u0e32\u0e19 "+esc(fmtAdded(it.addedAt))+"</div>";');
+  parts.push('    if(it.note)rows+="<div class=\\"clip-sub\\">\uD83D\uDCCE "+esc(it.note)+"</div>";');
   parts.push('    rows+="<div class=\\"stage-compact\\" id=\\"sc-"+it.id+"\\"><span class=\\"ch-badge\\" style=\\"background:"+ch.bg+";color:"+ch.fg+"\\">"+ch.label+"</span><span class=\\"sc-stage\\" style=\\"background:"+STAGES[ci].color+";color:white;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;\\">"+STAGES[ci].icon+" "+STAGES[ci].label+"</span><span class=\\"sc-step\\" style=\\"color:#B09080;font-size:10px;\\">"+(ci+1)+"/7</span></div>";');
   parts.push('    rows+="</div>";');
   parts.push('    rows+="<div class=\\"ch-col\\"><span class=\\"ch-badge\\" style=\\"background:"+ch.bg+";color:"+ch.fg+"\\">"+ch.label+"</span></div>";');
@@ -4800,8 +4846,7 @@ function openPipelinePage(){
   parts.push('function quickSet(id,newStage,pillEl){');
   parts.push('  var it=items.find(function(p){return p.id===id;});');
   parts.push('  if(!it||it.stage===newStage)return;');
-  parts.push('  it.stage=newStage;it.updatedAt=new Date().toISOString();');
-  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
+  parts.push('  it.stage=newStage;saveCache();');
   parts.push('  var ci=getStIdx(newStage);');
   parts.push('  var row=pillEl.closest(".pl-row");');
   parts.push('  if(row){');
@@ -4815,8 +4860,8 @@ function openPipelinePage(){
   parts.push('  }');
   parts.push('  renderSummary();');
   parts.push('  var sc=document.getElementById("sc-"+id);if(sc){var nci=getStIdx(newStage);var ns=STAGES[nci];var sp=sc.querySelector(".sc-stage");if(sp){sp.style.background=ns.color;sp.textContent=ns.icon+" "+ns.label;}var st=sc.querySelector(".sc-step");if(st)st.textContent=(nci+1)+"/7";}');
-  parts.push('  showNoti("\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27...","#27AE60");');
-  parts.push('  fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:it})}).then(function(r){return r.text();}).then(function(t){var d=JSON.parse(t);showNoti(d&&d.ok?"\u2705 sync \u0e41\u0e25\u0e49\u0e27":"\u26a0\uFE0F sync \u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08",d&&d.ok?"#27AE60":"#E67E22");}).catch(function(){showNoti("\u26a0\uFE0F offline","#E67E22");});');
+  parts.push('  showNoti("\uD83D\uDCBE \u0e01\u0e33\u0e25\u0e31\u0e07\u0e15\u0e34\u0e4a\u0e01\u0e43\u0e19 Sheet...","#8B6F5E");');
+  parts.push('  pushToSheet([{id:it.id,stage:newStage}]).then(function(d){var ok=d&&d.ok;showNoti(ok?"\u2705 \u0e15\u0e34\u0e4a\u0e01\u0e43\u0e19 Sheet \u0e41\u0e25\u0e49\u0e27":"\u26a0\uFE0F \u0e40\u0e02\u0e35\u0e22\u0e19 Sheet \u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08"+(d&&d.error?" ("+d.error+")":""),ok?"#27AE60":"#E67E22");if(!ok)refreshFromSheet(true);});');
   parts.push('}');
   parts.push('function toggleSelect(id,cb){');
   parts.push('  if(cb.checked){selectedIds.add(id);}else{selectedIds.delete(id);}');
@@ -4841,97 +4886,77 @@ function openPipelinePage(){
   parts.push('  if(!stage){showNoti("⚠️ เลือก Stage ก่อน","#E67E22");return;}');
   parts.push('  var ids=Array.from(selectedIds);');
   parts.push('  showNoti("⏳ กำลังอัปเดต "+ids.length+" คลิป...","#8B6F5E");');
-  parts.push('  var ok=0;');
-  parts.push('  for(var i=0;i<ids.length;i++){');
-  parts.push('    var it=items.find(function(p){return p.id===ids[i];});');
-  parts.push('    if(!it)continue;');
-  parts.push('    it.stage=stage;it.updatedAt=new Date().toISOString();');
-  parts.push('    try{var r=await fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:it})});var d=JSON.parse(await r.text());if(d&&d.ok)ok++;}catch(e){}');
-  parts.push('  }');
-  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
-  parts.push('  selectedIds.clear();renderPL();updateBulkBar();');
-  parts.push('  showNoti("✅ อัปเดต "+ok+"/"+ids.length+" คลิปแล้ว!","#27AE60");');
+  parts.push('  var posts=[];ids.forEach(function(id){var it=items.find(function(p){return p.id===id;});if(it){it.stage=stage;posts.push({id:id,stage:stage});}});');
+  parts.push('  saveCache();selectedIds.clear();renderPL();updateBulkBar();');
+  parts.push('  var d=await pushToSheet(posts);var ok=d&&d.results?d.results.filter(function(r){return r.ok;}).length:0;');
+  parts.push('  showNoti(ok===posts.length?"✅ อัปเดต "+ok+" คลิปใน Sheet แล้ว!":"⚠️ สำเร็จ "+ok+"/"+posts.length,ok===posts.length?"#27AE60":"#E67E22");');
+  parts.push('  if(ok!==posts.length)refreshFromSheet(true);');
   parts.push('}');
   parts.push('async function doBulkSetChannel(){');
   parts.push('  var ch=document.getElementById("bulkChannel").value;');
   parts.push('  if(!ch){showNoti("⚠️ เลือกช่องก่อน","#E67E22");return;}');
   parts.push('  var ids=Array.from(selectedIds);');
   parts.push('  showNoti("⏳ กำลังอัปเดต "+ids.length+" คลิป...","#8B6F5E");');
-  parts.push('  var ok=0;');
-  parts.push('  for(var i=0;i<ids.length;i++){');
-  parts.push('    var it=items.find(function(p){return p.id===ids[i];});');
-  parts.push('    if(!it)continue;');
-  parts.push('    it.channel=ch;it.updatedAt=new Date().toISOString();');
-  parts.push('    try{var r=await fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:it})});var d=JSON.parse(await r.text());if(d&&d.ok)ok++;}catch(e){}');
-  parts.push('  }');
-  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
-  parts.push('  selectedIds.clear();renderPL();updateBulkBar();');
-  parts.push('  showNoti("✅ แก้ช่องแล้ว "+ok+"/"+ids.length+" คลิป!","#27AE60");');
+  parts.push('  var posts=[];ids.forEach(function(id){var it=items.find(function(p){return p.id===id;});if(it){it.category=ch;posts.push({id:id,category:ch});}});');
+  parts.push('  saveCache();selectedIds.clear();renderChPills();renderPL();updateBulkBar();');
+  parts.push('  var d=await pushToSheet(posts);var ok=d&&d.results?d.results.filter(function(r){return r.ok;}).length:0;');
+  parts.push('  showNoti(ok===posts.length?"✅ แก้ช่องใน Sheet แล้ว "+ok+" คลิป!":"⚠️ สำเร็จ "+ok+"/"+posts.length,ok===posts.length?"#27AE60":"#E67E22");');
+  parts.push('  refreshFromSheet(true);');
   parts.push('}');
   parts.push('function buildBulkStageOptions(){');
   parts.push('  var sel=document.getElementById("bulkStage");if(!sel)return;');
   parts.push('  STAGES.forEach(function(s){var o=document.createElement("option");o.value=s.key;o.textContent=s.icon+" "+s.label;o.style.background="#3C2A1E";sel.appendChild(o);});');
   parts.push('}');
   parts.push('function openAdd(){');
-  parts.push('  document.getElementById("plMTitle").textContent="\u2795 \u0e40\u0e1e\u0e34\u0e48\u0e21\u0e04\u0e25\u0e34\u0e1b\u0e43\u0e19 Process";');
+  parts.push('  document.getElementById("plMTitle").textContent="➕ เพิ่มคลิปใน Process";');
   parts.push('  document.getElementById("plEId").value="";');
   parts.push('  document.getElementById("plTit").value="";');
-  parts.push('  document.getElementById("plFol").value="";');
-  parts.push('  document.getElementById("plCh").value="dc-dental";');
-  parts.push('  document.getElementById("plDl").value="";');
+  parts.push('  buildCatSelects();var sel=document.getElementById("plCh");if(chF!=="all")sel.value=chF;');
   parts.push('  document.getElementById("plNt").value="";');
-  parts.push('  document.getElementById("plDelBtn").style.display="none";');
+  parts.push('  document.getElementById("plAddedRow").style.display="none";');
   parts.push('  document.getElementById("plModal").classList.add("open");');
   parts.push('}');
   parts.push('function openEdit(id){');
   parts.push('  var it=items.find(function(p){return p.id===id;});if(!it)return;');
-  parts.push('  document.getElementById("plMTitle").textContent="\u270F\uFE0F \u0e41\u0e01\u0e49\u0e44\u0e02\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25\u0e04\u0e25\u0e34\u0e1b";');
+  parts.push('  document.getElementById("plMTitle").textContent="✏️ แก้ไขข้อมูลคลิป #"+it.id;');
   parts.push('  document.getElementById("plEId").value=it.id;');
   parts.push('  document.getElementById("plTit").value=it.title;');
-  parts.push('  document.getElementById("plFol").value=it.folder||"";');
-  parts.push('  document.getElementById("plCh").value=it.channel||"dc-dental";');
-  parts.push('  document.getElementById("plDl").value=it.deadline||"";');
+  parts.push('  buildCatSelects();document.getElementById("plCh").value=it.category||"";');
   parts.push('  document.getElementById("plNt").value=it.note||"";');
-  parts.push('  document.getElementById("plDelBtn").style.display="inline-block";');
+  parts.push('  document.getElementById("plAddedRow").style.display=it.addedAt?"block":"none";');
+  parts.push('  document.getElementById("plAdded").textContent=fmtAdded(it.addedAt);');
   parts.push('  document.getElementById("plModal").classList.add("open");');
   parts.push('}');
   parts.push('function closeModal(){document.getElementById("plModal").classList.remove("open");}');
-  parts.push('function saveItem(){');
+  parts.push('async function saveItem(){');
   parts.push('  var title=document.getElementById("plTit").value.trim();');
-  parts.push('  if(!title){showNoti("\u26a0\uFE0F \u0e01\u0e23\u0e38\u0e13\u0e32\u0e43\u0e2a\u0e48\u0e0a\u0e37\u0e48\u0e2d\u0e04\u0e25\u0e34\u0e1b","#E67E22");return;}');
+  parts.push('  if(!title){showNoti("⚠️ กรุณาใส่ชื่อคลิป","#E67E22");return;}');
   parts.push('  var eid=document.getElementById("plEId").value;');
-  parts.push('  var id=eid||("pl_"+Date.now()+"_"+Math.random().toString(36).slice(2,6));');
-  parts.push('  var ex=items.find(function(p){return p.id===id;});');
-  parts.push('  var it={id:id,title:title,folder:document.getElementById("plFol").value.trim(),channel:document.getElementById("plCh").value,stage:ex?ex.stage:"storyboard",deadline:document.getElementById("plDl").value||"",note:document.getElementById("plNt").value.trim(),updatedAt:new Date().toISOString()};');
-  parts.push('  var idx=items.findIndex(function(p){return p.id===id;});');
-  parts.push('  if(idx>=0)items[idx]=it;else items.unshift(it);');
-  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
-  parts.push('  closeModal();renderPL();showNoti("\uD83D\uDCBE \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e41\u0e25\u0e49\u0e27 \u0e01\u0e33\u0e25\u0e31\u0e07 sync...","#27AE60");');
-  parts.push('  fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"save",sheetName:"Pipeline",post:it})}).then(function(r){return r.text();}).then(function(t){var d=JSON.parse(t);showNoti(d&&d.ok?"\u2705 \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e25\u0e07 Sheets \u0e41\u0e25\u0e49\u0e27":"\u26a0\uFE0F sync \u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08",d&&d.ok?"#27AE60":"#E67E22");}).catch(function(){});');
-  parts.push('}');
-  parts.push('function deleteItem(){');
-  parts.push('  var id=document.getElementById("plEId").value;if(!id)return;');
-  parts.push('  if(!confirm("\u0e25\u0e1a\u0e04\u0e25\u0e34\u0e1b\u0e19\u0e35\u0e49\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01 Process?"))return;');
-  parts.push('  items=items.filter(function(p){return p.id!==id;});');
-  parts.push('  try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
-  parts.push('  closeModal();renderPL();showNoti("\uD83D\uDDD1 \u0e25\u0e1a\u0e41\u0e25\u0e49\u0e27","#E74C3C");');
-  parts.push('  fetch(GAS_URL,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"delete",sheetName:"Pipeline",id:id})}).catch(function(){});');
+  parts.push('  var cat=document.getElementById("plCh").value;');
+  parts.push('  var note=document.getElementById("plNt").value.trim();');
+  parts.push('  var tmpId=eid||("new_"+Date.now());');
+  parts.push('  var ex=items.find(function(p){return p.id===tmpId;});');
+  parts.push('  if(ex){ex.title=title;ex.category=cat;ex.note=note;}');
+  parts.push('  else items.unshift({id:tmpId,title:title,category:cat,channel:"dc-dental",stage:"storyboard",addedAt:new Date().toISOString(),note:note});');
+  parts.push('  saveCache();closeModal();renderChPills();renderPL();showNoti("💾 กำลังเขียนลง Sheet...","#8B6F5E");');
+  // คลิปใหม่: ไม่ส่ง id → Apps Script ใช้แถวว่างถัดไปใน Progress แล้วตอบ id จริงกลับมา
+  parts.push('  var post={title:title,category:cat,note:note};if(eid)post.id=eid;else post.stage="storyboard";');
+  parts.push('  var d=await pushToSheet([post]);var r=d&&d.results&&d.results[0];');
+  parts.push('  if(r&&r.ok){if(!eid&&r.item){var i=items.findIndex(function(p){return p.id===tmpId;});if(i>=0)items[i]=normRow(r.item);saveCache();renderPL();}showNoti(eid?"✅ บันทึกลง Sheet แล้ว":"✅ เพิ่มใน Sheet แล้ว (#"+(r.item?r.item.id:"")+")","#27AE60");}');
+  parts.push('  else showNoti("⚠️ เขียน Sheet ไม่สำเร็จ"+(r&&r.error?" ("+r.error+")":""),"#E67E22");');
+  parts.push('  refreshFromSheet(true);');
   parts.push('}');
   parts.push('function showNoti(msg,color){var n=document.getElementById("noti");if(!n)return;n.textContent=msg;n.style.background=color||"#3C2A1E";n.style.opacity="1";clearTimeout(n._t);n._t=setTimeout(function(){n.style.opacity="0";},2500);}');
   parts.push('document.getElementById("plModal").addEventListener("click",function(e){if(e.target===this)closeModal();});');
-  parts.push('async function init(){');
+  parts.push('function init(){');
   parts.push('  buildBulkStageOptions();');
-  parts.push('  try{var c=localStorage.getItem("dcPipeline");if(c)items=JSON.parse(c);}catch(e){items=[];}');
-  parts.push('  renderPL();');
-  parts.push('  try{');
-  parts.push('    var res=await fetch(GAS_URL+"?t="+Date.now()+"&sheet=Pipeline",{method:"GET",redirect:"follow"});');
-  parts.push('    var data=JSON.parse(await res.text());');
-  parts.push('    if(Array.isArray(data)&&data.length>0){');
-  parts.push('      items=data.map(function(r){return{id:String(r.id||""),title:String(r.title||""),folder:String(r.folder||""),channel:String(r.channel||"dc-dental"),stage:String(r.stage||"storyboard"),note:String(r.note||""),updatedAt:String(r.updatedAt||"")};}).filter(function(r){return r.id&&r.title;});');
-  parts.push('      try{localStorage.setItem("dcPipeline",JSON.stringify(items));}catch(e){}');
-  parts.push('      renderPL();');
-  parts.push('    }');
-  parts.push('  }catch(e){console.warn("load err",e);}');
+  parts.push('  try{var c=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");if(c&&Array.isArray(c.items)){items=c.items;categories=c.categories||[];}}catch(e){items=[];}');
+  parts.push('  renderChPills();buildCatSelects();renderPL();');
+  parts.push('  refreshFromSheet(true);');
+  // "realtime": ดึงจาก Sheet ทุก 15 วิ + ทันทีที่สลับกลับมาที่แท็บนี้
+  parts.push('  setInterval(function(){refreshFromSheet(false);},POLL_MS);');
+  parts.push('  document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshFromSheet(false);});');
+  parts.push('  window.addEventListener("focus",function(){refreshFromSheet(false);});');
   parts.push('}');
   parts.push('init();');
   parts.push('var _impRows=[];');

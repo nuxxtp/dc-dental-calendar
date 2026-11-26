@@ -503,75 +503,162 @@ header{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);c
 
 <!-- ================= DASHBOARD ================= -->
 <style>
-#dashboardSection{display:none;padding:20px 28px 60px;min-height:80vh;background:var(--bg);}
-.db-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
-.db-title{font-family:'Prompt',sans-serif;font-size:20px;font-weight:700;color:var(--text);}
-.db-sub{font-size:12px;color:var(--gray-dark);}
-.db-btn{background:white;border:1.5px solid #D0DCE8;color:var(--blue-dark);border-radius:10px;padding:7px 14px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.db-btn:hover{border-color:var(--blue);}
-.db-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
-.db-tile{background:white;border-radius:14px;padding:14px 16px;border:1px solid #E4EDF5;}
-.db-tile .v{font-family:'Prompt',sans-serif;font-size:26px;font-weight:700;color:var(--text);line-height:1.1;}
-.db-tile .l{font-size:12px;color:var(--gray-dark);margin-top:4px;}
-.db-tile .s{font-size:11px;color:#9AA8B5;margin-top:2px;}
-.db-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:14px;}
-.db-card{background:white;border-radius:14px;padding:16px 18px;border:1px solid #E4EDF5;min-width:0;}
-.db-card h3{font-family:'Prompt',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin:0 0 4px;}
-.db-card .hint{font-size:11px;color:#9AA8B5;margin-bottom:12px;}
-.db-full{grid-column:1/-1;}
-.db-ins{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
-.db-ins li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;background:#F7FAFC;font-size:13px;line-height:1.5;color:var(--text);}
-.db-ins li .ic{flex-shrink:0;font-size:16px;line-height:1.3;}
-.db-bars{display:flex;flex-direction:column;gap:6px;}
-.db-bar{display:grid;grid-template-columns:150px 1fr 48px;gap:8px;align-items:center;font-size:12px;color:var(--text);}
-.db-bar .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.db-bar .track{height:14px;position:relative;}
-.db-bar .fill{height:100%;border-radius:0 4px 4px 0;min-width:2px;}
-.db-bar .val{text-align:right;font-variant-numeric:tabular-nums;color:var(--text);font-weight:600;}
+#dashboardSection{display:none;background:#EEF0F3;min-height:80vh;padding:20px;}
+.dbx{display:flex;max-width:1440px;margin:0 auto;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.06);}
+.dbx-side{width:210px;flex-shrink:0;padding:28px 14px;background:#fff;border-right:1px solid #F1F2F4;}
+.dbx-brand{font-family:'Prompt',sans-serif;font-size:17px;font-weight:700;color:#111827;padding:0 12px 26px;letter-spacing:.2px;}
+.dbx-brand span{color:var(--blue);}
+.dbx-nav{display:flex;flex-direction:column;gap:4px;}
+.dbx-nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;font-size:13px;color:#374151;text-decoration:none;cursor:pointer;}
+.dbx-nav a:hover{background:#F5F7FB;}
+.dbx-nav a.on{background:#EEF2FF;color:#3B5BDB;font-weight:600;}
+.dbx-nav-h{font-size:12px;color:#9CA3AF;padding:22px 12px 8px;}
+.dbx-main{flex:1;min-width:0;background:#F7F8FA;padding:26px 30px 44px;}
+.dbx-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:18px;border-bottom:1px solid #E5E7EB;}
+.dbx-title{font-family:'Prompt',sans-serif;font-size:21px;font-weight:700;color:#111827;}
+.dbx-upd{font-size:11px;color:#9CA3AF;margin-top:2px;}
+.dbx-link{background:none;border:none;color:#374151;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;padding:6px 8px;border-radius:8px;}
+.dbx-link:hover{background:#EEF0F3;}
+.dbx-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0;}
+.dbx-sel{appearance:none;-webkit-appearance:none;width:100%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23111827'/%3E%3C/svg%3E") no-repeat right 14px center;border:none;border-radius:11px;padding:12px 34px 12px 14px;font-family:'Sarabun',sans-serif;font-size:13px;color:#111827;box-shadow:0 1px 2px rgba(16,24,40,.05);cursor:pointer;}
+.dbx-card{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(16,24,40,.05);min-width:0;}
+.dbx-card h3{font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.dbx-card h3 small{font-weight:400;color:#9CA3AF;font-size:11px;}
+.dbx-top{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;}
+.dbx-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+.dbx-tile{background:#fff;border-radius:14px;padding:14px 14px 12px;box-shadow:0 1px 2px rgba(16,24,40,.05);min-height:96px;display:flex;flex-direction:column;}
+.dbx-tile .l{font-size:12px;color:#374151;}
+.dbx-tile .v{font-family:'Prompt',sans-serif;font-size:22px;font-weight:700;color:#111827;margin-top:10px;line-height:1.1;}
+.dbx-tile .v small{font-size:13px;font-weight:500;color:#9CA3AF;}
+.dbx-tile .s{font-size:11px;color:#9CA3AF;margin-top:4px;}
+.dbx-tile svg{margin-top:auto;display:block;}
+.dbx-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:14px;}
+.dbx-1{margin-top:14px;}
+.dbx-sec{scroll-margin-top:12px;}
+/* activity chart */
+.dbx-act{display:flex;gap:10px;height:190px;}
+.dbx-act .y{display:flex;flex-direction:column;justify-content:space-between;font-size:9px;color:#9CA3AF;padding-bottom:18px;text-align:right;min-width:18px;}
+.dbx-act .cols{flex:1;display:flex;justify-content:space-between;gap:4px;}
+.dbx-act .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;}
+.dbx-act .trk{flex:1;width:9px;background:#EEF2FF;border-radius:5px;position:relative;}
+.dbx-act .fil{position:absolute;left:0;right:0;bottom:0;border-radius:5px;background:linear-gradient(180deg,#6E9BFF,#3B6FF5);}
+.dbx-act .col.fut .fil{background:#BFD0FF;}
+.dbx-act .col.now .m{color:#3B5BDB;font-weight:700;}
+.dbx-act .m{font-size:9px;color:#9CA3AF;white-space:nowrap;}
+/* horizontal progress rows */
+.dbx-rows{display:flex;flex-direction:column;gap:14px;}
+.dbx-row{display:grid;grid-template-columns:34px minmax(0,1fr) 92px;gap:12px;align-items:center;}
+.dbx-row .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;background:#F3F4F6;}
+.dbx-row .nm{font-size:12px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;}
+.dbx-row .tk{height:6px;border-radius:3px;position:relative;overflow:hidden;}
+.dbx-row .fl{position:absolute;left:0;top:0;bottom:0;border-radius:3px;}
+.dbx-row .rt{font-size:11px;color:#9CA3AF;text-align:right;white-space:nowrap;}
+.dbx-row .rt b{color:#374151;font-weight:600;}
+.tone-bad .tk{background:#FDE7E4;} .tone-bad .fl{background:linear-gradient(90deg,#F7A33B,#F0483E);}
+.tone-good .tk{background:#DDF7E8;} .tone-good .fl{background:linear-gradient(90deg,#4ADE80,#22C55E);}
+.tone-blue .tk{background:#E8EEFF;} .tone-blue .fl{background:linear-gradient(90deg,#7DA2FF,#3B6FF5);}
+/* leaderboard */
+.dbx-lb{display:flex;flex-direction:column;}
+.dbx-lb .it{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #F3F4F6;}
+.dbx-lb .it:last-child{border-bottom:none;}
+.dbx-lb .av{width:32px;height:32px;border-radius:50%;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;overflow:hidden;}
+.dbx-lb .av img{width:100%;height:100%;object-fit:cover;}
+.dbx-lb .tx{flex:1;min-width:0;}
+.dbx-lb .tx b{display:block;font-size:12px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dbx-lb .tx span{font-size:10.5px;color:#9CA3AF;}
+.dbx-lb .rk{font-size:13px;font-weight:700;color:#111827;display:flex;align-items:center;gap:6px;}
+.up{color:#22C55E;font-size:11px;} .dn{color:#F0483E;font-size:11px;} .eq{color:#D1D5DB;font-size:11px;}
+/* insights */
+.dbx-ins{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;}
+.dbx-ins li{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #F3F4F6;font-size:12.5px;line-height:1.55;color:#374151;}
+.dbx-ins li:last-child{border-bottom:none;}
+.dbx-ins .ic{width:30px;height:30px;border-radius:9px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.dbx-ins b{color:#111827;}
+/* tables */
 .db-table{width:100%;border-collapse:collapse;font-size:12px;}
-.db-table th{text-align:left;font-size:11px;font-weight:700;color:var(--gray-dark);padding:6px 8px;border-bottom:1.5px solid #E4EDF5;white-space:nowrap;position:sticky;top:0;background:white;}
-.db-table td{padding:6px 8px;border-bottom:1px solid #F0F4F8;color:var(--text);vertical-align:top;}
+.db-table th{text-align:left;font-size:11px;font-weight:600;color:#9CA3AF;padding:8px;border-bottom:1px solid #EEF0F3;white-space:nowrap;position:sticky;top:0;background:#fff;}
+.db-table td{padding:9px 8px;border-bottom:1px solid #F3F4F6;color:#111827;vertical-align:top;}
 .db-table td.num,.db-table th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.db-table tr:hover td{background:#F7FAFC;}
-.db-scroll{overflow-x:auto;max-height:420px;overflow-y:auto;}
-.db-plan{border-collapse:separate;border-spacing:3px;font-size:11px;}
-.db-plan th{font-weight:600;color:var(--gray-dark);padding:2px 4px;text-align:center;white-space:nowrap;}
-.db-plan th.ch{text-align:left;color:var(--text);min-width:120px;}
-.db-plan td{width:34px;height:30px;border-radius:6px;text-align:center;font-weight:700;cursor:default;color:white;}
-.db-plan td.empty{background:#F4F7FB;color:#C5CDD6;}
-.db-plan td.gap{box-shadow:inset 0 0 0 1.5px #F1948A;}
-.db-pill{display:inline-block;border-radius:6px;padding:1px 7px;font-size:10px;font-weight:700;white-space:nowrap;}
-.db-up{border:2px dashed #D0DCE8;border-radius:12px;padding:14px;text-align:center;font-size:12px;color:var(--gray-dark);transition:background 0.15s;}
-.db-up.drag{background:var(--blue-light);border-color:var(--blue);}
-.db-empty{color:#9AA8B5;font-size:12px;padding:10px 0;}
-.db-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--gray-dark);margin-top:8px;}
-.db-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
-.db-subgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:12px;}
-.db-subgrid h4{font-size:13px;font-weight:700;color:var(--text);margin:0 0 8px;}
-@media(max-width:640px){#dashboardSection{padding:12px 10px 80px;}.db-grid{grid-template-columns:1fr;}.db-bar{grid-template-columns:100px 1fr 40px;}}
+.db-table tr:hover td{background:#FAFBFC;}
+.db-scroll{overflow:auto;max-height:420px;}
+.db-pill{display:inline-block;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;white-space:nowrap;}
+.db-btn{background:#fff;border:1px solid #E5E7EB;color:#111827;border-radius:9px;padding:6px 12px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+.db-btn:hover{border-color:#3B6FF5;color:#3B5BDB;}
+.db-btn.pri{background:#3B6FF5;border-color:#3B6FF5;color:#fff;}
+.db-btn.pri:hover{background:#2F5BD8;color:#fff;}
+.db-empty{color:#9CA3AF;font-size:12px;padding:8px 0;}
+/* plan grid */
+.db-plan{border-collapse:separate;border-spacing:4px;font-size:11px;}
+.db-plan th{font-weight:500;color:#9CA3AF;padding:2px 4px;text-align:center;white-space:nowrap;}
+.db-plan th.ch{text-align:left;color:#111827;font-weight:600;min-width:120px;}
+.db-plan td{width:34px;height:30px;border-radius:8px;text-align:center;font-weight:700;cursor:default;color:#fff;}
+.db-plan td.empty{background:#F3F4F6;color:#D1D5DB;}
+.db-plan td.gap{box-shadow:inset 0 0 0 1.5px #FCA5A5;}
+.db-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#9CA3AF;margin-top:10px;}
+.db-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;}
+.db-up{border:1.5px dashed #D1D5DB;border-radius:12px;padding:14px;text-align:center;font-size:12px;color:#6B7280;transition:background .15s;margin-bottom:14px;}
+.db-up.drag{background:#EEF2FF;border-color:#3B6FF5;}
+.db-hint{font-size:11px;color:#9CA3AF;margin:-8px 0 12px;line-height:1.5;}
+@media(max-width:1000px){.dbx-top,.dbx-2{grid-template-columns:1fr;}}
+@media(max-width:760px){#dashboardSection{padding:0;}.dbx{border-radius:0;}.dbx-side{display:none;}.dbx-main{padding:16px 12px 80px;}.dbx-tiles{grid-template-columns:repeat(2,minmax(0,1fr));}.dbx-row{grid-template-columns:30px minmax(0,1fr) 70px;}}
 </style>
 <div id="dashboardSection">
-  <div class="db-head">
-    <div><div class="db-title">📊 Dashboard</div><div class="db-sub" id="dbUpdated">กำลังโหลด...</div></div>
-    <button class="db-btn" onclick="loadDashboard(true)">🔄 โหลดใหม่</button>
-  </div>
-  <div class="db-tiles" id="dbTiles"></div>
-  <div class="db-grid">
-    <div class="db-card db-full"><h3>💡 สิ่งที่ควรทำต่อ</h3><div class="hint">สรุปอัตโนมัติจาก Progress, ปฏิทิน และข้อมูล Meta ที่อัปโหลด</div><ul class="db-ins" id="dbInsights"></ul></div>
-    <div class="db-card"><h3>🎬 งานค้างแต่ละขั้น</h3><div class="hint">จากแท็บ Progress — ไม่นับ complete และแถวที่หมายเหตุว่า ฆ่า / ยกเลิก</div><div id="dbStages"></div></div>
-    <div class="db-card"><h3>📂 งานค้างแยกตามช่องหลัก</h3><div class="hint">จำนวนคลิปที่ยังไม่ complete</div><div id="dbCats"></div></div>
-    <div class="db-card db-full"><h3>📋 รายการงานค้าง</h3><div class="hint">เรียงจากขั้นที่ใกล้เสร็จที่สุดก่อน แล้วตามลำดับ id</div><div class="db-scroll" id="dbPending"></div></div>
-    <div class="db-card db-full"><h3>📅 แพลนการลง 14 วันข้างหน้า</h3><div class="hint">ตัวเลข = จำนวนโพสต์ในวันนั้น · ชี้เพื่อดูชื่อโพสต์ · กรอบแดง = ภายใน 7 วันนี้ยังไม่มีโพสต์</div><div class="db-scroll" id="dbPlan"></div>
-      <div class="db-legend"><span><i style="background:#27AE60"></i>ลงแล้ว</span><span><i style="background:#E67E22"></i>พร้อมลง</span><span><i style="background:#95A5A6"></i>Draft</span></div></div>
-    <div class="db-card"><h3>🗓️ เดือนนี้แต่ละช่อง</h3><div class="hint">โพสต์ในปฏิทินเดือนปัจจุบัน — ลงแล้ว / ทั้งหมด</div><div id="dbMonth"></div></div>
-    <div class="db-card"><h3>⏰ เลยวันแล้วยังไม่ลง</h3><div class="hint">วันที่ผ่านมาแล้ว (ย้อนหลัง 30 วัน) แต่สถานะยังไม่ใช่ Posted</div><div class="db-scroll" id="dbOverdue"></div></div>
-    <div class="db-card db-full"><h3>📣 Meta Ads</h3><div class="hint">Export จาก Ads Manager เป็น CSV (ระดับ Ad) — ควรมีคอลัมน์ ชื่อโฆษณา, จำนวนเงินที่ใช้จ่าย, อิมเพรสชัน, การเข้าถึง, การเริ่มการสนทนาทางข้อความ · ชื่อแอดลงท้าย _TOF / _MOF / _BOF / _RT จะแยก funnel ให้</div>
-      <div class="db-up" data-kind="ads">ลากไฟล์ CSV มาวาง หรือ <label class="db-btn">เลือกไฟล์<input type="file" accept=".csv,text/csv" multiple style="display:none" onchange="uploadMetaFiles('ads',this.files);this.value='';"></label><div id="dbAdsInfo" style="margin-top:6px;"></div></div>
+ <div class="dbx">
+  <aside class="dbx-side">
+    <div class="dbx-brand">DC <span>Content</span></div>
+    <nav class="dbx-nav" id="dbxNav">
+      <a class="on" data-go="dbs-top">📈 ภาพรวม</a>
+      <a data-go="dbs-work">🎬 งานค้าง</a>
+      <a data-go="dbs-plan">📅 แพลนการลง</a>
+      <a data-go="dbs-ads">📣 Meta Ads</a>
+      <a data-go="dbs-org">📱 Organic</a>
+    </nav>
+    <div class="dbx-nav-h">เครื่องมือ</div>
+    <nav class="dbx-nav">
+      <a onclick="loadDashboard(true)">🔄 โหลดข้อมูลใหม่</a>
+      <a data-go="dbs-ads">📥 อัปโหลด CSV</a>
+    </nav>
+  </aside>
+  <main class="dbx-main">
+    <div class="dbx-head dbx-sec" id="dbs-top">
+      <div><div class="dbx-title">Dashboard</div><div class="dbx-upd" id="dbUpdated">กำลังโหลด...</div></div>
+      <button class="dbx-link" onclick="loadDashboard(true)">⟳ โหลดใหม่</button>
+    </div>
+    <div class="dbx-filters">
+      <select class="dbx-sel" id="dbFCat" onchange="dbFilter.cat=this.value;renderDashboard()"></select>
+      <select class="dbx-sel" id="dbFCh" onchange="dbFilter.ch=this.value;renderDashboard()"></select>
+    </div>
+    <div class="dbx-top">
+      <div class="dbx-tiles" id="dbTiles"></div>
+      <div class="dbx-card"><h3>โพสต์ต่อเดือน <small id="dbActSub"></small></h3><div id="dbActivity"></div></div>
+    </div>
+    <div class="dbx-card dbx-1"><h3>💡 สิ่งที่ควรทำต่อ <small>สรุปอัตโนมัติจาก Progress · ปฏิทิน · Meta</small></h3><ul class="dbx-ins" id="dbInsights"></ul></div>
+
+    <div class="dbx-2 dbx-sec" id="dbs-work">
+      <div class="dbx-card"><h3>งานค้างแต่ละขั้น <small>ไม่นับ complete / ฆ่า / ยกเลิก</small></h3><div id="dbStages"></div></div>
+      <div class="dbx-card"><h3>ช่องหลัก — ทำเสร็จแล้ว <small>complete ÷ ทั้งหมด</small></h3><div id="dbCats"></div></div>
+    </div>
+    <div class="dbx-card dbx-1"><h3><span>✅ น่าจะลงแล้ว แต่ยังไม่ติ๊ก complete</span><button class="db-btn pri" id="dbTickAllBtn" style="display:none" onclick="dbTickAllForgot()">ติ๊กทั้งหมด</button></h3>
+      <div class="db-hint">คลิปที่มีโพสต์ในปฏิทินเลยวันลงแล้ว (จับคู่จากเลข id หน้าชื่อโพสต์) แต่ใน Progress ยังไม่ complete — กดแล้วไปติ๊กใน Sheet ให้</div><div class="db-scroll" id="dbForgot"></div></div>
+    <div class="dbx-card dbx-1"><h3>📋 รายการงานค้าง <small>ขั้นที่ใกล้เสร็จก่อน แล้วตาม id</small></h3><div class="db-scroll" id="dbPending"></div></div>
+
+    <div class="dbx-card dbx-1 dbx-sec" id="dbs-plan"><h3>📅 แพลนการลง 14 วันข้างหน้า <small>ชี้ที่ช่องเพื่อดูชื่อโพสต์</small></h3><div class="db-scroll" id="dbPlan"></div>
+      <div class="db-legend"><span><i style="background:#22C55E"></i>ลงแล้ว</span><span><i style="background:#F59E0B"></i>พร้อมลง</span><span><i style="background:#94A3B8"></i>Draft</span><span><i style="background:#F3F4F6;box-shadow:inset 0 0 0 1.5px #FCA5A5"></i>ยังว่าง (7 วันนี้)</span></div></div>
+    <div class="dbx-2">
+      <div class="dbx-card"><h3>อันดับช่อง — โพสต์เดือนนี้ <small>ลูกศร = เทียบเดือนก่อน</small></h3><div class="dbx-lb" id="dbLeader"></div></div>
+      <div class="dbx-card"><h3>⚠️ ใกล้วันลง แต่งานยังไม่เสร็จ <small>7 วันข้างหน้า · ยังไม่ถึงแคปชั่น</small></h3><div class="dbx-lb" id="dbAtRisk"></div></div>
+    </div>
+
+    <div class="dbx-card dbx-1 dbx-sec" id="dbs-ads"><h3>📣 Meta Ads <small id="dbAdsInfo"></small></h3>
+      <div class="db-up" data-kind="ads">ลากไฟล์ CSV จาก Ads Manager มาวาง หรือ <label class="db-btn">เลือกไฟล์<input type="file" accept=".csv,text/csv" multiple style="display:none" onchange="uploadMetaFiles('ads',this.files);this.value='';"></label>
+        <div class="db-hint" style="margin:8px 0 0">Export ระดับ Ad · ควรมี ชื่อโฆษณา, จำนวนเงินที่ใช้จ่าย, อิมเพรสชัน, การเข้าถึง, การเริ่มการสนทนาทางข้อความ · ชื่อแอดลงท้าย _TOF/_MOF/_BOF/_RT จะแยก funnel ให้</div></div>
       <div id="dbAds"></div></div>
-    <div class="db-card db-full"><h3>📱 โพสต์ปกติ (Organic)</h3><div class="hint">Export จาก Meta Business Suite → Insights → Content เป็น CSV — เลือกได้หลายไฟล์พร้อมกัน (FB + IG)</div>
-      <div class="db-up" data-kind="organic">ลากไฟล์ CSV มาวาง หรือ <label class="db-btn">เลือกไฟล์<input type="file" accept=".csv,text/csv" multiple style="display:none" onchange="uploadMetaFiles('organic',this.files);this.value='';"></label><div id="dbOrgInfo" style="margin-top:6px;"></div></div>
+    <div class="dbx-card dbx-1 dbx-sec" id="dbs-org"><h3>📱 โพสต์ปกติ (Organic) <small id="dbOrgInfo"></small></h3>
+      <div class="db-up" data-kind="organic">ลากไฟล์ CSV จาก Meta Business Suite มาวาง หรือ <label class="db-btn">เลือกไฟล์<input type="file" accept=".csv,text/csv" multiple style="display:none" onchange="uploadMetaFiles('organic',this.files);this.value='';"></label>
+        <div class="db-hint" style="margin:8px 0 0">Insights → Content → Export (CSV) · เลือกหลายไฟล์พร้อมกันได้ (FB + IG)</div></div>
       <div id="dbOrg"></div></div>
-  </div>
+  </main>
+ </div>
 </div>
 
 <div id="igGridSection" style="display:none;padding:24px 28px 40px;min-height:80vh" ondragover="igSectionDragOver(event)" ondragleave="igSectionDragLeave(event)" ondrop="igSectionDrop(event)">
@@ -5168,7 +5255,6 @@ function dbAddDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
 function dbNum(v){if(v==null)return 0;const s=String(v).replace(/[^\d.\-]/g,'');const n=parseFloat(s);return isNaN(n)?0:n;}
 function dbFmt(n,dp){if(!isFinite(n))return '–';return n.toLocaleString('th-TH',{minimumFractionDigits:dp||0,maximumFractionDigits:dp||0});}
 function dbBaht(n){return isFinite(n)&&n>0?'฿'+dbFmt(n,n<100?2:0):'–';}
-function dbDateThai(iso){if(!iso)return '';const d=new Date(iso.length===10?iso+'T00:00:00':iso);if(isNaN(d))return iso;return d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3)+'.';}
 function dbDaysAgo(v){if(!v)return null;const d=new Date(v);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/864e5);}
 function dbNormDate(raw){
   const s=String(raw||'');if(!s)return '';
@@ -5219,54 +5305,6 @@ async function loadDashboard(force){
   dbState.loading=false;
   renderDashboard();
   document.getElementById('dbUpdated').textContent=(failed?'⚠️ โหลดไม่ครบ '+failed+' แหล่ง · ':'')+'อัปเดต '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-}
-
-// ---------- ชิ้นส่วน UI ----------
-function dbBars(rows,opt){
-  // rows: [{label,value,color,tip,display}]
-  if(!rows.length)return '<div class="db-empty">ยังไม่มีข้อมูล</div>';
-  const max=Math.max(...rows.map(r=>r.value),1);
-  return '<div class="db-bars">'+rows.map(r=>{
-    const w=Math.max(r.value/max*100,r.value>0?1:0);
-    const tip=escHtml(r.tip||(r.label+': '+(r.display!=null?r.display:dbFmt(r.value))));
-    return '<div class="db-bar" title="'+tip+'"><div class="n">'+escHtml(r.label)+'</div><div class="track"><div class="fill" style="width:'+w+'%;background:'+(r.color||'var(--blue)')+'"></div></div><div class="val">'+(r.display!=null?r.display:dbFmt(r.value))+'</div></div>';
-  }).join('')+'</div>';
-}
-function dbTile(v,l,s){return '<div class="db-tile"><div class="v">'+v+'</div><div class="l">'+l+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>';}
-function dbStagePill(k){const s=dbStageMeta(k);return '<span class="db-pill" style="background:'+s.bg+';color:'+s.color+'">'+s.icon+' '+s.label+'</span>';}
-
-// ---------- คำนวณ ----------
-function dbProgressStats(){
-  const rows=dbState.progress;if(!rows)return null;
-  const live=rows.filter(r=>!dbIsCancelled(r));
-  const pending=live.filter(r=>r.stage!=='complete');
-  const byStage={};PL_STAGES.forEach(s=>byStage[s.key]=[]);
-  pending.forEach(r=>(byStage[r.stage]||(byStage[r.stage]=[])).push(r));
-  const byCat={};pending.forEach(r=>{const k=r.category||'(ไม่ระบุ)';byCat[k]=(byCat[k]||0)+1;});
-  const nearDone=pending.filter(r=>r.stage==='caption'||r.stage==='scheduling');
-  return {live,pending,byStage,byCat,nearDone,cancelled:rows.length-live.length};
-}
-function dbCalStats(){
-  const today=new Date();today.setHours(0,0,0,0);
-  const todayIso=dbIso(today);
-  const days=[...Array(14)].map((_,i)=>dbIso(dbAddDays(today,i)));
-  const week=new Set(days.slice(0,7));
-  const monthKey=todayIso.slice(0,7);
-  const past30=dbIso(dbAddDays(today,-30));
-  const chans=Object.keys(CHANNEL_META).filter(ch=>dbState.cal[ch]);
-  const plan={},month={},overdue=[],noWeek=[];let next7=0;
-  chans.forEach(ch=>{
-    const ps=dbState.cal[ch].filter(p=>p.date);
-    plan[ch]={};days.forEach(d=>plan[ch][d]=[]);
-    ps.forEach(p=>{if(plan[ch][p.date])plan[ch][p.date].push(p);});
-    const w=ps.filter(p=>week.has(p.date)).length;next7+=w;
-    if(!w)noWeek.push(ch);
-    const m=ps.filter(p=>p.date.slice(0,7)===monthKey);
-    month[ch]={total:m.length,posted:m.filter(p=>p.status==='posted').length,ready:m.filter(p=>p.status==='ready').length};
-    ps.forEach(p=>{if(p.date<todayIso&&p.date>=past30&&p.status!=='posted')overdue.push({...p,ch});});
-  });
-  overdue.sort((a,b)=>b.date.localeCompare(a.date));
-  return {days,week,plan,month,overdue,noWeek,next7,chans};
 }
 
 // ---------- Meta: อ่าน CSV ----------
@@ -5420,25 +5458,162 @@ function dbBindDrop(){
 }
 
 // ---------- วาด ----------
+let _dbTicking=false;
+async function dbTickComplete(ids){
+  if(_dbTicking||!ids.length)return;
+  _dbTicking=true;
+  showNoti('⏳ กำลังติ๊ก complete '+ids.length+' คลิปใน Sheet...','#1A6FB5');
+  try{
+    const r=await fetch(DRAFT_API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'saveMany',posts:ids.map(id=>({id,stage:'complete'}))})});
+    const d=JSON.parse(await r.text());
+    const okIds=(d&&d.results||[]).filter(x=>x.ok&&x.item).map(x=>String(x.item.id));
+    (dbState.progress||[]).forEach(it=>{if(okIds.includes(String(it.id)))it.stage='complete';});
+    showNoti(okIds.length===ids.length?'✅ ติ๊ก complete แล้ว '+okIds.length+' คลิป':'⚠️ สำเร็จ '+okIds.length+'/'+ids.length+(d&&d.error?' ('+d.error+')':''),okIds.length===ids.length?'#27AE60':'#E67E22');
+  }catch(e){showNoti('⚠️ ติ๊กไม่สำเร็จ: '+e.message,'#E67E22');}
+  _dbTicking=false;
+  renderDashboard();
+}
+function dbTickAllForgot(){
+  const M=dbMatchStats(dbProgressStats());if(!M)return;
+  const ids=M.forgot.filter(x=>!x.future.length).map(x=>String(x.it.id));
+  if(!ids.length){showNoti('ทุกคลิปในรายการยังมีวันลงถัดไป — ติ๊กทีละคลิปแทน','#E67E22');return;}
+  if(!confirm('ติ๊ก complete ใน Sheet ให้ '+ids.length+' คลิป?\n(ข้ามคลิปที่ยังมีวันลงถัดไปในปฏิทิน)'))return;
+  dbTickComplete(ids);
+}
+
+// ---------- ตัวกรอง + เมนูข้าง ----------
+const DB_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+let dbFilter={cat:'all',ch:'all'};
+function dbDateThai(iso){if(!iso)return '';const d=new Date(iso.length===10?iso+'T00:00:00':iso);if(isNaN(d))return iso;return d.getDate()+' '+DB_MON[d.getMonth()];}
+function dbChans(){return Object.keys(CHANNEL_META).filter(ch=>dbState.cal[ch]&&(dbFilter.ch==='all'||dbFilter.ch===ch));}
+function dbRenderFilters(){
+  const fc=document.getElementById('dbFCat'),fh=document.getElementById('dbFCh');if(!fc||!fh)return;
+  const cats=[...new Set((dbState.progress||[]).map(r=>r.category).filter(Boolean))].sort();
+  if(dbFilter.cat!=='all'&&!cats.includes(dbFilter.cat))dbFilter.cat='all';
+  fc.innerHTML='<option value="all">ช่องหลัก (Progress): ทั้งหมด</option>'+cats.map(c=>'<option value="'+escHtml(c)+'">ช่องหลัก (Progress): '+escHtml(c)+'</option>').join('');
+  fc.value=dbFilter.cat;
+  fh.innerHTML='<option value="all">ช่องที่ลง (ปฏิทิน): ทั้งหมด</option>'+Object.keys(CHANNEL_META).map(ch=>'<option value="'+ch+'">ช่องที่ลง (ปฏิทิน): '+escHtml(CHANNEL_META[ch].label)+'</option>').join('');
+  fh.value=dbFilter.ch;
+}
+function dbBindNav(){
+  const nav=document.querySelectorAll('#dashboardSection [data-go]');
+  nav.forEach(a=>{if(a._b)return;a._b=true;a.addEventListener('click',()=>{
+    const t=document.getElementById(a.dataset.go);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+    document.querySelectorAll('#dbxNav a').forEach(x=>x.classList.toggle('on',x.dataset.go===a.dataset.go));
+  });});
+}
+
+// ---------- ชิ้นส่วน UI ----------
+// แถวหลอดแนวนอน (แบบ Weakest/Strongest) — rows: {icon,iconBg,label,value,max,right,tip}
+function dbHRows(rows,tone){
+  if(!rows.length)return '<div class="db-empty">ยังไม่มีข้อมูล</div>';
+  const max=Math.max(...rows.map(r=>r.max!=null?r.max:r.value),1);
+  return '<div class="dbx-rows tone-'+(tone||'blue')+'">'+rows.map(r=>{
+    const w=Math.max(0,Math.min(100,r.value/(r.max!=null?r.max:max)*100));
+    return '<div class="dbx-row" title="'+escHtml(r.tip||r.label)+'"><div class="ic"'+(r.iconBg?' style="background:'+r.iconBg+'"':'')+'>'+(r.icon||'•')+'</div><div style="min-width:0"><div class="nm">'+escHtml(r.label)+'</div><div class="tk"><div class="fl" style="width:'+w+'%"></div></div></div><div class="rt">'+r.right+'</div></div>';
+  }).join('')+'</div>';
+}
+function dbSpark(vals){
+  if(!vals||vals.length<2)return '';
+  const W=120,H=26,max=Math.max(...vals,1),min=Math.min(...vals,0);
+  const pts=vals.map((v,i)=>[i/(vals.length-1)*W,H-2-((v-min)/(max-min||1))*(H-4)]);
+  const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  return '<svg width="100%" height="'+H+'" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><path d="'+d+' L'+W+' '+H+' L0 '+H+' Z" fill="#3B6FF5" opacity=".08"/><path d="'+d+'" fill="none" stroke="#3B6FF5" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>';
+}
+function dbTile(l,v,s,spark){return '<div class="dbx-tile"><div class="l">'+l+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':'')+(spark||'')+'</div>';}
+function dbStagePill(k){const s=dbStageMeta(k);return '<span class="db-pill" style="background:'+s.bg+';color:'+s.color+'">'+s.icon+' '+s.label+'</span>';}
+
+// ---------- คำนวณ ----------
+function dbProgressStats(){
+  const rows=dbState.progress;if(!rows)return null;
+  const live=rows.filter(r=>!dbIsCancelled(r)&&(dbFilter.cat==='all'||r.category===dbFilter.cat));
+  const pending=live.filter(r=>r.stage!=='complete');
+  const byStage={};PL_STAGES.forEach(s=>byStage[s.key]=[]);
+  pending.forEach(r=>(byStage[r.stage]||(byStage[r.stage]=[])).push(r));
+  const cats={};rows.filter(r=>!dbIsCancelled(r)).forEach(r=>{const k=r.category||'(ไม่ระบุ)';const c=cats[k]||(cats[k]={total:0,done:0});c.total++;if(r.stage==='complete')c.done++;});
+  const nearDone=pending.filter(r=>r.stage==='caption'||r.stage==='scheduling');
+  return {live,pending,byStage,cats,nearDone};
+}
+function dbCalStats(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const days=[...Array(14)].map((_,i)=>dbIso(dbAddDays(today,i)));
+  const week=new Set(days.slice(0,7));
+  const mk=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  const thisM=mk(today),lastM=mk(new Date(today.getFullYear(),today.getMonth()-1,1));
+  const months=[...Array(12)].map((_,i)=>{const d=new Date(today.getFullYear(),today.getMonth()-9+i,1);return {key:mk(d),label:DB_MON[d.getMonth()],cnt:0};});
+  const chans=dbChans();
+  const plan={},noWeek=[],lead=[];let next7=0;
+  const daily=days.map(()=>0);
+  chans.forEach(ch=>{
+    const ps=dbState.cal[ch].filter(p=>p.date);
+    plan[ch]={};days.forEach(d=>plan[ch][d]=[]);
+    ps.forEach(p=>{if(plan[ch][p.date])plan[ch][p.date].push(p);const m=months.find(x=>x.key===p.date.slice(0,7));if(m)m.cnt++;});
+    days.forEach((d,i)=>daily[i]+=plan[ch][d].length);
+    const w=ps.filter(p=>week.has(p.date)).length;next7+=w;if(!w)noWeek.push(ch);
+    lead.push({ch,now:ps.filter(p=>p.date.slice(0,7)===thisM).length,prev:ps.filter(p=>p.date.slice(0,7)===lastM).length});
+  });
+  lead.sort((a,b)=>b.now-a.now||b.prev-a.prev);
+  return {days,week,plan,noWeek,next7,chans,months,thisM,daily,lead};
+}
+// จับคู่ปฏิทิน ⇄ Progress จากเลข id หน้าชื่อโพสต์ (เช่น "491 review จัดฟันใส")
+function dbMatchStats(P){
+  if(!P)return null;
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayIso=dbIso(today),wkEnd=dbIso(dbAddDays(today,7));
+  const byId={};
+  dbChans().forEach(ch=>(dbState.cal[ch]||[]).forEach(p=>{
+    const m=String(p.title||'').match(/^\s*(\d+)(?!\d)/);if(!m||!p.date)return;
+    (byId[m[1]]||(byId[m[1]]=[])).push({ch,date:p.date,title:p.title});
+  }));
+  const order=PL_STAGES.map(s=>s.key),capIdx=order.indexOf('caption');
+  const forgot=[],atRisk=[];
+  P.pending.forEach(it=>{
+    const ps=byId[String(it.id)];if(!ps)return;
+    const past=ps.filter(p=>p.date<todayIso).sort((a,b)=>b.date.localeCompare(a.date));
+    const future=ps.filter(p=>p.date>=todayIso).sort((a,b)=>a.date.localeCompare(b.date));
+    if(past.length)forgot.push({it,past,future});
+    const soon=future.filter(p=>p.date<wkEnd);
+    if(order.indexOf(it.stage)<capIdx&&soon.length)atRisk.push({it,p:soon[0],chs:[...new Set(soon.map(x=>x.ch))]});
+  });
+  forgot.sort((a,b)=>b.past[0].date.localeCompare(a.past[0].date));
+  atRisk.sort((a,b)=>a.p.date.localeCompare(b.p.date));
+  return {forgot,atRisk};
+}
+
+// ---------- วาด ----------
 function renderDashboard(){
   const sec=document.getElementById('dashboardSection');if(!sec||sec.style.display==='none')return;
-  dbBindDrop();
-  const P=dbProgressStats(),C=dbCalStats(),A=dbAdsStats(),O=dbOrgStats();
+  dbBindDrop();dbBindNav();dbRenderFilters();
+  const P=dbProgressStats(),C=dbCalStats(),A=dbAdsStats(),O=dbOrgStats(),M=dbMatchStats(P);
   const chLabel=ch=>(CHANNEL_META[ch]||{}).label||ch;
+  const chEmoji=ch=>(CHANNEL_META[ch]||{}).emoji||'📱';
+  const set=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h;};
+  const loading='<div class="db-empty">⏳ กำลังโหลด...</div>';
 
-  // tiles
+  // ---- tiles (3x2) ----
   let t='';
-  if(P){
-    t+=dbTile(dbFmt(P.pending.length),'งานค้างทั้งหมด','จาก '+dbFmt(P.live.length)+' คลิป');
-    t+=dbTile(dbFmt(P.nearDone.length),'ใกล้เสร็จ','ถึงขั้นแคปชั่น / ลงแพลน');
-  }else t+=dbTile('…','งานค้าง','กำลังโหลด Progress');
-  t+=dbTile(dbFmt(C.next7),'โพสต์ใน 7 วันข้างหน้า','รวมทุกช่อง');
-  t+=dbTile(dbFmt(C.overdue.length),'เลยวันแล้วยังไม่ลง','ย้อนหลัง 30 วัน');
-  if(A)t+=dbTile(dbBaht(A.T.spend),'ค่าโฆษณา','CPMe '+dbBaht(A.T.cpme)+' · '+dbFmt(A.T.msg)+' แชท');
-  if(O&&!O.error)t+=dbTile(dbFmt(O.T.avgReach),'Reach เฉลี่ย/โพสต์','Engagement '+dbFmt(O.T.er*100,1)+'% · '+O.T.posts+' โพสต์');
-  document.getElementById('dbTiles').innerHTML=t;
+  t+=dbTile('งานค้าง',P?dbFmt(P.pending.length)+'<small>/'+dbFmt(P.live.length)+'</small>':'…',P?'คลิปที่ยังไม่ complete':'กำลังโหลด');
+  t+=dbTile('ใกล้เสร็จ',P?dbFmt(P.nearDone.length):'…','ถึงขั้นแคปชั่น / ลงแพลน');
+  t+=dbTile('ลงแล้วแต่ยังไม่ติ๊ก',M&&C.chans.length?dbFmt(M.forgot.length):'…','เลยวันลงในปฏิทินแล้ว');
+  t+=dbTile('โพสต์ 7 วันข้างหน้า',dbFmt(C.next7),'รายวัน 14 วัน',dbSpark(C.daily));
+  t+=dbTile('ค่าโฆษณา',A?dbBaht(A.T.spend):'–',A?'CPMe '+dbBaht(A.T.cpme)+' · '+dbFmt(A.T.msg)+' แชท':'ยังไม่มีข้อมูล Ads');
+  if(O&&!O.error){
+    const s=[...O.posts].filter(p=>p.time).sort((a,b)=>(Date.parse(a.time)||0)-(Date.parse(b.time)||0)).map(p=>p.reach);
+    t+=dbTile('Reach เฉลี่ย/โพสต์',dbFmt(O.T.avgReach),'Engagement '+dbFmt(O.T.er*100,1)+'%',dbSpark(s.slice(-30)));
+  }else t+=dbTile('Reach เฉลี่ย/โพสต์','–','ยังไม่มีข้อมูล Organic');
+  set('dbTiles',t);
 
-  // insights
+  // ---- activity: โพสต์ต่อเดือน ----
+  const maxM=Math.max(...C.months.map(m=>m.cnt),1);
+  const nice=Math.ceil(maxM/(maxM>40?20:maxM>10?5:2))*(maxM>40?20:maxM>10?5:2);
+  set('dbActSub',dbFilter.ch==='all'?'ทุกช่อง':escHtml(chLabel(dbFilter.ch)));
+  set('dbActivity',C.chans.length?'<div class="dbx-act"><div class="y"><span>'+nice+'</span><span>'+Math.round(nice/2)+'</span><span>0</span></div><div class="cols">'+C.months.map(m=>{
+    const cls=m.key===C.thisM?' now':m.key>C.thisM?' fut':'';
+    return '<div class="col'+cls+'" title="'+m.label+' '+m.key.slice(0,4)+': '+m.cnt+' โพสต์'+(m.key>C.thisM?' (แพลนไว้)':'')+'"><div class="trk"><div class="fil" style="height:'+(m.cnt/nice*100)+'%"></div></div><div class="m">'+m.label+'</div></div>';
+  }).join('')+'</div></div>':loading);
+
+  // ---- insights ----
   const ins=[];
   if(P){
     const sched=P.byStage.scheduling||[];
@@ -5446,85 +5621,109 @@ function renderDashboard(){
     const cap=P.byStage.caption||[];
     if(cap.length)ins.push(['✍️','<b>'+cap.length+' คลิปรอแคปชั่น</b> — เขียนแคปชั่นชุดนี้แล้วจะพร้อมลงทันที']);
     const counts=PL_STAGES.filter(s=>s.key!=='complete').map(s=>({s,n:(P.byStage[s.key]||[]).length})).sort((a,b)=>b.n-a.n);
-    if(counts[0]&&counts[0].n>=5)ins.push(['🚧','<b>คอขวดอยู่ที่ขั้น '+counts[0].s.label+'</b> ('+counts[0].n+' คลิป) — ถ้าเคลียร์ขั้นนี้ได้ งานจะไหลไปขั้นถัดไปเร็วขึ้น']);
-    const old=[...P.pending].sort((a,b)=>(parseInt(a.id)||0)-(parseInt(b.id)||0)).slice(0,3);
-    if(old.length)ins.push(['🕰️','<b>งานค้างนานสุด</b>: '+old.map(r=>'#'+escHtml(r.id)+' '+escHtml(r.title.replace(/^\d+\s*/,'').slice(0,40))+' ('+dbStageMeta(r.stage).label+')').join(' · ')+' — ทำต่อหรือติด "ฆ่า" ในหมายเหตุ']);
+    if(counts[0]&&counts[0].n>=5)ins.push(['🚧','<b>คอขวดอยู่ที่ขั้น '+counts[0].s.label+'</b> ('+counts[0].n+' คลิป) — เคลียร์ขั้นนี้ได้ งานจะไหลไปขั้นถัดไปเร็วขึ้น']);
   }
-  if(C.noWeek.length)ins.push(['📭','<b>ยังไม่มีโพสต์ใน 7 วันข้างหน้า</b>: '+C.noWeek.map(chLabel).join(', ')]);
-  if(C.overdue.length)ins.push(['⏰','<b>'+C.overdue.length+' โพสต์เลยวันแล้วแต่ยังไม่ได้ติ๊ก Posted</b> — ถ้าลงแล้วอย่าลืมเปลี่ยนสถานะ ถ้ายังไม่ลงให้ย้ายวัน']);
+  if(M&&M.forgot.length)ins.push(['✅','<b>'+M.forgot.length+' คลิปน่าจะลงไปแล้วแต่ยังไม่ติ๊ก complete</b> — ดูกล่อง "น่าจะลงแล้ว" ด้านล่าง แล้วกดติ๊กได้เลย']);
+  if(M&&M.atRisk.length)ins.push(['⚠️','<b>'+M.atRisk.length+' คลิปจะลงใน 7 วันข้างหน้าแต่ยังไม่ถึงขั้นแคปชั่น</b>: '+M.atRisk.slice(0,3).map(x=>dbDateThai(x.p.date)+' #'+escHtml(x.it.id)+' ('+dbStageMeta(x.it.stage).label+')').join(', ')+' — เร่งหรือเลื่อนวันลง']);
+  if(C.noWeek.length&&C.chans.length)ins.push(['📭','<b>ยังไม่มีโพสต์ใน 7 วันข้างหน้า</b>: '+C.noWeek.map(chLabel).join(', ')]);
   if(A){
-    const bad=A.ads.filter(a=>a.rec&&(a.rec.i==='🛑'||a.rec.i==='⚠️'));
-    const good=A.ads.filter(a=>a.rec&&a.rec.i==='🚀');
+    const good=A.ads.filter(a=>a.rec&&a.rec.i==='🚀'),bad=A.ads.filter(a=>a.rec&&(a.rec.i==='🛑'||a.rec.i==='⚠️'));
     if(good.length)ins.push(['🚀','<b>แอดที่ควรเพิ่มงบ</b>: '+good.slice(0,3).map(a=>escHtml(a.name)+' (CPMe '+dbBaht(a.cpme)+')').join(', ')]);
     if(bad.length)ins.push(['🛑','<b>แอดที่ควรปิดหรือเปลี่ยน creative</b>: '+bad.slice(0,3).map(a=>escHtml(a.name)+(a.msg?' (CPMe '+dbBaht(a.cpme)+')':' (0 แชท)')).join(', ')]);
   }
-  if(O&&!O.error&&O.byType.length>1){
-    const ok=O.byType.filter(x=>x.n>=3);
-    if(ok.length>1)ins.push(['📈','<b>'+escHtml(ok[0].k)+'</b> ได้ reach เฉลี่ยสูงสุด ('+dbFmt(ok[0].avg)+'/โพสต์) สูงกว่า '+escHtml(ok[ok.length-1].k)+' '+dbFmt(ok[0].avg/Math.max(ok[ok.length-1].avg,1),1)+' เท่า — ลองเพิ่มสัดส่วนแบบนี้']);
-  }
-  if(!A&&!O)ins.push(['📥','ยังไม่มีข้อมูล Meta — อัปโหลด CSV ด้านล่างเพื่อดูคำแนะนำเรื่องแอดและโพสต์']);
-  document.getElementById('dbInsights').innerHTML=ins.length?ins.map(x=>'<li><span class="ic">'+x[0]+'</span><span>'+x[1]+'</span></li>').join(''):'<li><span class="ic">✅</span><span>ไม่มีอะไรค้างเร่งด่วน</span></li>';
+  if(O&&!O.error){const ok=O.byType.filter(x=>x.n>=3);
+    if(ok.length>1)ins.push(['📈','<b>'+escHtml(ok[0].k)+'</b> ได้ reach เฉลี่ยสูงสุด ('+dbFmt(ok[0].avg)+'/โพสต์) สูงกว่า '+escHtml(ok[ok.length-1].k)+' '+dbFmt(ok[0].avg/Math.max(ok[ok.length-1].avg,1),1)+' เท่า — ลองเพิ่มสัดส่วนแบบนี้']);}
+  if(!A&&!O)ins.push(['📥','ยังไม่มีข้อมูล Meta — อัปโหลด CSV ในส่วน Meta Ads / Organic เพื่อดูคำแนะนำเรื่องแอดและโพสต์']);
+  set('dbInsights',ins.length?ins.map(x=>'<li><span class="ic">'+x[0]+'</span><span>'+x[1]+'</span></li>').join(''):'<li><span class="ic">✅</span><span>ไม่มีอะไรค้างเร่งด่วน</span></li>');
 
-  // progress
+  // ---- งานค้าง ----
   if(P){
-    document.getElementById('dbStages').innerHTML=dbBars(PL_STAGES.filter(s=>s.key!=='complete').map(s=>({label:s.icon+' '+s.label,value:(P.byStage[s.key]||[]).length,color:s.color})));
-    document.getElementById('dbCats').innerHTML=dbBars(Object.entries(P.byCat).sort((a,b)=>b[1]-a[1]).map(([k,n])=>({label:k,value:n})));
+    const stg=PL_STAGES.filter(s=>s.key!=='complete').map(s=>({s,n:(P.byStage[s.key]||[]).length}));
+    const tot=Math.max(P.pending.length,1);
+    set('dbStages',dbHRows(stg.map(x=>({icon:x.s.icon,iconBg:x.s.bg,label:x.s.label,value:x.n,right:'<b>'+x.n+'</b> คลิป · '+Math.round(x.n/tot*100)+'%',tip:x.s.label+': '+x.n+' คลิป'}))
+      ,'bad'));
+    const cats=Object.entries(P.cats).filter(([k,c])=>c.total>=5).map(([k,c])=>({k,...c,pct:c.done/c.total})).sort((a,b)=>b.pct-a.pct||b.total-a.total);
+    set('dbCats',dbHRows(cats.slice(0,7).map(c=>({icon:'📂',iconBg:'#ECFDF3',label:c.k,value:c.pct,max:1,right:'<b>'+Math.round(c.pct*100)+'%</b> · '+c.done+'/'+c.total,tip:c.k+': เสร็จ '+c.done+' จาก '+c.total+' คลิป (ค้าง '+(c.total-c.done)+')'})),'good'));
     const order=PL_STAGES.map(s=>s.key);
     const list=[...P.pending].sort((a,b)=>order.indexOf(b.stage)-order.indexOf(a.stage)||(parseInt(a.id)||0)-(parseInt(b.id)||0));
-    document.getElementById('dbPending').innerHTML=list.length?'<table class="db-table"><thead><tr><th class="num">id</th><th>ชื่อคลิป</th><th>ช่องหลัก</th><th>ขั้นตอน</th><th>เพิ่มเมื่อ</th></tr></thead><tbody>'+list.map(r=>{
+    set('dbPending',list.length?'<table class="db-table"><thead><tr><th class="num">id</th><th>ชื่อคลิป</th><th>ช่องหลัก</th><th>ขั้นตอน</th><th>เพิ่มเมื่อ</th></tr></thead><tbody>'+list.map(r=>{
       const ago=dbDaysAgo(r.addedAt);
-      return '<tr><td class="num">'+escHtml(r.id)+'</td><td>'+escHtml(r.title)+(r.note?'<div style="font-size:10px;color:#9AA8B5">📎 '+escHtml(r.note)+'</div>':'')+'</td><td>'+escHtml(r.category)+'</td><td>'+dbStagePill(r.stage)+'</td><td style="white-space:nowrap">'+(r.addedAt?dbDateThai(r.addedAt)+(ago!=null?' <span style="color:#9AA8B5">('+ago+' วัน)</span>':''):'<span style="color:#C5CDD6">–</span>')+'</td></tr>';
-    }).join('')+'</tbody></table>':'<div class="db-empty">ไม่มีงานค้าง 🎉</div>';
-  }else['dbStages','dbCats','dbPending'].forEach(id=>document.getElementById(id).innerHTML='<div class="db-empty">⏳ กำลังโหลดจาก Progress...</div>');
+      return '<tr><td class="num">'+escHtml(r.id)+'</td><td>'+escHtml(r.title)+(r.note?'<div style="font-size:10px;color:#9CA3AF">📎 '+escHtml(r.note)+'</div>':'')+'</td><td>'+escHtml(r.category)+'</td><td>'+dbStagePill(r.stage)+'</td><td style="white-space:nowrap">'+(r.addedAt?dbDateThai(r.addedAt)+(ago!=null?' <span style="color:#9CA3AF">('+ago+' วัน)</span>':''):'<span style="color:#D1D5DB">–</span>')+'</td></tr>';
+    }).join('')+'</tbody></table>':'<div class="db-empty">ไม่มีงานค้าง 🎉</div>');
+  }else['dbStages','dbCats','dbPending'].forEach(id=>set(id,loading));
 
-  // plan grid
+  // ---- ลงแล้วแต่ยังไม่ติ๊ก ----
+  const tickBtn=document.getElementById('dbTickAllBtn');
+  if(M&&C.chans.length){
+    const fmtPosts=ps=>ps.map(p=>escHtml(chLabel(p.ch))+' '+dbDateThai(p.date)).join(', ');
+    const tickable=M.forgot.filter(x=>!x.future.length).length;
+    tickBtn.style.display=tickable?'inline-block':'none';
+    tickBtn.textContent='✅ ติ๊กทั้งหมด ('+tickable+')';
+    set('dbForgot',M.forgot.length?'<table class="db-table"><thead><tr><th class="num">id</th><th>ชื่อคลิป</th><th>ขั้นใน Sheet</th><th>ลงไปแล้ว</th><th>ยังมีลงอีก</th><th></th></tr></thead><tbody>'+M.forgot.map(x=>
+      '<tr><td class="num">'+escHtml(x.it.id)+'</td><td>'+escHtml(x.it.title)+'</td><td>'+dbStagePill(x.it.stage)+'</td><td style="font-size:11px;color:#6B7280">'+fmtPosts(x.past.slice(0,3))+(x.past.length>3?' …':'')+'</td><td style="font-size:11px;color:#B45309">'+(x.future.length?fmtPosts(x.future.slice(0,2)):'')+'</td>'
+      +'<td><button class="db-btn" style="white-space:nowrap" data-id="'+escHtml(x.it.id)+'" onclick="dbTickComplete([this.dataset.id])">✅ complete</button></td></tr>').join('')+'</tbody></table>':'<div class="db-empty">ไม่มีคลิปที่ลืมติ๊ก 👍</div>');
+  }else{tickBtn.style.display='none';set('dbForgot',loading);}
+
+  // ---- แพลน 14 วัน ----
+  const CST={posted:'#22C55E',ready:'#F59E0B',draft:'#94A3B8'};
   if(C.chans.length){
-    let h='<table class="db-plan"><thead><tr><th class="ch"></th>'+C.days.map(d=>{const x=new Date(d+'T00:00:00');const we=x.getDay()===0||x.getDay()===6;return '<th style="'+(we?'color:#C0392B':'')+'">'+DB_DAYS[x.getDay()]+'<br>'+x.getDate()+'</th>';}).join('')+'</tr></thead><tbody>';
+    let h='<table class="db-plan"><thead><tr><th class="ch"></th>'+C.days.map(d=>{const x=new Date(d+'T00:00:00');const we=x.getDay()===0||x.getDay()===6;return '<th style="'+(we?'color:#F0483E':'')+'">'+DB_DAYS[x.getDay()]+'<br>'+x.getDate()+'</th>';}).join('')+'</tr></thead><tbody>';
     C.chans.forEach(ch=>{
-      h+='<tr><th class="ch">'+escHtml(chLabel(ch))+'</th>';
+      const active=C.days.some(d=>C.plan[ch][d].length);
+      h+='<tr><th class="ch">'+chEmoji(ch)+' '+escHtml(chLabel(ch))+'</th>';
       C.days.forEach(d=>{
         const ps=C.plan[ch][d];
-        if(!ps.length){h+='<td class="empty'+(C.week.has(d)?' gap':'')+'" title="'+escHtml(chLabel(ch)+' · '+dbDateThai(d)+': ยังไม่มีโพสต์')+'">·</td>';return;}
+        if(!ps.length){h+='<td class="empty'+(active&&C.week.has(d)?' gap':'')+'" title="'+escHtml(chLabel(ch)+' · '+dbDateThai(d)+': ยังไม่มีโพสต์')+'">·</td>';return;}
         const st=ps.every(p=>p.status==='posted')?'posted':ps.some(p=>p.status==='ready'||p.status==='posted')?'ready':'draft';
         const tip=chLabel(ch)+' · '+dbDateThai(d)+'\n'+ps.map(p=>'• '+p.title+' ('+(DB_CAL_STATUS[p.status]||DB_CAL_STATUS.draft).l+')').join('\n');
-        h+='<td style="background:'+DB_CAL_STATUS[st].c+'" title="'+escHtml(tip)+'">'+ps.length+'</td>';
+        h+='<td style="background:'+CST[st]+'" title="'+escHtml(tip)+'">'+ps.length+'</td>';
       });
       h+='</tr>';
     });
-    document.getElementById('dbPlan').innerHTML=h+'</tbody></table>';
-    document.getElementById('dbMonth').innerHTML='<table class="db-table"><thead><tr><th>ช่อง</th><th class="num">ทั้งหมด</th><th class="num">ลงแล้ว</th><th class="num">พร้อมลง</th><th style="width:35%">ความคืบหน้า</th></tr></thead><tbody>'+C.chans.map(ch=>{
-      const m=C.month[ch];const pct=m.total?m.posted/m.total*100:0;
-      return '<tr title="'+escHtml(chLabel(ch)+': ลงแล้ว '+m.posted+'/'+m.total)+'"><td>'+escHtml(chLabel(ch))+'</td><td class="num">'+m.total+'</td><td class="num">'+m.posted+'</td><td class="num">'+m.ready+'</td><td><div style="height:10px;background:#F0F4F8;border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:#27AE60"></div></div></td></tr>';
-    }).join('')+'</tbody></table>';
-    document.getElementById('dbOverdue').innerHTML=C.overdue.length?'<table class="db-table"><thead><tr><th>วันที่</th><th>ช่อง</th><th>โพสต์</th><th>สถานะ</th></tr></thead><tbody>'+C.overdue.map(p=>'<tr><td style="white-space:nowrap">'+dbDateThai(p.date)+'</td><td style="white-space:nowrap">'+escHtml(chLabel(p.ch))+'</td><td>'+escHtml(p.title)+'</td><td><span class="db-pill" style="background:#F4F7FB;color:'+(DB_CAL_STATUS[p.status]||DB_CAL_STATUS.draft).c+'">'+(DB_CAL_STATUS[p.status]||DB_CAL_STATUS.draft).l+'</span></td></tr>').join('')+'</tbody></table>':'<div class="db-empty">ไม่มีโพสต์ค้าง 👍</div>';
-  }else['dbPlan','dbMonth','dbOverdue'].forEach(id=>document.getElementById(id).innerHTML='<div class="db-empty">⏳ กำลังโหลดปฏิทิน...</div>');
+    set('dbPlan',h+'</tbody></table>');
+    set('dbLeader',C.lead.map((x,i)=>{
+      const ar=x.now>x.prev?'<span class="up">▲</span>':x.now<x.prev?'<span class="dn">▼</span>':'<span class="eq">●</span>';
+      return '<div class="it" title="'+escHtml(chLabel(x.ch)+': เดือนนี้ '+x.now+' · เดือนก่อน '+x.prev)+'"><div class="av">'+chEmoji(x.ch)+'</div><div class="tx"><b>'+escHtml(chLabel(x.ch))+'</b><span>เดือนนี้ '+x.now+' โพสต์ · เดือนก่อน '+x.prev+'</span></div><div class="rk">'+(i+1)+' '+ar+'</div></div>';
+    }).join('')||'<div class="db-empty">ไม่มีข้อมูล</div>');
+  }else['dbPlan','dbLeader'].forEach(id=>set(id,loading));
+  set('dbAtRisk',M&&C.chans.length?(M.atRisk.length?M.atRisk.map(x=>{const s=dbStageMeta(x.it.stage);
+    return '<div class="it"><div class="av" style="background:'+s.bg+'">'+s.icon+'</div><div class="tx"><b>#'+escHtml(x.it.id)+' '+escHtml(x.it.title.replace(/^\d+\s*/,''))+'</b><span>'+x.chs.map(c=>escHtml(chLabel(c))).join(', ')+' · ตอนนี้ขั้น '+s.label+'</span></div><div class="rk" style="font-size:11px;color:#F0483E;white-space:nowrap">'+dbDateThai(x.p.date)+'</div></div>';}).join(''):'<div class="db-empty">โพสต์ 7 วันข้างหน้างานพร้อมหมดแล้ว 👍</div>'):loading);
 
-  // meta ads
+  // ---- Meta Ads ----
   const ma=dbState.meta.ads;
-  document.getElementById('dbAdsInfo').innerHTML=ma?'📄 '+escHtml(ma.filename||'ข้อมูลใน Sheet')+(ma.uploadedAt?' · อัปโหลด '+new Date(ma.uploadedAt).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'')+(A&&A.range?' · ช่วง '+escHtml(A.range):''):'';
+  set('dbAdsInfo',ma?'📄 '+escHtml(ma.filename||'ข้อมูลใน Sheet')+(ma.uploadedAt?' · '+new Date(ma.uploadedAt).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'')+(A&&A.range?' · '+escHtml(A.range):''):'');
   if(A){
     let h='';
-    if(!A.hasMsg)h+='<div class="db-empty">⚠️ ไม่เจอคอลัมน์จำนวนแชท (การเริ่มการสนทนาทางข้อความ / ผลลัพธ์) — CPMe จะคำนวณไม่ได้</div>';
-    h+='<div class="db-subgrid"><div><h4>ค่าใช้จ่ายแยกตาม Funnel</h4>'+dbBars(Object.entries(A.fun).sort((a,b)=>b[1].spend-a[1].spend).map(([k,f])=>({label:k,value:f.spend,display:dbBaht(f.spend),tip:k+': ใช้ '+dbBaht(f.spend)+' · '+dbFmt(f.msg)+' แชท · CPMe '+dbBaht(f.msg?f.spend/f.msg:NaN)})))+'</div>';
-    h+='<div><h4>CPMe แยกตาม Funnel</h4>'+dbBars(Object.entries(A.fun).filter(([k,f])=>f.msg).map(([k,f])=>({label:k,value:f.spend/f.msg,display:dbBaht(f.spend/f.msg)})).sort((a,b)=>a.value-b.value))+'</div></div>';
-    h+='<div class="db-scroll" style="margin-top:14px"><table class="db-table"><thead><tr><th>โฆษณา</th><th>Funnel</th><th class="num">ใช้จ่าย</th><th class="num">Impr.</th><th class="num">Reach</th><th class="num">Freq.</th><th class="num">CPM</th><th class="num">แชท</th><th class="num">CPMe</th><th>คำแนะนำ</th></tr></thead><tbody>';
-    h+=A.ads.map(a=>'<tr><td>'+escHtml(a.name)+(a.campaign?'<div style="font-size:10px;color:#9AA8B5">'+escHtml(a.campaign)+'</div>':'')+'</td><td>'+(a.funnel?'<span class="db-pill" style="background:#EBF5FB;color:#1A6FB5">'+a.funnel+'</span>':'')+'</td><td class="num">'+dbBaht(a.spend)+'</td><td class="num">'+dbFmt(a.imp)+'</td><td class="num">'+dbFmt(a.reach)+'</td><td class="num">'+(isFinite(a.freq)?dbFmt(a.freq,2):'–')+'</td><td class="num">'+dbBaht(a.cpm)+'</td><td class="num">'+dbFmt(a.msg)+'</td><td class="num">'+dbBaht(a.cpme)+'</td><td>'+(a.rec?'<span class="db-pill" style="background:'+a.rec.bg+';color:'+a.rec.c+';white-space:normal">'+a.rec.i+' '+a.rec.t+'</span>':'')+'</td></tr>').join('');
+    if(!A.hasMsg)h+='<div class="db-empty">⚠️ ไม่เจอคอลัมน์จำนวนแชท (การเริ่มการสนทนาทางข้อความ / ผลลัพธ์) — CPMe คำนวณไม่ได้</div>';
+    const withMsg=A.ads.filter(a=>a.msg>0),minC=Math.min(...withMsg.map(a=>a.cpme),Infinity);
+    const bad=A.ads.filter(a=>a.rec&&(a.rec.i==='🛑'||a.rec.i==='⚠️')).sort((a,b)=>(isFinite(b.cpme)?b.cpme:1e9)-(isFinite(a.cpme)?a.cpme:1e9));
+    const maxBad=Math.max(...bad.map(a=>isFinite(a.cpme)?a.cpme:0),A.T.cpme||1);
+    h+='<div class="dbx-2" style="margin-top:0">';
+    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">แอดที่ควรแก้ / ปิด</h3>'+(bad.length?dbHRows(bad.slice(0,4).map(a=>({icon:a.rec.i,iconBg:'#FEF2F2',label:a.name,value:isFinite(a.cpme)?a.cpme:maxBad,max:maxBad,right:a.msg?'<b>'+dbBaht(a.cpme)+'</b>/แชท':'<b>0</b> แชท · '+dbBaht(a.spend),tip:a.rec.t})),'bad'):'<div class="db-empty">ไม่มีแอดที่น่าห่วง 👍</div>')+'</div>';
+    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">แอดที่คุ้มที่สุด (CPMe ต่ำ)</h3>'+(withMsg.length?dbHRows([...withMsg].sort((a,b)=>a.cpme-b.cpme).slice(0,4).map(a=>({icon:a.rec&&a.rec.i==='🚀'?'🚀':'💬',iconBg:'#ECFDF3',label:a.name,value:minC/a.cpme,max:1,right:'<b>'+dbBaht(a.cpme)+'</b>/แชท',tip:a.name+': '+dbFmt(a.msg)+' แชท จาก '+dbBaht(a.spend)})),'good'):'<div class="db-empty">ยังไม่มีแอดที่ได้แชท</div>')+'</div>';
+    h+='</div>';
+    h+='<div class="dbx-2"><div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">ค่าใช้จ่ายตาม Funnel</h3>'+dbHRows(Object.entries(A.fun).sort((a,b)=>b[1].spend-a[1].spend).map(([k,f])=>({icon:'🎯',iconBg:'#EEF2FF',label:k,value:f.spend,right:'<b>'+dbBaht(f.spend)+'</b>',tip:k+': '+dbFmt(f.msg)+' แชท · CPMe '+dbBaht(f.msg?f.spend/f.msg:NaN)})),'blue')+'</div>';
+    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">CPMe ตาม Funnel</h3>'+dbHRows(Object.entries(A.fun).filter(([k,f])=>f.msg).map(([k,f])=>({icon:'💬',iconBg:'#EEF2FF',label:k,value:f.spend/f.msg,right:'<b>'+dbBaht(f.spend/f.msg)+'</b>/แชท'})).sort((a,b)=>a.value-b.value),'blue')+'</div></div>';
+    h+='<div class="db-scroll" style="margin-top:18px"><table class="db-table"><thead><tr><th>โฆษณา</th><th>Funnel</th><th class="num">ใช้จ่าย</th><th class="num">Impr.</th><th class="num">Reach</th><th class="num">Freq.</th><th class="num">CPM</th><th class="num">แชท</th><th class="num">CPMe</th><th>คำแนะนำ</th></tr></thead><tbody>';
+    h+=A.ads.map(a=>'<tr><td>'+escHtml(a.name)+(a.campaign?'<div style="font-size:10px;color:#9CA3AF">'+escHtml(a.campaign)+'</div>':'')+'</td><td>'+(a.funnel?'<span class="db-pill" style="background:#EEF2FF;color:#3B5BDB">'+a.funnel+'</span>':'')+'</td><td class="num">'+dbBaht(a.spend)+'</td><td class="num">'+dbFmt(a.imp)+'</td><td class="num">'+dbFmt(a.reach)+'</td><td class="num">'+(isFinite(a.freq)?dbFmt(a.freq,2):'–')+'</td><td class="num">'+dbBaht(a.cpm)+'</td><td class="num">'+dbFmt(a.msg)+'</td><td class="num">'+dbBaht(a.cpme)+'</td><td>'+(a.rec?'<span class="db-pill" style="background:'+a.rec.bg+';color:'+a.rec.c+';white-space:normal">'+a.rec.i+' '+a.rec.t+'</span>':'')+'</td></tr>').join('');
     h+='<tr style="font-weight:700"><td>รวม</td><td></td><td class="num">'+dbBaht(A.T.spend)+'</td><td class="num">'+dbFmt(A.T.imp)+'</td><td class="num">'+dbFmt(A.T.reach)+'</td><td class="num">'+(A.T.reach?dbFmt(A.T.imp/A.T.reach,2):'–')+'</td><td class="num">'+dbBaht(A.T.cpm)+'</td><td class="num">'+dbFmt(A.T.msg)+'</td><td class="num">'+dbBaht(A.T.cpme)+'</td><td></td></tr></tbody></table></div>';
-    document.getElementById('dbAds').innerHTML=h;
-  }else document.getElementById('dbAds').innerHTML=ma?'<div class="db-empty">⚠️ อ่านไฟล์ได้แต่ไม่เจอคอลัมน์ชื่อโฆษณา — export ใหม่แบบระดับ "โฆษณา (Ad)"</div>':'';
+    set('dbAds',h);
+  }else set('dbAds',ma?'<div class="db-empty">⚠️ อ่านไฟล์ได้แต่ไม่เจอคอลัมน์ชื่อโฆษณา — export ใหม่แบบระดับ "โฆษณา (Ad)"</div>':'');
 
-  // organic
+  // ---- Organic ----
   const mo=dbState.meta.organic;
-  document.getElementById('dbOrgInfo').innerHTML=mo?'📄 '+escHtml(mo.filename||'ข้อมูลใน Sheet')+(mo.uploadedAt?' · อัปโหลด '+new Date(mo.uploadedAt).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''):'';
-  if(O&&O.error){document.getElementById('dbOrg').innerHTML='<div class="db-empty">⚠️ '+escHtml(O.error)+'<br>คอลัมน์ที่เจอ: '+escHtml(O.headers.join(', '))+'</div>';}
+  set('dbOrgInfo',mo?'📄 '+escHtml(mo.filename||'ข้อมูลใน Sheet')+(mo.uploadedAt?' · '+new Date(mo.uploadedAt).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''):'');
+  if(O&&O.error)set('dbOrg','<div class="db-empty">⚠️ '+escHtml(O.error)+'<br>คอลัมน์ที่เจอ: '+escHtml(O.headers.join(', '))+'</div>');
   else if(O){
-    let h='<div class="db-subgrid">';
-    h+='<div><h4>Reach เฉลี่ยต่อโพสต์ แยกตามประเภท</h4>'+dbBars(O.byType.map(x=>({label:x.k+' ('+x.n+')',value:x.avg,tip:x.k+': '+x.n+' โพสต์ · reach เฉลี่ย '+dbFmt(x.avg)+' · engagement '+dbFmt(x.er*100,1)+'%'})))+'</div>';
-    if(O.byAcct.length>1)h+='<div><h4>Reach เฉลี่ยต่อโพสต์ แยกตามเพจ/บัญชี</h4>'+dbBars(O.byAcct.map(x=>({label:x.k+' ('+x.n+')',value:x.avg,tip:x.k+': '+x.n+' โพสต์ · reach เฉลี่ย '+dbFmt(x.avg)+' · engagement '+dbFmt(x.er*100,1)+'%'})))+'</div>';
-    h+='</div><h4 style="font-size:13px;margin:16px 0 8px">🏆 10 โพสต์ reach สูงสุด</h4><div class="db-scroll"><table class="db-table"><thead><tr><th>เผยแพร่</th>'+(O.byAcct.length>1?'<th>บัญชี</th>':'')+'<th>ประเภท</th><th>โพสต์</th><th class="num">Reach</th><th class="num">Views</th><th class="num">Engagement</th></tr></thead><tbody>';
-    h+=O.top.map(p=>'<tr><td style="white-space:nowrap">'+escHtml(p.time)+'</td>'+(O.byAcct.length>1?'<td>'+escHtml(p.acct)+'</td>':'')+'<td>'+escHtml(p.type)+'</td><td>'+(p.link?'<a href="'+escHtml(p.link)+'" target="_blank" rel="noopener" style="color:var(--blue)">':'')+escHtml(p.desc.slice(0,70)||'(ไม่มีคำอธิบาย)')+(p.link?'</a>':'')+'</td><td class="num">'+dbFmt(p.reach)+'</td><td class="num">'+dbFmt(p.views)+'</td><td class="num">'+dbFmt(p.eng)+'</td></tr>').join('');
-    document.getElementById('dbOrg').innerHTML=h+'</tbody></table></div>';
-  }else document.getElementById('dbOrg').innerHTML='';
+    const TI={reels:'🎬',reel:'🎬',video:'🎬','วิดีโอ':'🎬','รีล':'🎬',photos:'🖼️',photo:'🖼️','รูปภาพ':'🖼️',carousel:'🎠','ภาพหมุน':'🎠',text:'📝',links:'🔗',stories:'📱'};
+    const ti=k=>TI[String(k).toLowerCase()]||'📄';
+    let h='<div class="dbx-2" style="margin-top:0">';
+    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">Reach เฉลี่ยต่อโพสต์ — ตามประเภท</h3>'+dbHRows(O.byType.map(x=>({icon:ti(x.k),iconBg:'#ECFDF3',label:x.k+' ('+x.n+' โพสต์)',value:x.avg,right:'<b>'+dbFmt(x.avg)+'</b> · ER '+dbFmt(x.er*100,1)+'%'})),'good')+'</div>';
+    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">Reach เฉลี่ยต่อโพสต์ — ตามเพจ/บัญชี</h3>'+(O.byAcct.length?dbHRows(O.byAcct.map(x=>({icon:'👤',iconBg:'#EEF2FF',label:x.k+' ('+x.n+' โพสต์)',value:x.avg,right:'<b>'+dbFmt(x.avg)+'</b> · ER '+dbFmt(x.er*100,1)+'%'})),'blue'):'<div class="db-empty">ไฟล์ไม่มีคอลัมน์ชื่อเพจ/บัญชี</div>')+'</div></div>';
+    h+='<h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:20px 0 8px">🏆 10 โพสต์ reach สูงสุด</h3><div class="db-scroll"><table class="db-table"><thead><tr><th>เผยแพร่</th>'+(O.byAcct.length>1?'<th>บัญชี</th>':'')+'<th>ประเภท</th><th>โพสต์</th><th class="num">Reach</th><th class="num">Views</th><th class="num">Engagement</th></tr></thead><tbody>';
+    h+=O.top.map(p=>'<tr><td style="white-space:nowrap">'+escHtml(p.time)+'</td>'+(O.byAcct.length>1?'<td>'+escHtml(p.acct)+'</td>':'')+'<td>'+escHtml(p.type)+'</td><td>'+(p.link?'<a href="'+escHtml(p.link)+'" target="_blank" rel="noopener" style="color:#3B5BDB">':'')+escHtml(p.desc.slice(0,70)||'(ไม่มีคำอธิบาย)')+(p.link?'</a>':'')+'</td><td class="num">'+dbFmt(p.reach)+'</td><td class="num">'+dbFmt(p.views)+'</td><td class="num">'+dbFmt(p.eng)+'</td></tr>').join('');
+    set('dbOrg',h+'</tbody></table></div>');
+  }else set('dbOrg','');
 }
 
 // ===== GLOBAL SEARCH =====

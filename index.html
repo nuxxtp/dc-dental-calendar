@@ -5394,24 +5394,38 @@ function dbOrgStats(){
     type:dbCol(H,['post type','ประเภทโพสต์','ประเภท']),
     link:dbCol(H,['permalink','ลิงก์ถาวร','ลิงก์']),
     reach:dbCol(H,['reach','การเข้าถึง'],ex),
-    views:dbCol(H,['views','ยอดดู','การดู','impressions','อิมเพรสชัน'],ex.concat(['second','วินาที','average','เฉลี่ย'])),
+    views:H.map(dbNormH).findIndex(h=>['views','ยอดดู','การดู','impressions','อิมเพรสชัน'].includes(h)),
     rcs:dbCol(H,['reactions, comments and shares','การแสดงความรู้สึก ความคิดเห็น และการแชร์','การแสดงความรู้สึก, ความคิดเห็น และการแชร์']),
     react:dbCol(H,['reactions','likes','การแสดงความรู้สึก','ถูกใจ'],[',',' และ','ความคิดเห็น']),
     comm:dbCol(H,['comments','ความคิดเห็น'],['reaction','การแสดงความรู้สึก']),
     share:dbCol(H,['shares','การแชร์'],['reaction','การแสดงความรู้สึก']),
     save:dbCol(H,['saves','การบันทึก','บันทึก']),
   };
-  if(c.reach<0)return {error:'หาคอลัมน์ Reach / การเข้าถึง ในไฟล์ไม่เจอ',headers:H};
+  // ไฟล์ export วิดีโอ (Reels/Video) ไม่มีคอลัมน์ Reach — ใช้ยอดวิวเป็นตัวชี้วัดหลักแทน
+  c.v3=dbCol(H,['3-second video views','การดูวิดีโอ 3 วินาที','video views','ยอดดูวิดีโอ']);
+  c.dur=dbCol(H,['duration (sec)','duration','ระยะเวลา (วินาที)','ระยะเวลา']);
+  c.avgSec=dbCol(H,['average seconds viewed','ระยะเวลาการดูเฉลี่ย','วินาทีที่ดูโดยเฉลี่ย']);
+  c.min1=dbCol(H,['1-minute video views','การดูวิดีโอ 1 นาที']);
+  const mainCol=c.reach>=0?c.reach:c.views>=0?c.views:c.v3;
+  if(mainCol<0)return {error:'หาคอลัมน์ Reach / Views ในไฟล์ไม่เจอ',headers:H};
+  const metricLabel=c.reach>=0?'Reach':mainCol===c.v3?'Views (3 วิ)':'Views';
+  const durBucket=sec=>sec<=0?'ไม่ทราบความยาว':sec<30?'สั้นกว่า 30 วิ':sec<60?'30–60 วิ':sec<180?'1–3 นาที':'ยาวกว่า 3 นาที';
   const posts=m.rows.map(r=>{
     const eng=c.rcs>=0?dbNum(r[c.rcs]):[c.react,c.comm,c.share,c.save].reduce((s,i)=>s+(i>=0?dbNum(r[i]):0),0);
-    return {acct:c.acct>=0?r[c.acct]:'',desc:c.desc>=0?String(r[c.desc]||''):'',time:c.time>=0?r[c.time]:'',type:c.type>=0?(r[c.type]||'อื่นๆ'):'อื่นๆ',
-      link:c.link>=0?r[c.link]:'',reach:dbNum(r[c.reach]),views:c.views>=0?dbNum(r[c.views]):0,eng};
+    const dur=c.dur>=0?dbNum(r[c.dur]):0;
+    return {acct:c.acct>=0?r[c.acct]:'',desc:c.desc>=0?String(r[c.desc]||''):'',time:c.time>=0?r[c.time]:'',
+      type:c.type>=0?(r[c.type]||'อื่นๆ'):c.dur>=0?durBucket(dur):'อื่นๆ',
+      link:c.link>=0?r[c.link]:'',reach:dbNum(r[mainCol]),views:c.views>=0&&c.views!==mainCol?dbNum(r[c.views]):c.v3>=0&&c.v3!==mainCol?dbNum(r[c.v3]):0,
+      eng,dur,avgSec:c.avgSec>=0?dbNum(r[c.avgSec]):NaN,min1:c.min1>=0?dbNum(r[c.min1]):NaN};
   }).filter(p=>p.reach||p.views||p.desc);
   const T={posts:posts.length,reach:posts.reduce((s,p)=>s+p.reach,0),eng:posts.reduce((s,p)=>s+p.eng,0),views:posts.reduce((s,p)=>s+p.views,0)};
   T.avgReach=T.posts?T.reach/T.posts:0;T.er=T.reach?T.eng/T.reach:0;
   const grp=key=>{const g={};posts.forEach(p=>{const k=p[key]||'อื่นๆ';const x=g[k]||(g[k]={n:0,reach:0,eng:0});x.n++;x.reach+=p.reach;x.eng+=p.eng;});
     return Object.entries(g).map(([k,x])=>({k,n:x.n,avg:x.reach/x.n,er:x.reach?x.eng/x.reach:0})).sort((a,b)=>b.avg-a.avg);};
-  return {posts,T,byType:grp('type'),byAcct:c.acct>=0?grp('acct'):[],top:[...posts].sort((a,b)=>b.reach-a.reach).slice(0,10)};
+  const typeLabel=c.type>=0?'ประเภทโพสต์':c.dur>=0?'ความยาวคลิป':'ประเภทโพสต์';
+  const hasAvgSec=c.avgSec>=0,hasViews2=posts.some(p=>p.views);
+  const secs=posts.filter(p=>isFinite(p.avgSec));T.avgSec=secs.length?secs.reduce((s,p)=>s+p.avgSec,0)/secs.length:NaN;
+  return {posts,T,byType:grp('type'),byAcct:c.acct>=0?grp('acct'):[],top:[...posts].sort((a,b)=>b.reach-a.reach).slice(0,10),metricLabel,typeLabel,hasAvgSec,hasViews2};
 }
 
 // ---------- อัปโหลด ----------
@@ -5600,7 +5614,7 @@ function renderDashboard(){
   t+=dbTile('ค่าโฆษณา',A?dbBaht(A.T.spend):'–',A?'CPMe '+dbBaht(A.T.cpme)+' · '+dbFmt(A.T.msg)+' แชท':'ยังไม่มีข้อมูล Ads');
   if(O&&!O.error){
     const s=[...O.posts].filter(p=>p.time).sort((a,b)=>(Date.parse(a.time)||0)-(Date.parse(b.time)||0)).map(p=>p.reach);
-    t+=dbTile('Reach เฉลี่ย/โพสต์',dbFmt(O.T.avgReach),'Engagement '+dbFmt(O.T.er*100,1)+'%',dbSpark(s.slice(-30)));
+    t+=dbTile(O.metricLabel+' เฉลี่ย/โพสต์',dbFmt(O.T.avgReach),'Engagement '+dbFmt(O.T.er*100,1)+'%'+(isFinite(O.T.avgSec)?' · ดูเฉลี่ย '+dbFmt(O.T.avgSec,1)+' วิ':''),dbSpark(s.slice(-30)));
   }else t+=dbTile('Reach เฉลี่ย/โพสต์','–','ยังไม่มีข้อมูล Organic');
   set('dbTiles',t);
 
@@ -5632,7 +5646,7 @@ function renderDashboard(){
     if(bad.length)ins.push(['🛑','<b>แอดที่ควรปิดหรือเปลี่ยน creative</b>: '+bad.slice(0,3).map(a=>escHtml(a.name)+(a.msg?' (CPMe '+dbBaht(a.cpme)+')':' (0 แชท)')).join(', ')]);
   }
   if(O&&!O.error){const ok=O.byType.filter(x=>x.n>=3);
-    if(ok.length>1)ins.push(['📈','<b>'+escHtml(ok[0].k)+'</b> ได้ reach เฉลี่ยสูงสุด ('+dbFmt(ok[0].avg)+'/โพสต์) สูงกว่า '+escHtml(ok[ok.length-1].k)+' '+dbFmt(ok[0].avg/Math.max(ok[ok.length-1].avg,1),1)+' เท่า — ลองเพิ่มสัดส่วนแบบนี้']);}
+    if(ok.length>1)ins.push(['📈',escHtml(O.typeLabel)+' <b>'+escHtml(ok[0].k)+'</b> ได้ '+O.metricLabel+' เฉลี่ยสูงสุด ('+dbFmt(ok[0].avg)+'/โพสต์) สูงกว่า '+escHtml(ok[ok.length-1].k)+' '+dbFmt(ok[0].avg/Math.max(ok[ok.length-1].avg,1),1)+' เท่า — ลองเพิ่มสัดส่วนแบบนี้']);}
   if(!A&&!O)ins.push(['📥','ยังไม่มีข้อมูล Meta — อัปโหลด CSV ในส่วน Meta Ads / Organic เพื่อดูคำแนะนำเรื่องแอดและโพสต์']);
   set('dbInsights',ins.length?ins.map(x=>'<li><span class="ic">'+x[0]+'</span><span>'+x[1]+'</span></li>').join(''):'<li><span class="ic">✅</span><span>ไม่มีอะไรค้างเร่งด่วน</span></li>');
 
@@ -5718,10 +5732,10 @@ function renderDashboard(){
     const TI={reels:'🎬',reel:'🎬',video:'🎬','วิดีโอ':'🎬','รีล':'🎬',photos:'🖼️',photo:'🖼️','รูปภาพ':'🖼️',carousel:'🎠','ภาพหมุน':'🎠',text:'📝',links:'🔗',stories:'📱'};
     const ti=k=>TI[String(k).toLowerCase()]||'📄';
     let h='<div class="dbx-2" style="margin-top:0">';
-    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">Reach เฉลี่ยต่อโพสต์ — ตามประเภท</h3>'+dbHRows(O.byType.map(x=>({icon:ti(x.k),iconBg:'#ECFDF3',label:x.k+' ('+x.n+' โพสต์)',value:x.avg,right:'<b>'+dbFmt(x.avg)+'</b> · ER '+dbFmt(x.er*100,1)+'%'})),'good')+'</div>';
-    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">Reach เฉลี่ยต่อโพสต์ — ตามเพจ/บัญชี</h3>'+(O.byAcct.length?dbHRows(O.byAcct.map(x=>({icon:'👤',iconBg:'#EEF2FF',label:x.k+' ('+x.n+' โพสต์)',value:x.avg,right:'<b>'+dbFmt(x.avg)+'</b> · ER '+dbFmt(x.er*100,1)+'%'})),'blue'):'<div class="db-empty">ไฟล์ไม่มีคอลัมน์ชื่อเพจ/บัญชี</div>')+'</div></div>';
-    h+='<h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:20px 0 8px">🏆 10 โพสต์ reach สูงสุด</h3><div class="db-scroll"><table class="db-table"><thead><tr><th>เผยแพร่</th>'+(O.byAcct.length>1?'<th>บัญชี</th>':'')+'<th>ประเภท</th><th>โพสต์</th><th class="num">Reach</th><th class="num">Views</th><th class="num">Engagement</th></tr></thead><tbody>';
-    h+=O.top.map(p=>'<tr><td style="white-space:nowrap">'+escHtml(p.time)+'</td>'+(O.byAcct.length>1?'<td>'+escHtml(p.acct)+'</td>':'')+'<td>'+escHtml(p.type)+'</td><td>'+(p.link?'<a href="'+escHtml(p.link)+'" target="_blank" rel="noopener" style="color:#3B5BDB">':'')+escHtml(p.desc.slice(0,70)||'(ไม่มีคำอธิบาย)')+(p.link?'</a>':'')+'</td><td class="num">'+dbFmt(p.reach)+'</td><td class="num">'+dbFmt(p.views)+'</td><td class="num">'+dbFmt(p.eng)+'</td></tr>').join('');
+    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">'+O.metricLabel+' เฉลี่ยต่อโพสต์ — ตาม'+escHtml(O.typeLabel)+'</h3>'+dbHRows(O.byType.map(x=>({icon:ti(x.k),iconBg:'#ECFDF3',label:x.k+' ('+x.n+' โพสต์)',value:x.avg,right:'<b>'+dbFmt(x.avg)+'</b> · ER '+dbFmt(x.er*100,1)+'%'})),'good')+'</div>';
+    h+='<div><h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:0 0 14px">'+O.metricLabel+' เฉลี่ยต่อโพสต์ — ตามเพจ/บัญชี</h3>'+(O.byAcct.length?dbHRows(O.byAcct.map(x=>({icon:'👤',iconBg:'#EEF2FF',label:x.k+' ('+x.n+' โพสต์)',value:x.avg,right:'<b>'+dbFmt(x.avg)+'</b> · ER '+dbFmt(x.er*100,1)+'%'})),'blue'):'<div class="db-empty">ไฟล์ไม่มีคอลัมน์ชื่อเพจ/บัญชี</div>')+'</div></div>';
+    h+='<h3 style="font-size:12.5px;font-weight:600;color:#4B5563;margin:20px 0 8px">🏆 10 โพสต์ '+O.metricLabel+' สูงสุด</h3><div class="db-scroll"><table class="db-table"><thead><tr><th>เผยแพร่</th>'+(O.byAcct.length>1?'<th>บัญชี</th>':'')+'<th>'+escHtml(O.typeLabel)+'</th><th>โพสต์</th><th class="num">'+O.metricLabel+'</th>'+(O.hasViews2?'<th class="num">Views</th>':'')+(O.hasAvgSec?'<th class="num">ดูเฉลี่ย (วิ)</th>':'')+'<th class="num">Engagement</th></tr></thead><tbody>';
+    h+=O.top.map(p=>'<tr><td style="white-space:nowrap">'+escHtml(p.time)+'</td>'+(O.byAcct.length>1?'<td>'+escHtml(p.acct)+'</td>':'')+'<td>'+escHtml(p.type)+'</td><td>'+(p.link?'<a href="'+escHtml(p.link)+'" target="_blank" rel="noopener" style="color:#3B5BDB">':'')+escHtml(p.desc.slice(0,70)||(p.dur?'คลิปยาว '+Math.round(p.dur)+' วิ':'(ไม่มีคำอธิบาย)'))+(p.link?'</a>':'')+'</td><td class="num">'+dbFmt(p.reach)+'</td>'+(O.hasViews2?'<td class="num">'+dbFmt(p.views)+'</td>':'')+(O.hasAvgSec?'<td class="num">'+(isFinite(p.avgSec)?dbFmt(p.avgSec,1):'–')+'</td>':'')+'<td class="num">'+dbFmt(p.eng)+'</td></tr>').join('');
     set('dbOrg',h+'</tbody></table></div>');
   }else set('dbOrg','');
 }
